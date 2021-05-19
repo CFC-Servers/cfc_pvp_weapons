@@ -224,7 +224,8 @@ function SWEP:PrimaryAttack()
     -- Fire sound
     self:TakePrimaryAmmo( 1 )
     self:Reload()
-    if CLIENT then
+
+    if SERVER then -- Fix for double playing sounds, for some reason this happens if it's only client sided
         self:GetOwner():EmitSound( "npc/sniper/echo1.wav", 100, 140, 1, CHAN_WEAPON )
     end
 
@@ -234,6 +235,8 @@ function SWEP:PrimaryAttack()
     local ply = self:GetOwner()
     local eyeTrace = ply:GetEyeTrace()
     local distance = eyeTrace.HitPos:Distance( ply:GetPos() )
+    local isPlayer = eyeTrace.Entity:IsPlayer()
+    local isNpc = eyeTrace.Entity:IsNPC()
 
     if CLIENT then
         timer.Create("cfc_taser_ready_sound" .. self:EntIndex(), taserCooldown, 1, function()
@@ -256,24 +259,27 @@ function SWEP:PrimaryAttack()
     if distance > range then
         spawnPos = ply:GetShootPos() + ( ply:EyeAngles():Forward() * range )
         shouldTase = false
-
-        local effectdata = EffectData()
-        effectdata:SetOrigin( spawnPos )
-        effectdata:SetMagnitude( 1 )
-        effectdata:SetScale( 1 )
-        effectdata:SetRadius( 1 )
-        util.Effect( "Sparks", effectdata )
     else
         spawnPos = eyeTrace.HitPos
         shouldTase = true
+    end
 
-        local effectdata = EffectData()
-        effectdata:SetOrigin( spawnPos )
-        effectdata:SetMagnitude( 3 )
-        effectdata:SetScale( 1 )
-        effectdata:SetRadius( 3 )
-
-        util.Effect( "Sparks", effectdata )
+    if CLIENT then
+        if isPlayer or isNpc then
+            local effectdata = EffectData()
+            effectdata:SetOrigin( spawnPos )
+            effectdata:SetMagnitude( 3 )
+            effectdata:SetScale( 1 )
+            effectdata:SetRadius( 3 )
+            util.Effect( "Sparks", effectdata )
+        else
+            local effectdata = EffectData()
+            effectdata:SetOrigin( spawnPos )
+            effectdata:SetMagnitude( 1 )
+            effectdata:SetScale( 1 )
+            effectdata:SetRadius( 1 )
+            util.Effect( "Sparks", effectdata )
+        end
     end
 
     if CLIENT then return end
@@ -303,9 +309,6 @@ function SWEP:PrimaryAttack()
     end)
 
     if not shouldTase then return end
-
-    local isPlayer = eyeTrace.Entity:IsPlayer()
-    local isNpc = eyeTrace.Entity:IsNPC()
 
     if isPlayer or isNpc then
         local ragdoll
