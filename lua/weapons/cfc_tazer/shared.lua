@@ -138,8 +138,6 @@ local function tasePlayer( ply )
     ply:SpectateEntity( ragdoll )
     ply:StripWeapons()
 
-    -- Player tase sound
-    ragdoll:EmitSound( "npc/roller/mine/rmine_shockvehicle2.wav", 100, 100, 1, CHAN_WEAPON )
     timer.Create( "cfc_taser_unragdoll" .. ragdoll:EntIndex(), GetConVar( "cfc_taser_duration" ):GetInt(), 1, function()
         untasePlayer( ply, ragdoll )
     end)
@@ -206,49 +204,76 @@ function SWEP:Reload()
     if self:Clip1() == 0 then
         self:SendWeaponAnim( ACT_VM_RELOAD )
         -- Reload sound?
-        self:GetOwner():EmitSound( "weapons/stunstick/spark3.wav", 100, 100, 1, CHAN_WEAPON )
+        timer.Simple( 0.48, function()
+            self:GetOwner():EmitSound( "weapons/stunstick/spark3.wav", 100, 100, 1, CHAN_WEAPON )
+        end)
         self:SetClip1( 1 )
     end
 end
 
---local  pos = ply:getShootPos() + ( ply:getEyeAngles():getForward() * 100)
 function SWEP:PrimaryAttack()
     if not self:CanPrimaryAttack() then
         -- Not ready to shoot sound
-        self:EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
+        self:GetOwner():EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
         return
     end
 
     -- Fire sound
-    self:GetOwner():EmitSound( "npc/sniper/echo1.wav", 100, 140, 1, CHAN_WEAPON )
-
     self:TakePrimaryAmmo( 1 )
     self:Reload()
+    if CLIENT then
+        self:GetOwner():EmitSound( "npc/sniper/echo1.wav", 100, 140, 1, CHAN_WEAPON )
+    end
 
     local taserCooldown = GetConVar( "cfc_taser_cooldown" ):GetFloat()
     self:SetNextPrimaryFire( CurTime() + taserCooldown )
-    timer.Create("cfc_taser_ready_sound" .. self:EntIndex(), taserCooldown, 1, function()
-        -- Weapon ready sound
-        self:GetOwner():EmitSound( "weapons/ar2/ar2_reload_push.wav", 100, 100, 1, CHAN_WEAPON )
-    end)
 
     local ply = self:GetOwner()
     local eyeTrace = ply:GetEyeTrace()
     local distance = eyeTrace.HitPos:Distance( ply:GetPos() )
 
-    if CLIENT then return end
+    if CLIENT then
+        timer.Create("cfc_taser_ready_sound" .. self:EntIndex(), taserCooldown, 1, function()
+            -- Weapon ready sound
+            self:GetOwner():EmitSound( "weapons/ar2/ar2_reload_push.wav", 100, 100, 1, CHAN_WEAPON )
+        end)
+
+        local effectdata = EffectData()
+        effectdata:SetOrigin( self:GetPos() )
+        effectdata:SetMagnitude( 2 )
+        effectdata:SetScale( 1 )
+        effectdata:SetRadius( 2 )
+        util.Effect( "Sparks", effectdata )
+    end
 
     local range = GetConVar( "cfc_taser_range" ):GetInt()
-
     local spawnPos
     local shouldTase
+
     if distance > range then
         spawnPos = ply:GetShootPos() + ( ply:EyeAngles():Forward() * range )
         shouldTase = false
+
+        local effectdata = EffectData()
+        effectdata:SetOrigin( spawnPos )
+        effectdata:SetMagnitude( 2 )
+        effectdata:SetScale( 1 )
+        effectdata:SetRadius( 2 )
+        util.Effect( "Sparks", effectdata )
     else
         spawnPos = eyeTrace.HitPos
         shouldTase = true
+
+        local effectdata = EffectData()
+        effectdata:SetOrigin( spawnPos )
+        effectdata:SetMagnitude( 3 )
+        effectdata:SetScale( 1 )
+        effectdata:SetRadius( 3 )
+
+        util.Effect( "Sparks", effectdata )
     end
+
+    if CLIENT then return end
 
     local tazerBeamEnt = ents.Create( "prop_physics" )
     tazerBeamEnt:SetModel( "models/props_junk/garbage_newspaper001a.mdl" )
@@ -266,7 +291,6 @@ function SWEP:PrimaryAttack()
     tazerBeamEnt2:SetSolid( SOLID_NONE )
     tazerBeamEnt2:Spawn()
 
-    -- ply:WorldToLocal( ply:GetBonePosition( ply:LookupBone( "ValveBiped.Bip01_R_Hand" ) ) )
     constraint.Rope( tazerBeamEnt2, tazerBeamEnt, 0, 0, Vector( 0, 0, 0 ), Vector( 0, 1, 0 ), 0, 5000, 0, 1.5, "cable/blue_elec", false )
     constraint.Rope( tazerBeamEnt2, tazerBeamEnt, 0, 0, Vector( 0, 0, 0 ), Vector( 0, -1, 0 ), 0, 5000, 0, 1.5, "cable/blue_elec", false )
 
@@ -281,14 +305,16 @@ function SWEP:PrimaryAttack()
     local isNpc = eyeTrace.Entity:IsNPC()
 
     if isPlayer or isNpc then
+        local ragdoll
         if isPlayer then
-            local ragdoll = tasePlayer( eyeTrace.Entity )
-            tazerBeamEnt:SetParent( ragdoll )
+            ragdoll = tasePlayer( eyeTrace.Entity )
         end
         if isNpc then
-            local ragdoll = taseNPC( eyeTrace.Entity )
-            tazerBeamEnt:SetParent( ragdoll )
+            ragdoll = taseNPC( eyeTrace.Entity )
         end
+        -- Player tase sound
+        ragdoll:EmitSound( "npc/roller/mine/rmine_shockvehicle2.wav", 100, 100, 1, CHAN_WEAPON )
+        tazerBeamEnt:SetParent( ragdoll )
     end
 end
 
