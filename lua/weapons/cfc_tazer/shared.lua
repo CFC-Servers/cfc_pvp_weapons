@@ -198,15 +198,18 @@ local function taseNPC( npc )
     timer.Create( "cfc_taser_unragdoll" .. ragdoll:EntIndex(), GetConVar( "cfc_taser_duration" ):GetInt(), 1, function()
         untaseNPC( npcTable, ragdoll )
     end)
+    return ragdoll
 end
 
 function SWEP:Reload()
     if self:Clip1() == 0 then
         self:SendWeaponAnim( ACT_VM_RELOAD )
         -- Reload sound?
-        timer.Simple( 0.48, function()
-            self:GetOwner():EmitSound( "weapons/stunstick/spark3.wav", 100, 100, 1, CHAN_WEAPON )
-        end)
+        if CLIENT then
+            timer.Simple( 0.48, function()
+                self:GetOwner():EmitSound( "weapons/stunstick/spark3.wav", 100, 100, 1, CHAN_WEAPON )
+            end)
+        end
         self:SetClip1( 1 )
     end
 end
