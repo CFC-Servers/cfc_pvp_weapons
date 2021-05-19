@@ -14,7 +14,7 @@ SWEP.ViewModel = "models/weapons/c_pistol.mdl"
 SWEP.WorldModel = "models/weapons/w_pistol.mdl"
 SWEP.UseHands = true
 SWEP.SetHoldType = "pistol"
-SWEP.DrawAmmo = false
+SWEP.DrawAmmo = true
 SWEP.DrawCrosshair = true
 
 -- Functionals
@@ -27,15 +27,22 @@ SWEP.AdminOnly = false
 -- Ammo and such
 -- Primary
 SWEP.Primary.ClipSize = 1
-SWEP.Primary.DefaultClip = 20
+SWEP.Primary.DefaultClip = 1
 SWEP.Primary.Automatic = false
-SWEP.Primary.Ammo = "Pistol"
+SWEP.Primary.Ammo = "cfc_taser_ammo"
 
 -- Secondary
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = true
 SWEP.Secondary.Ammo = ""
+
+-- Convars
+CreateConVar( "cfc_taser_range", 300, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The range of the taser.", 1 )
+CreateConVar( "cfc_taser_duration", 5, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The duration of being ragdolled after tased in seconds.", 0 )
+CreateConVar( "cfc_taser_string_duration", 3, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The duration of the strings appearing after firing the taser in seconds.", 0 )
+CreateConVar( "cfc_taser_cooldown", 1, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The cooldown of the taser fire (fire rate) in seconds.", 0 )
+
 
 local function savePlayer( ply )
     local result = {}
@@ -80,6 +87,7 @@ local function restorePlayer( ply )
 end
 
 local function untasePlayer( ply, ragdoll )
+    if not IsValid( ply ) then return end
     ply:SetParent()
     ply:UnSpectate()
     ply:Spawn()
@@ -127,47 +135,83 @@ local function tasePlayer( ply )
     ply:SpectateEntity( ragdoll )
     ply:StripWeapons()
 
-    timer.Create( "cfc_taser_unragdoll" .. ragdoll:EntIndex(), 5, 1, function()
+    timer.Create( "cfc_taser_unragdoll" .. ragdoll:EntIndex(), GetConVar( "cfc_taser_duration" ):GetInt(), 1, function()
         untasePlayer( ply, ragdoll )
     end)
+    return ragdoll
 end
 
 function SWEP:Reload()
-    self:DefaultReload(ACT_VM_RELOAD)
+    self:SendWeaponAnim( ACT_VM_RELOAD )
+    self:SetClip1( 1 )
 end
 
 --local  pos = ply:getShootPos() + ( ply:getEyeAngles():getForward() * 100)
 function SWEP:PrimaryAttack()
+    if not self:CanPrimaryAttack() then return end
+    self:TakePrimaryAmmo( 1 )
+    self:Reload()
+    self:SetNextPrimaryFire( CurTime() + GetConVar( "cfc_taser_cooldown" ):GetFloat() )
+
     local ply = self:GetOwner()
     local eyeTrace = ply:GetEyeTrace()
+    local distance = eyeTrace.HitPos:Distance( ply:GetPos() )
 
     if CLIENT then return end
 
-    local spawnPos = ply:GetShootPos() + ( ply:EyeAngles():Forward() * 300 )
+    local range = GetConVar( "cfc_taser_range" ):GetInt()
+
+    local spawnPos
+    local shouldTase
+    if distance > range then
+        spawnPos = ply:GetShootPos() + ( ply:EyeAngles():Forward() * range )
+        shouldTase = false
+    else
+        spawnPos = eyeTrace.HitPos
+        shouldTase = true
+    end
+
     local tazerBeamEnt = ents.Create( "prop_physics" )
-    tazerBeamEnt:SetModel( "models/hunter/blocks/cube025x025x025.mdl" )
-    --tazerBeamEnt:SetNoDraw( true )
+    tazerBeamEnt:SetModel( "models/props_junk/garbage_newspaper001a.mdl" )
+    tazerBeamEnt:SetNoDraw( true )
     tazerBeamEnt:SetCollisionGroup( COLLISION_GROUP_WORLD )
-    tazerBeamEnt:SetPos( spawnPos )
+    tazerBeamEnt:SetPos( spawnPos + ply:EyeAngles():Forward() * 5 )
+    tazerBeamEnt:SetSolid( SOLID_NONE )
     tazerBeamEnt:Spawn()
 
-    constraint.Rope( tazerBeamEnt, ply, 0, 0, Vector( 0, 2, 0 ), Vector( 0, 0, 0 ), 0, 5000, 0, 1.5, "cable/blue_elec", false )
-    constraint.Rope( tazerBeamEnt, ply, 0, 0, Vector( 0, -2, 0 ), Vector( 0, 0, 0 ), 0, 5000, 0, 1.5, "cable/blue_elec", false )
+    local tazerBeamEnt2 = ents.Create( "prop_physics" )
+    tazerBeamEnt2:SetModel( "models/props_junk/garbage_newspaper001a.mdl" )
+    tazerBeamEnt2:SetNoDraw( true )
+    tazerBeamEnt2:SetCollisionGroup( COLLISION_GROUP_WORLD )
+    tazerBeamEnt2:SetPos( ply:EyePos() )
+    tazerBeamEnt2:SetSolid( SOLID_NONE )
+    tazerBeamEnt2:Spawn()
 
-    timer.Simple( 3, function()
+    -- ply:WorldToLocal( ply:GetBonePosition( ply:LookupBone( "ValveBiped.Bip01_R_Hand" ) ) )
+    constraint.Rope( tazerBeamEnt2, tazerBeamEnt, 0, 0, Vector( 0, 0, 0 ), Vector( 0, 1, 0 ), 0, 5000, 0, 1.5, "cable/blue_elec", false )
+    constraint.Rope( tazerBeamEnt2, tazerBeamEnt, 0, 0, Vector( 0, 0, 0 ), Vector( 0, -1, 0 ), 0, 5000, 0, 1.5, "cable/blue_elec", false )
+
+    timer.Simple( GetConVar( "cfc_taser_string_duration" ):GetInt(), function()
         if not IsValid( tazerBeamEnt ) then return end
         tazerBeamEnt:Remove()
     end)
+
+    if not shouldTase then return end
 
     local isPlayer = eyeTrace.Entity:IsPlayer()
     local isNpc = eyeTrace.Entity:IsNPC()
 
     if isPlayer or isNpc then
         if isPlayer then
-            tasePlayer( eyeTrace.Entity )
+            local ragdoll = tasePlayer( eyeTrace.Entity )
+            tazerBeamEnt:SetParent( ragdoll )
         end
         if isNpc then
             taseNpc( eyeTrace.Entity )
         end
     end
+end
+
+function SWEP:SecondaryAttack()
+    return
 end
