@@ -243,9 +243,9 @@ function SWEP:PrimaryAttack()
 
         local effectdata = EffectData()
         effectdata:SetOrigin( self:GetPos() )
-        effectdata:SetMagnitude( 2 )
+        effectdata:SetMagnitude( 1 )
         effectdata:SetScale( 1 )
-        effectdata:SetRadius( 2 )
+        effectdata:SetRadius( 1 )
         util.Effect( "Sparks", effectdata )
     end
 
@@ -259,9 +259,9 @@ function SWEP:PrimaryAttack()
 
         local effectdata = EffectData()
         effectdata:SetOrigin( spawnPos )
-        effectdata:SetMagnitude( 2 )
+        effectdata:SetMagnitude( 1 )
         effectdata:SetScale( 1 )
-        effectdata:SetRadius( 2 )
+        effectdata:SetRadius( 1 )
         util.Effect( "Sparks", effectdata )
     else
         spawnPos = eyeTrace.HitPos
