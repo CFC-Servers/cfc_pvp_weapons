@@ -94,7 +94,7 @@ local function untasePlayer( ply, ragdoll )
     restorePlayer( ply )
 
     -- Player untase sound
-    ragdoll:EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
+    ragdoll:EmitSound( "common/wpn_select.wav", 100, 100, 1, CHAN_WEAPON )
 
     if not IsValid( ragdoll ) then return end
 
@@ -139,7 +139,7 @@ local function tasePlayer( ply )
     ply:StripWeapons()
 
     -- Player tase sound
-    ragdoll:EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
+    ragdoll:EmitSound( "npc/roller/mine/rmine_shockvehicle2.wav", 100, 100, 1, CHAN_WEAPON )
     timer.Create( "cfc_taser_unragdoll" .. ragdoll:EntIndex(), GetConVar( "cfc_taser_duration" ):GetInt(), 1, function()
         untasePlayer( ply, ragdoll )
     end)
@@ -206,7 +206,7 @@ function SWEP:Reload()
     if self:Clip1() == 0 then
         self:SendWeaponAnim( ACT_VM_RELOAD )
         -- Reload sound?
-        self:GetOwner():EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
+        self:GetOwner():EmitSound( "weapons/stunstick/spark3.wav", 100, 100, 1, CHAN_WEAPON )
         self:SetClip1( 1 )
     end
 end
@@ -220,7 +220,7 @@ function SWEP:PrimaryAttack()
     end
 
     -- Fire sound
-    self:GetOwner():EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
+    self:GetOwner():EmitSound( "npc/sniper/echo1.wav", 100, 140, 1, CHAN_WEAPON )
 
     self:TakePrimaryAmmo( 1 )
     self:Reload()
