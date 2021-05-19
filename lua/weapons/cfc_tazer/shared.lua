@@ -146,11 +146,68 @@ local function tasePlayer( ply )
     return ragdoll
 end
 
+local function untaseNPC( npcTable, ragdoll )
+    if not IsValid( ragdoll ) then return end
+    local npc = ents.Create( npcTable.class )
+    if not IsValid( npc ) then return end
+
+    npc:SetKeyValue( "model", ragdoll:GetModel() )
+    npc:SetPos( ragdoll:GetPos() )
+    npc:SetHealth( npcTable.health )
+    if npcTable.weapon then
+        npc:Give( npcTable.weapon )
+    end
+    npc:Spawn()
+
+    ragdoll:Remove()
+end
+
+local function taseNPC( npc )
+    local npcTable = {}
+    if npc:GetActiveWeapon() ~= NULL then
+        npcTable.weapon = npc:GetActiveWeapon():GetClass()
+    end
+    npcTable.class = npc:GetClass()
+    npcTable.health = npc:Health()
+
+    local ragdoll = ents.Create( "prop_ragdoll" )
+    if not IsValid( ragdoll ) then return end
+
+    ragdoll:SetModel( npc:GetModel() )
+    ragdoll:SetPos( npc:GetPos() )
+    ragdoll:SetAngles( npc:GetAngles() )
+    ragdoll:SetVelocity( npc:GetVelocity() )
+    ragdoll:Spawn()
+
+    npc:Remove()
+
+    local boneCount = ragdoll:GetPhysicsObjectCount() - 1
+    local velocity = npc:GetVelocity()
+
+    for i = 0, boneCount do
+        local bonePhys = ragdoll:GetPhysicsObjectNum( i )
+        if IsValid( bonePhys ) then
+            local boneVec, boneAng = npc:GetBonePosition( ragdoll:TranslatePhysBoneToBone( i ) )
+            if boneVec and boneAng then
+                bonePhys:SetPos( boneVec )
+                bonePhys:SetAngles( boneAng )
+            end
+            bonePhys:SetVelocity( velocity )
+        end
+    end
+
+    timer.Create( "cfc_taser_unragdoll" .. ragdoll:EntIndex(), GetConVar( "cfc_taser_duration" ):GetInt(), 1, function()
+        untaseNPC( npcTable, ragdoll )
+    end)
+end
+
 function SWEP:Reload()
-    self:SendWeaponAnim( ACT_VM_RELOAD )
-    -- Reload sound?
-    self:GetOwner():EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
-    self:SetClip1( 1 )
+    if self:Clip1() == 0 then
+        self:SendWeaponAnim( ACT_VM_RELOAD )
+        -- Reload sound?
+        self:GetOwner():EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
+        self:SetClip1( 1 )
+    end
 end
 
 --local  pos = ply:getShootPos() + ( ply:getEyeAngles():getForward() * 100)
@@ -218,7 +275,8 @@ function SWEP:PrimaryAttack()
             tazerBeamEnt:SetParent( ragdoll )
         end
         if isNpc then
-            taseNpc( eyeTrace.Entity )
+            local ragdoll = taseNPC( eyeTrace.Entity )
+            tazerBeamEnt:SetParent( ragdoll )
         end
     end
 end
