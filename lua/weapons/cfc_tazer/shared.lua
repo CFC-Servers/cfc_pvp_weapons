@@ -151,9 +151,9 @@ local function untaseNPC( npcTable, ragdoll )
     local npc = ents.Create( npcTable.class )
     if not IsValid( npc ) then return end
 
-    npc:SetKeyValue( "model", ragdoll:GetModel() )
     npc:SetPos( ragdoll:GetPos() )
     npc:SetHealth( npcTable.health )
+    npc:SetModel( npcTable.model )
     if npcTable.weapon then
         npc:Give( npcTable.weapon )
     end
@@ -169,6 +169,7 @@ local function taseNPC( npc )
     end
     npcTable.class = npc:GetClass()
     npcTable.health = npc:Health()
+    npcTable.model = npc:GetModel()
 
     local ragdoll = ents.Create( "prop_ragdoll" )
     if not IsValid( ragdoll ) then return end
@@ -212,14 +213,24 @@ end
 
 --local  pos = ply:getShootPos() + ( ply:getEyeAngles():getForward() * 100)
 function SWEP:PrimaryAttack()
-    if not self:CanPrimaryAttack() then return end
+    if not self:CanPrimaryAttack() then
+        -- Not ready to shoot sound
+        self:EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
+        return
+    end
 
-    -- Fire sound?
+    -- Fire sound
     self:GetOwner():EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
 
     self:TakePrimaryAmmo( 1 )
     self:Reload()
-    self:SetNextPrimaryFire( CurTime() + GetConVar( "cfc_taser_cooldown" ):GetFloat() )
+
+    local taserCooldown = GetConVar( "cfc_taser_cooldown" ):GetFloat()
+    self:SetNextPrimaryFire( CurTime() + taserCooldown )
+    timer.Create("cfc_taser_ready_sound" .. self:EntIndex(), taserCooldown, 1, function()
+        -- Weapon ready sound
+        self:GetOwner():EmitSound( "weapons/ar2/ar2_reload_push.wav", 100, 100, 1, CHAN_WEAPON )
+    end)
 
     local ply = self:GetOwner()
     local eyeTrace = ply:GetEyeTrace()
