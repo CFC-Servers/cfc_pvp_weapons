@@ -93,6 +93,9 @@ local function untasePlayer( ply, ragdoll )
     ply:Spawn()
     restorePlayer( ply )
 
+    -- Player untase sound
+    ragdoll:EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
+
     if not IsValid( ragdoll ) then return end
 
     ply:SetPos( ragdoll:GetPos() )
@@ -135,6 +138,8 @@ local function tasePlayer( ply )
     ply:SpectateEntity( ragdoll )
     ply:StripWeapons()
 
+    -- Player tase sound
+    ragdoll:EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
     timer.Create( "cfc_taser_unragdoll" .. ragdoll:EntIndex(), GetConVar( "cfc_taser_duration" ):GetInt(), 1, function()
         untasePlayer( ply, ragdoll )
     end)
@@ -143,12 +148,18 @@ end
 
 function SWEP:Reload()
     self:SendWeaponAnim( ACT_VM_RELOAD )
+    -- Reload sound?
+    self:GetOwner():EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
     self:SetClip1( 1 )
 end
 
 --local  pos = ply:getShootPos() + ( ply:getEyeAngles():getForward() * 100)
 function SWEP:PrimaryAttack()
     if not self:CanPrimaryAttack() then return end
+
+    -- Fire sound?
+    self:GetOwner():EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
+
     self:TakePrimaryAmmo( 1 )
     self:Reload()
     self:SetNextPrimaryFire( CurTime() + GetConVar( "cfc_taser_cooldown" ):GetFloat() )
