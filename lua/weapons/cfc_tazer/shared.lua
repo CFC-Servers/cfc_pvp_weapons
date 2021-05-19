@@ -117,8 +117,6 @@ local function tasePlayer( ply )
     ragdoll:SetVelocity( ply:GetVelocity() )
     ragdoll:Spawn()
 
-    ply:SetParent( ragdoll )
-
     local boneCount = ragdoll:GetPhysicsObjectCount() - 1
     local velocity = ply:GetVelocity()
 
@@ -233,7 +231,18 @@ function SWEP:PrimaryAttack()
     self:SetNextPrimaryFire( CurTime() + taserCooldown )
 
     local ply = self:GetOwner()
-    local eyeTrace = ply:GetEyeTrace()
+    local range = GetConVar( "cfc_taser_range" ):GetInt()
+
+    --local eyeTrace = ply:GetEyeTrace()
+    local eyeTrace = util.TraceHull( {
+        start = ply:GetShootPos(),
+        endpos = ply:GetShootPos() + ( ply:GetAimVector() * range ),
+        filter = ply,
+        mins = Vector( -5, -5, -5 ),
+        maxs = Vector( 5, 5, 5 ),
+        mask = MASK_SHOT_HULL
+    } )
+
     local distance = eyeTrace.HitPos:Distance( ply:GetPos() )
     local isPlayer = eyeTrace.Entity:IsPlayer()
     local isNpc = eyeTrace.Entity:IsNPC()
@@ -252,7 +261,6 @@ function SWEP:PrimaryAttack()
         util.Effect( "Sparks", effectdata )
     end
 
-    local range = GetConVar( "cfc_taser_range" ):GetInt()
     local spawnPos
     local shouldTase
 
@@ -315,12 +323,14 @@ function SWEP:PrimaryAttack()
         if isPlayer then
             ragdoll = tasePlayer( eyeTrace.Entity )
         end
-        if isNpc then
+        if isNpc and eyeTrace.Entity:Health() < 100 then
             ragdoll = taseNPC( eyeTrace.Entity )
         end
         -- Player tase sound
-        ragdoll:EmitSound( "npc/roller/mine/rmine_shockvehicle2.wav", 100, 100, 1, CHAN_WEAPON )
-        tazerBeamEnt:SetParent( ragdoll )
+        if IsValid( ragdoll ) then
+            ragdoll:EmitSound( "npc/roller/mine/rmine_shockvehicle2.wav", 100, 100, 1, CHAN_WEAPON )
+            tazerBeamEnt:SetParent( ragdoll )
+        end
     end
 end
 
