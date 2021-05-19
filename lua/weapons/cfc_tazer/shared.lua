@@ -142,31 +142,31 @@ local function tasePlayer( ply )
     return ragdoll
 end
 
-local function untaseNPC( npcTable, ragdoll )
+local function untaseNPC( npc, ragdoll )
     if not IsValid( ragdoll ) then return end
-    local npc = ents.Create( npcTable.class )
-    if not IsValid( npc ) then return end
+    if not IsValid( npc ) then
+        ragdoll:Remove()
+        return
+    end
+
+    local weapon = npc:GetActiveWeapon()
+    if IsValid( weapon ) then
+        weapon:SetNoDraw( true )
+    end
 
     npc:SetPos( ragdoll:GetPos() )
-    npc:SetHealth( npcTable.health )
-    npc:SetModel( npcTable.model )
-    if npcTable.weapon then
-        npc:Give( npcTable.weapon )
-    end
-    npc:Spawn()
+    npc:SetParent()
+    npc:ClearCondition( 67 )
+    npc:SetCondition( 68 )
+    npc:SetNoDraw( false )
+    npc:SetSolid( SOLID_OBB )
+    npc:SetRenderMode( RENDERMODE_NORMAL )
+    npc:DrawShadow( true )
 
     ragdoll:Remove()
 end
 
 local function taseNPC( npc )
-    local npcTable = {}
-    if npc:GetActiveWeapon() ~= NULL then
-        npcTable.weapon = npc:GetActiveWeapon():GetClass()
-    end
-    npcTable.class = npc:GetClass()
-    npcTable.health = npc:Health()
-    npcTable.model = npc:GetModel()
-
     local ragdoll = ents.Create( "prop_ragdoll" )
     if not IsValid( ragdoll ) then return end
 
@@ -176,7 +176,17 @@ local function taseNPC( npc )
     ragdoll:SetVelocity( npc:GetVelocity() )
     ragdoll:Spawn()
 
-    npc:Remove()
+    npc:ClearCondition( 68 )
+    npc:SetCondition( 67 )
+    npc:SetNoDraw( true )
+    npc:SetSolid( SOLID_NONE )
+    npc:SetRenderMode( RENDERMODE_NONE )
+    npc:DrawShadow( false )
+
+    local weapon = npc:GetActiveWeapon()
+    if IsValid( weapon ) then
+        weapon:SetNoDraw( true )
+    end
 
     local boneCount = ragdoll:GetPhysicsObjectCount() - 1
     local velocity = npc:GetVelocity()
@@ -194,7 +204,7 @@ local function taseNPC( npc )
     end
 
     timer.Create( "cfc_taser_unragdoll" .. ragdoll:EntIndex(), GetConVar( "cfc_taser_duration" ):GetInt(), 1, function()
-        untaseNPC( npcTable, ragdoll )
+        untaseNPC( npc, ragdoll )
     end)
     return ragdoll
 end
