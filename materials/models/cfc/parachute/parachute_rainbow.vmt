@@ -3,7 +3,6 @@
 	"$basetexture" "models\cfc\parachute\parachute_rainbow.vtf"
 	
 	"$model" 1
-	"$nocull" 1
 	
 	"$normalmapalphaenvmask" "1"
 	"$phong" "1"

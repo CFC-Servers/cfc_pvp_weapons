@@ -3,7 +3,6 @@
 	"$basetexture" "models\cfc\cfc_logo.vtf"
 	
 	"$model" 1
-	"$nocull" 1
 	
 	"$normalmapalphaenvmask" "1"
 	"$phong" "1"
