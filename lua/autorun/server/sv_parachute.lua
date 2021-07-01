@@ -8,7 +8,8 @@ CFC_Parachute.DesignMaterialNames = false
 CFC_Parachute.DesignMaterialCount = 15 -- Default value for in case someone changes their design without anyone having spawned a parachute swep yet
 CFC_Parachute.DesignMaterialSub = string.len( "models/cfc/parachute/parachute_" ) + 1
 
-local UNSTABLE_SHOOT_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_change_change" )
+local UNSTABLE_SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_lurch_chance" )
+local UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_change_change" )
 
 local DESIGN_MATERIALS
 local DESIGN_MATERIAL_NAMES
@@ -121,9 +122,13 @@ hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, dat
 
     if not IsValid( chuteSwep ) or not chuteSwep.chuteIsUnstable then return end
 
-    if math.Rand( 0, 1 ) > UNSTABLE_SHOOT_CHANCE:GetFloat() then return end
+    if math.Rand( 0, 1 ) <= UNSTABLE_SHOOT_LURCH_CHANCE:GetFloat() then
+        chuteSwep:ApplyUnstableLurch()
+    end
 
-    chuteSwep:ApplyUnstableDirectionChange()
+    if math.Rand( 0, 1 ) <= UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE:GetFloat() then
+        chuteSwep:ApplyUnstableDirectionChange()
+    end
 end )
 
 hook.Add( "CFC_Parachute_ChuteCreated", "CFC_Parachute_DefineDesigns", function( chute )

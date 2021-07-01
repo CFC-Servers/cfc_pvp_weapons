@@ -12,6 +12,8 @@ local DRAG_CUTOFF = 15 -- Don't apply drag if the value is equal to or lower tha
 local UNSTABLE_MIN_GAP = GetConVar( "cfc_parachute_destabilize_min_gap" )
 local UNSTABLE_MAX_GAP = GetConVar( "cfc_parachute_destabilize_max_gap" )
 local UNSTABLE_MAX_DIR_CHANGE = GetConVar( "cfc_parachute_destabilize_max_direction_change" )
+local UNSTABLE_MAX_LURCH = GetConVar( "cfc_parachute_destabilize_max_lurch" )
+local UNSTABLE_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_lurch_chance" )
 
 function SWEP:Initialize()
     self.chuteCanUnfurl = true
@@ -19,6 +21,7 @@ function SWEP:Initialize()
     self.chuteMoveBack = 0
     self.chuteMoveRight = 0
     self.chuteMoveLeft = 0
+    self.chuteLurch = 0
     self.chuteIsUnstable = false
     self.chuteDir = Vector( 0, 0, 0 )
 
@@ -127,14 +130,19 @@ function SWEP:ApplyChuteForces()
 
     local speedMax = self.chuteSpeedMax
     local curSpeed = ( vel.x ^ 2 + vel.y ^ 2 ) ^ 0.5
+    local lurch = self.chuteLurch
 
     drag = drag * ( unfurled and self.chuteDragUnfurled or self.chuteDrag )
     thrust = math.min( thrust, self.chuteSpeedMax - curSpeed - thrust )
 
     if curSpeed > speedMax * 1.5 then
-        owner:SetVelocity( Vector( 0, 0, drag ) - vel * Vector( 1, 1, 0 ) )
+        owner:SetVelocity( Vector( 0, 0, drag + lurch ) - vel * Vector( 1, 1, 0 ) )
     else
-        owner:SetVelocity( Vector( 0, 0, drag ) + thrustDir * thrust )
+        owner:SetVelocity( Vector( 0, 0, drag + lurch ) + thrustDir * thrust )
+    end
+
+    if lurch ~= 0 then
+        self.chuteLurch = 0
     end
 end
 
@@ -209,12 +217,24 @@ function SWEP:ChangeOpenStatus( state )
     net.Broadcast()
 end
 
+function SWEP:ApplyUnstableLurch()
+    local owner = self:GetOwner()
+
+    if not IsValid( owner ) then return end
+    
+    local maxLurch = UNSTABLE_MAX_LURCH:GetFloat()
+    local lurchForce = -math.Rand( 0, maxLurch )
+
+    --owner:SetVelocity( Vector( 0, 0, lurchForce ) )
+    self.chuteLurch = self.chuteLurch + lurchForce
+end
+
 function SWEP:ApplyUnstableDirectionChange()
     local maxChange = UNSTABLE_MAX_DIR_CHANGE:GetFloat()
     local chuteDir = self.chuteDir
 
     chuteDir:Rotate( Angle( 0, math.Rand( maxChange, maxChange ), 0 ) )
-    
+
     net.Start( "CFC_Parachute_DefineChuteDir" )
     net.WriteEntity( self:SpawnChute() )
     net.WriteVector( chuteDir )
@@ -228,6 +248,10 @@ function SWEP:CreateUnstableDirectionTimer()
     timer.Create( timerName, delay, 1, function()
         self:ApplyUnstableDirectionChange()
         self:CreateUnstableDirectionTimer()
+
+        if math.Rand( 0, 1 ) <= UNSTABLE_LURCH_CHANCE:GetFloat() then
+            self:ApplyUnstableLurch()
+        end
     end )
 end
 
