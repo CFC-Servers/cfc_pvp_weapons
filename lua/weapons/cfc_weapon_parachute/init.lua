@@ -393,7 +393,7 @@ function SWEP:Equip( ply )
         net.Start( "CFC_Parachute_DefineDesigns" )
         net.WriteTable( designMaterials )
         net.WriteTable( CFC_Parachute.DesignMaterialNames )
-        net.WriteInt( CFC_Parachute.DesignMaterialCount, 10 )
+        net.WriteInt( CFC_Parachute.DesignMaterialCount, 17 )
         net.Send( ply )
         
         ply.cfcParachuteKnowsDesigns = true

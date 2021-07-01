@@ -143,7 +143,6 @@ hook.Add( "CFC_Parachute_ChuteCreated", "CFC_Parachute_DefineDesigns", function(
     local designMaterialSub = CFC_Parachute.DesignMaterialSub
 
     table.remove( designMaterials, 2 )
-    --table.remove( designMaterials, designMaterialCount )
 
     designMaterials[1034] = designMaterials[designMaterialCount]
     designMaterialNames[1034] = designMaterials[1034]:sub( designMaterialSub )
@@ -165,8 +164,8 @@ hook.Add( "CFC_Parachute_ChuteCreated", "CFC_Parachute_DefineDesigns", function(
 end )
 
 net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
-    local oldDesign = net.ReadInt( 10 ) or 1
-    local newDesign = net.ReadInt( 10 ) or 1
+    local oldDesign = net.ReadInt( 17 ) or 1
+    local newDesign = net.ReadInt( 17 ) or 1
 
     CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
 end )

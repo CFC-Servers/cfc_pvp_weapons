@@ -31,7 +31,7 @@ SWEP.Secondary.Ammo         = "none"
 
 
 CreateConVar( "cfc_parachute_drag", 0.007, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How slowly you fall while in a furled parachute.", 0, 1 )
-CreateConVar( "cfc_parachute_drag_unfurled", 0.027, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How slowly you fall while in an unfurled parachute.", 0, 1 )
+CreateConVar( "cfc_parachute_drag_unfurled", 0.028, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How slowly you fall while in an unfurled parachute.", 0, 1 )
 CreateConVar( "cfc_parachute_speed", 0.007, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How quickly you move in a furled parachute, relative to how fast you're falling.", 0, 50000 )
 CreateConVar( "cfc_parachute_speed_unfurled", 0.023, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How quickly you move in an unfurled parachute, relative to how fast you're falling.", 0, 50000 )
 CreateConVar( "cfc_parachute_speed_max", 1400, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Max horizontal speed of a parachute", 0, 50000 )
