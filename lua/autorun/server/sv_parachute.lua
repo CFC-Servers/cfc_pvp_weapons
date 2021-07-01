@@ -122,6 +122,13 @@ hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, dat
 
     if not IsValid( chuteSwep ) or not chuteSwep.chuteIsUnstable then return end
 
+    -- Sometimes this file loads before these convars are created properly
+    -- Not going to use InitPosEntity since lots of addons have a tendency to break that hook chain every now and then
+    if not UNSTABLE_SHOOT_LURCH_CHANCE or not UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE then
+        UNSTABLE_SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_lurch_chance" )
+        UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_change_chance" )
+    end
+
     if math.Rand( 0, 1 ) <= UNSTABLE_SHOOT_LURCH_CHANCE:GetFloat() then
         chuteSwep:ApplyUnstableLurch()
     end
