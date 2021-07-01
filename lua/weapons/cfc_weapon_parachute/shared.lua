@@ -42,7 +42,7 @@ CreateConVar( "cfc_parachute_destabilize_max_direction_change", 40, { FCVAR_REPL
 CreateConVar( "cfc_parachute_destabilize_max_lurch", 300, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Maximum downwards force a parachute can receive from random lurches while destabilized.", 0, 180 )
 CreateConVar( "cfc_parachute_destabilize_lurch_chance", 0.2, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The chance for an unstable parachute to lurch downwards when a direction change occurs.", 0, 180 )
 CreateConVar( "cfc_parachute_destabilize_shoot_lurch_chance", 0.2, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The chance for an unstable parachute to lurch downwards when the player shoots a bullet.", 0, 1 )
-CreateConVar( "cfc_parachute_destabilize_shoot_change_change", 0.15, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The chance for an unstable parachute's direction to change when the player shoots a bullet.", 0, 1 )
+CreateConVar( "cfc_parachute_destabilize_shoot_change_chance", 0.15, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The chance for an unstable parachute's direction to change when the player shoots a bullet.", 0, 1 )
 
 util.AddNetworkString( "CFC_Parachute_DefineChuteDir" )
 util.AddNetworkString( "CFC_Parachute_DefineChuteUnfurlStatus" )
