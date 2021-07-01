@@ -69,8 +69,8 @@ end
 
 cvars.AddChangeCallback( "cfc_parachute_design", function( _, old, new )
     net.Start( "CFC_Parachute_SelectDesign" )
-    net.WriteString( old )
-    net.WriteString( new )
+    net.WriteInt( math.floor( old ), 10 )
+    net.WriteInt( math.floor( new ), 10 )
     net.SendToServer()
 end )
 
@@ -96,6 +96,13 @@ net.Receive( "CFC_Parachute_DefineDesigns", function()
     CFC_Parachute.DesignMaterials = DESIGN_MATERIALS
     CFC_Parachute.DesignMaterialNames = DESIGN_MATERIAL_NAMES
     CFC_Parachute.DesignMaterialCount = DESIGN_MATERIAL_COUNT
+end )
+
+net.Receive( "CFC_Parachute_SelectDesign", function()
+    net.Start( "CFC_Parachute_SelectDesign" )
+    net.WriteInt( 1, 10 )
+    net.WriteInt( DESIGN_CHOICE:GetInt(), 10 )
+    net.SendToServer()
 end )
 
 net.Receive( "CFC_Parachute_GrabChuteStraps", function()

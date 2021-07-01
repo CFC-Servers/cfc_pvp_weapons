@@ -341,7 +341,11 @@ function SWEP:Equip( ply )
 
     timer.Simple( 0.1, function()
         if not ply.cfcParachuteDesignID then
-            CFC_Parachute.SetDesignSelection( ply, 1, ply:GetInfoNum( "cfc_parachute_design", 1 ) )
+            -- Requests the client to send their design selection since :GetInfoNum() is not behaving correctly even with FCVAR_USERINFO
+            -- Could be due to FCVAR_NEVER_AS_STRING if :GetInfoNum() expects a string that it then converts, without caring about the original type
+
+            net.Start( "CFC_Parachute_SelectDesign" )
+            net.Send( ply )
         else
             self:ApplyChuteDesign()
         end

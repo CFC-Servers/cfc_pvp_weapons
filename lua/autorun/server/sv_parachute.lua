@@ -159,8 +159,8 @@ hook.Add( "CFC_Parachute_ChuteCreated", "CFC_Parachute_DefineDesigns", function(
 end )
 
 net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
-    local oldDesign = tonumber( net.ReadString() ) or 1
-    local newDesign = tonumber( net.ReadString() ) or 1
+    local oldDesign = net.ReadInt( 10 ) or 1
+    local newDesign = net.ReadInt( 10 ) or 1
 
     CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
 end )
