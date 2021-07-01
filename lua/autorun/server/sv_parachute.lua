@@ -119,7 +119,8 @@ hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, dat
 
     local chuteSwep = owner:GetWeapon( "cfc_weapon_parachute" )
 
-    if not IsValid( chuteSwep ) or not chuteSwep.isChuteUnstable then return end
+    if not IsValid( chuteSwep ) or not chuteSwep.chuteIsUnstable then return end
+
     if math.Rand( 0, 1 ) > UNSTABLE_SHOOT_CHANCE:GetFloat() then return end
 
     chuteSwep:ApplyUnstableDirectionChange()
