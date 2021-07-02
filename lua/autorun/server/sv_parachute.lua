@@ -5,7 +5,7 @@ CFC_Parachute.AllChuteSweps = CFC_Parachute.AllChuteSweps or {}
 
 CFC_Parachute.DesignMaterials = false
 CFC_Parachute.DesignMaterialNames = false
-CFC_Parachute.DesignMaterialCount = 15 -- Default value for in case someone changes their design without anyone having spawned a parachute swep yet
+CFC_Parachute.DesignMaterialCount = 21 -- Default value for in case someone changes their design without anyone having spawned a parachute swep yet
 CFC_Parachute.DesignMaterialSub = string.len( "models/cfc/parachute/parachute_" ) + 1
 
 local UNSTABLE_SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_lurch_chance" )
