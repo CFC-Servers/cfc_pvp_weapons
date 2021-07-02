@@ -45,6 +45,10 @@ function CFC_Parachute.OpenDesignMenu()
     window:SetDeleteOnClose( false )
     window:MakePopup()
 
+    scrollPanel = vgui.Create( "DScrollPanel", window )
+    scrollPanel:SetPos( 0, 10 )
+    scrollPanel:SetSize( windowWidth, windowHeight )
+
     window.Paint = function( _, w, h )
         draw.RoundedBox( 8, 0, 0, w, h, Color( 36, 41, 67, 255 ) )
         draw.RoundedBox( 8, 0, 0, w, 25, Color( 42, 47, 74, 255 ) )
@@ -61,7 +65,7 @@ function CFC_Parachute.OpenDesignMenu()
             y = y + 1
         end
 
-        CFC_Parachute.CreateDesignPreview( x * designIconWidth, y * designIconWidth + designIconOffsetY, i, window )
+        CFC_Parachute.CreateDesignPreview( x * designIconWidth, y * designIconWidth + designIconOffsetY, i, scrollPanel )
 
         x = x + 1
     end
