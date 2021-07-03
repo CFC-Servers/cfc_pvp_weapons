@@ -46,7 +46,7 @@ function CFC_Parachute.OpenDesignMenu()
     window:MakePopup()
 
     scrollPanel = vgui.Create( "DScrollPanel", window )
-    scrollPanel:SetPos( 0, 10 )
+    scrollPanel:SetPos( 0, 20 )
     scrollPanel:SetSize( windowWidth, windowHeight )
 
     window.Paint = function( _, w, h )
@@ -56,7 +56,7 @@ function CFC_Parachute.OpenDesignMenu()
 
     local x = 0
     local y = 0
-    local designIconOffsetY = 30
+    local designIconOffsetY = 10
     local designIconWidth = 120
 
     for i = 1, CFC_Parachute.DesignMaterialCount do
