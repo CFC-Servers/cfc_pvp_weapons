@@ -1,8 +1,9 @@
 "VertexLitGeneric"
 {
-	"$basetexture" "models\cfc\parachute\parachute_red.vtf"
+	"$basetexture" "models\cfc\parachute\parachute_white.vtf"
 	
 	"$model" 1
+	"$color2" "{ 100 50 50 }"
 	
 	"$normalmapalphaenvmask" "1"
 	"$phong" "1"
