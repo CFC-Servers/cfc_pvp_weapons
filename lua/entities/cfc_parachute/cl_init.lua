@@ -6,6 +6,13 @@ local tiltMult = 0.2
 local furlScaleMult = 0.4
 local furlTwistMult = 15
 
+local SCALE_FURLED = Vector( furlScaleMult, furlScaleMult, furlScaleMult )
+local ANG_ZERO = Angle( 0, 0, 0 )
+local ANG_FURLED_0 = Angle( 0, -furlTwistMult, furlTwistMult )
+local ANG_FURLED_1 = Angle( 0, furlTwistMult, furlTwistMult )
+local ANG_FURLED_2 = Angle( 0, -furlTwistMult, -furlTwistMult )
+local ANG_FURLED_3 = Angle( 0, furlTwistMult, -furlTwistMult )
+
 function ENT:Initialize()
     self.chuteDir = Vector( 0, 0, 0 )
     self.chuteIsUnfurled = false
@@ -42,23 +49,19 @@ function ENT:SetUnfurlStatus( state )
     if state then
         self:SetChuteDirection()
 
-        local resetAng = Angle( 0, 0, 0 )
-
-        self:ManipulateBoneAngles( 0, resetAng )
-        self:ManipulateBoneAngles( 1, resetAng )
-        self:ManipulateBoneAngles( 2, resetAng )
-        self:ManipulateBoneAngles( 3, resetAng )
+        self:ManipulateBoneAngles( 0, ANG_ZERO )
+        self:ManipulateBoneAngles( 1, ANG_ZERO )
+        self:ManipulateBoneAngles( 2, ANG_ZERO )
+        self:ManipulateBoneAngles( 3, ANG_ZERO )
     else
-        local furlSize = Vector( furlScaleMult, furlScaleMult, furlScaleMult )
+        self:ManipulateBoneScale( 0, SCALE_FURLED )
+        self:ManipulateBoneScale( 1, SCALE_FURLED )
+        self:ManipulateBoneScale( 2, SCALE_FURLED )
+        self:ManipulateBoneScale( 3, SCALE_FURLED )
 
-        self:ManipulateBoneScale( 0, furlSize )
-        self:ManipulateBoneScale( 1, furlSize )
-        self:ManipulateBoneScale( 2, furlSize )
-        self:ManipulateBoneScale( 3, furlSize )
-
-        self:ManipulateBoneAngles( 0, Angle( 0, -furlTwistMult, furlTwistMult ) )
-        self:ManipulateBoneAngles( 1, Angle( 0, furlTwistMult, furlTwistMult ) )
-        self:ManipulateBoneAngles( 2, Angle( 0, -furlTwistMult, -furlTwistMult ) )
-        self:ManipulateBoneAngles( 3, Angle( 0, furlTwistMult, -furlTwistMult ) )
+        self:ManipulateBoneAngles( 0, ANG_FURLED_0) )
+        self:ManipulateBoneAngles( 1, ANG_FURLED_1 )
+        self:ManipulateBoneAngles( 2, ANG_FURLED_2 )
+        self:ManipulateBoneAngles( 3, ANG_FURLED_3 )
     end
 end

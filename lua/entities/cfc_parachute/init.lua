@@ -2,6 +2,9 @@ AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 include( "shared.lua" )
 
+local COLOR_SHOW = Color( 255, 255, 255, 255 )
+local COLOR_HIDE = Color( 255, 255, 255, 0 )
+
 function ENT:Unfurl()
     self.chuteIsUnfurled = true
 
@@ -29,7 +32,7 @@ function ENT:Open()
     self:DrawShadow( true )
 
     self:EmitSound( "physics/cardboard/cardboard_box_break3.wav", 85, 100, 1 )
-    self:SetColor( Color( 255, 255, 255, 255 ) )
+    self:SetColor( COLOR_SHOW )
 end
 
 function ENT:Close()
@@ -37,7 +40,7 @@ function ENT:Close()
     self:DrawShadow( false )
 
     self:EmitSound( "physics/wood/wood_crate_impact_hard4.wav", 85, 100, 1 )
-    self:SetColor( Color( 255, 255, 255, 0 ) )
+    self:SetColor( COLOR_HIDE )
 end
 
 function ENT:Initialize()  

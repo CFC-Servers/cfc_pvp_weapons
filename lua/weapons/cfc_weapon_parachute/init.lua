@@ -15,6 +15,9 @@ local UNSTABLE_MAX_DIR_CHANGE = GetConVar( "cfc_parachute_destabilize_max_direct
 local UNSTABLE_MAX_LURCH = GetConVar( "cfc_parachute_destabilize_max_lurch" )
 local UNSTABLE_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_lurch_chance" )
 
+local COLOR_SHOW = Color( 255, 255, 255, 255 )
+local COLOR_HIDE = Color( 255, 255, 255, 0 )
+
 function SWEP:Initialize()
     self.chuteCanUnfurl = true
     self.chuteMoveForward = 0
@@ -77,8 +80,8 @@ function SWEP:SpawnChute()
 
             chute.chuteOwner = owner
 
-            self:SetColor( Color( 255, 255, 255, 255 ) )
-            chute:SetColor( Color( 255, 255, 255, 0 ) )
+            self:SetColor( COLOR_SHOW )
+            chute:SetColor( COLOR_HIDE )
         end )
     end
 
@@ -176,8 +179,8 @@ function SWEP:ChangeOwner( ply )
         net.Broadcast()
     end )
 
-    self:SetColor( Color( 255, 255, 255, 255 ) )
-    chute:SetColor( Color( 255, 255, 255, 0 ) )
+    self:SetColor( COLOR_SHOW )
+    chute:SetColor( COLOR_HIDE )
 end
 
 function SWEP:ChangeOpenStatus( state )
@@ -195,7 +198,7 @@ function SWEP:ChangeOpenStatus( state )
     self.chuteIsOpen = state
 
     if state then
-        self:SetColor( Color( 255, 255, 255, 0 ) )
+        self:SetColor( COLOR_HIDE )
         self:SetChuteDirection()
 
         chute:Open()
@@ -203,7 +206,7 @@ function SWEP:ChangeOpenStatus( state )
         owner:AnimRestartGesture( GESTURE_SLOT_CUSTOM, ACT_GMOD_NOCLIP_LAYER, false )
         owner:AnimRestartGesture( GESTURE_SLOT_JUMP, ACT_HL2MP_IDLE_PASSIVE, false )
     else
-        self:SetColor( Color( 255, 255, 255, 255 ) )
+        self:SetColor( COLOR_SHOW )
 
         chute:Close()
 

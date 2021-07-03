@@ -10,6 +10,14 @@ local DESIGN_MATERIAL_COUNT
 
 local DESIGN_CHOICE = CreateConVar( "cfc_parachute_design", 1, { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NEVER_AS_STRING }, "Your selected parachute design.", 1, 50000 )
 
+local ANG_ZERO = Angle( 0, 0, 0 )
+local ANG_GRAB_RIGHT_UPPERARM = Angle( 127.3, 331.3, 368.5 )
+local ANG_GRAB_RIGHT_FOREARM = Angle( -6.8, 41.4, 57.5 )
+local ANG_GRAB_RIGHT_HAND = Angle( 0, 26.7, 25.4 )
+local ANG_GRAB_LEFT_UPPERARM = Angle( -72.1, -166, 127.3 )
+local ANG_GRAB_LEFT_FOREARM = Angle( -11, 7.2, 26.5 )
+local ANG_GRAB_LEFT_HAND = Angle( 0, 8.7, 0 )
+
 function CFC_Parachute.CreateDesignPreview( x, y, ind, panel )
     local icon = vgui.Create( "ContentIcon", panel )
     icon:SetPos( x, y )
@@ -133,20 +141,18 @@ net.Receive( "CFC_Parachute_GrabChuteStraps", function()
     if not rightUpperarm or not rightForearm or not rightHand or not leftUpperarm or not leftForearm or not leftHand then return end
 
     if state then
-        ply:ManipulateBoneAngles( rightUpperarm, Angle( 127.3, 331.3, 368.5 ) )
-        ply:ManipulateBoneAngles( rightForearm, Angle( -6.8, 41.4, 57.5 ) )
-        ply:ManipulateBoneAngles( rightHand, Angle( 0, 26.7, 25.4 ) )
-        ply:ManipulateBoneAngles( leftUpperarm, Angle( -72.1, -166, 127.3 ) )
-        ply:ManipulateBoneAngles( leftForearm, Angle( -11, 7.2, 26.5 ) )
-        ply:ManipulateBoneAngles( leftHand, Angle( 0, 8.7, 0 ) )
+        ply:ManipulateBoneAngles( rightUpperarm, ANG_GRAB_RIGHT_UPPERARM )
+        ply:ManipulateBoneAngles( rightForearm, ANG_GRAB_RIGHT_FOREARM )
+        ply:ManipulateBoneAngles( rightHand, ANG_GRAB_RIGHT_HAND )
+        ply:ManipulateBoneAngles( leftUpperarm, ANG_GRAB_LEFT_UPPERARM )
+        ply:ManipulateBoneAngles( leftForearm, ANG_GRAB_LEFT_FOREARM )
+        ply:ManipulateBoneAngles( leftHand, ANG_GRAB_LEFT_HAND )
     else
-        local resetAng = Angle( 0, 0, 0 )
-
-        ply:ManipulateBoneAngles( rightUpperarm, resetAng )
-        ply:ManipulateBoneAngles( rightForearm, resetAng )
-        ply:ManipulateBoneAngles( rightHand, resetAng )
-        ply:ManipulateBoneAngles( leftUpperarm, resetAng )
-        ply:ManipulateBoneAngles( leftForearm, resetAng )
-        ply:ManipulateBoneAngles( leftHand, resetAng )
+        ply:ManipulateBoneAngles( rightUpperarm, ANG_ZERO )
+        ply:ManipulateBoneAngles( rightForearm, ANG_ZERO )
+        ply:ManipulateBoneAngles( rightHand, ANG_ZERO )
+        ply:ManipulateBoneAngles( leftUpperarm, ANG_ZERO )
+        ply:ManipulateBoneAngles( leftForearm, ANG_ZERO )
+        ply:ManipulateBoneAngles( leftHand, ANG_ZERO )
     end
 end )
