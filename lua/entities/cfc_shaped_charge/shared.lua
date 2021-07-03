@@ -1,6 +1,6 @@
 ENT.Type = "anim"
 ENT.Base = "base_gmodentity"
- 
+
 ENT.PrintName       = "Shaped Charge"
 ENT.Author          = "Redox"
 ENT.Contact         = ""

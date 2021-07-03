@@ -1,5 +1,5 @@
 include( "shared.lua" )
- 
+
 language.Add( "cfc_shaped_charge" )
 
 function ENT:Initialize()
