@@ -225,7 +225,6 @@ function SWEP:ApplyUnstableLurch()
     local maxLurch = UNSTABLE_MAX_LURCH:GetFloat()
     local lurchForce = -math.Rand( 0, maxLurch )
 
-    --owner:SetVelocity( Vector( 0, 0, lurchForce ) )
     self.chuteLurch = self.chuteLurch + lurchForce
 end
 
@@ -283,6 +282,7 @@ function SWEP:ChangeInstabilityStatus( state )
         self:CreateUnstableDirectionTimer()
     else
         self:SetChuteDirection()
+        self.chuteLurch = 0
         
         timer.Remove( "CFC_Parachute_UnstableDirectionChange_" .. self:EntIndex() )
     end
