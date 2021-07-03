@@ -2,6 +2,15 @@ AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 include( "shared.lua" )
 
+ProtectedCall( function()
+    require( "mixpanel" )
+end )
+
+local function mixpanelTrackEvent( eventName, identifier, data )
+    if not Mixpanel then return end
+    Mixpanel.TrackPlyEvent( eventName, identifier, data )
+end
+
 function ENT:Initialize()
 
     local owner = self.bombOwner
@@ -10,6 +19,8 @@ function ENT:Initialize()
         self:Remove()
         return
     end
+
+    mixpanelTrackEvent( "Shaped charge placed", "Placed" )
 
     owner.plantedCharges = owner.plantedCharges or 0
     owner.plantedCharges = owner.plantedCharges + 1
@@ -45,6 +56,8 @@ function ENT:OnTakeDamage ( dmg )
     self.bombHealth = self.bombHealth - dmg:GetDamage()
     if self.bombHealth <= 0 then
         if not IsValid( self ) then return end
+
+        mixpanelTrackEvent( "Shaped charge broken", "ChargeBroken" )
 
         local effectdata = EffectData()
         effectdata:SetOrigin( self:GetPos() )
@@ -96,11 +109,15 @@ end
 function ENT:Explode()
     local props = ents.FindAlongRay( self:GetPos(), self:GetPos() + self.traceRange * -self:GetUp() )
 
+    local count = 0
     for _, prop in pairs( props ) do
         if self:CanDestroyProp( prop ) then
             prop:Remove()
+            count = count + 1
         end
     end
+
+    mixpanelTrackEvent( "Shaped charge props broken", "PropsBroken", { count = count } )
 
     util.BlastDamage( self, self.bombOwner, self:GetPos(), self.blastRange, self.blastDamage )
 
