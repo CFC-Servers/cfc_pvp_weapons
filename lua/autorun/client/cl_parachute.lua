@@ -97,6 +97,8 @@ net.Receive( "CFC_Parachute_DefineChuteUnfurlStatus", function()
     local chute = net.ReadEntity()
     local unfurlState = net.ReadBool()
 
+    if not chute.SetUnfurlStatus then return end -- Somehow the function sometimes becomes nil while the parachute is still valid
+
     chute:SetUnfurlStatus( unfurlState )
 end )
 
