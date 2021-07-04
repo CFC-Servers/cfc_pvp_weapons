@@ -117,8 +117,9 @@ function SWEP:ApplyChuteForces()
 
     local thrustDir
 
+    local tickMult = 66.666 * engine.TickInterval()
     local unfurled = self.chuteIsUnfurled
-    local thrust = drag * ( unfurled and self.chuteSpeedUnfurled or self.chuteSpeed )
+    local thrust = drag * ( unfurled and self.chuteSpeedUnfurled or self.chuteSpeed ) * tickMult
 
     if self.chuteIsUnstable then
         thrustDir = self.chuteDir
@@ -135,7 +136,7 @@ function SWEP:ApplyChuteForces()
     local curSpeed = ( vel.x ^ 2 + vel.y ^ 2 ) ^ 0.5
     local lurch = self.chuteLurch
 
-    drag = drag * ( unfurled and self.chuteDragUnfurled or self.chuteDrag )
+    drag = drag * ( unfurled and self.chuteDragUnfurled or self.chuteDrag ) * tickMult
     thrust = math.min( thrust, self.chuteSpeedMax - curSpeed - thrust )
 
     if curSpeed > speedMax * 1.5 then
