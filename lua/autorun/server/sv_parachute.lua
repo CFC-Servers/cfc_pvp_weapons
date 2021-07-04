@@ -76,18 +76,6 @@ end )
 
 hook.Add( "WeaponEquip", "CFC_Parachute_ChangeOwner", changeOwner )
 
-hook.Add( "Think", "CFC_Parachute_ApplyChuteForces", function()
-    local count = CFC_Parachute.AllChuteSwepsCount
-
-    for i = 1, count do
-        local wep = allChuteSweps[i]
-
-        if IsValid( wep ) then
-            wep:ApplyChuteForces()
-        end
-    end
-end )
-
 hook.Add( "KeyPress", "CFC_Parachute_HandleKeyPress", function( ply, key )
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
