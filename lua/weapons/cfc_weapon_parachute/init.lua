@@ -106,7 +106,7 @@ end
 function SWEP:ApplyChuteForces()
     if not self.chuteIsOpen then return end
 
-    local owner = self:GetOwner()
+    local owner = self:GetOwner() or chute.chuteOwner
 
     if not IsValid( owner ) then return end
 
