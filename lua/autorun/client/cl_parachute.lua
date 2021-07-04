@@ -94,6 +94,8 @@ net.Receive( "CFC_Parachute_DefineChuteDir", function()
     local chute = net.ReadEntity()
     local chuteDir = net.ReadVector()
 
+    if not chute.SetChuteDirection then return end -- Somehow the function sometimes becomes nil while the parachute is still valid
+
     chute:SetChuteDirection( chuteDir )
 end )
 
@@ -126,6 +128,8 @@ end )
 net.Receive( "CFC_Parachute_GrabChuteStraps", function()
     local ply = net.ReadEntity()
     local state = net.ReadBool()
+
+    if not IsValid( ply ) then return end
 
     ply:SetIK( not state )
 
