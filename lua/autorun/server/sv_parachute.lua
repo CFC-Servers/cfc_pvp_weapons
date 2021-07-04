@@ -195,3 +195,9 @@ net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
 
     CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
 end )
+
+util.AddNetworkString( "CFC_Parachute_DefineChuteDir" )
+util.AddNetworkString( "CFC_Parachute_DefineChuteUnfurlStatus" )
+util.AddNetworkString( "CFC_Parachute_GrabChuteStraps" )
+util.AddNetworkString( "CFC_Parachute_DefineDesigns" )
+util.AddNetworkString( "CFC_Parachute_SelectDesign" )
