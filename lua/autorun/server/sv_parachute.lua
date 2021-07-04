@@ -15,6 +15,9 @@ local DESIGN_MATERIALS
 local DESIGN_MATERIAL_NAMES
 local DESIGN_MATERIAL_COUNT = CFC_Parachute.DesignMaterialCount
 
+local DESIGN_REQUEST_BURST_LIMIT = 10
+local DESIGN_REQUEST_BURST_DURATION = 3
+
 local allChuteSweps = CFC_Parachute.AllChuteSweps
 
 function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
@@ -171,6 +174,22 @@ hook.Add( "CFC_Parachute_ChuteCreated", "CFC_Parachute_DefineDesigns", function(
 end )
 
 net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
+    if not IsValid( ply ) then return end
+
+    local requestCount = ( ply.cfcParachuteDesignRequests or 0 ) + 1
+
+    if requestCount > DESIGN_REQUEST_BURST_LIMIT then return end
+
+    if requestCount == 1 then
+        timer.Simple( DESIGN_REQUEST_BURST_DURATION, function()
+            if not IsValid( ply ) then return end
+
+            ply.cfcParachuteDesignRequests = nil
+        end )
+    end
+
+    ply.cfcParachuteDesignRequests = requestCount
+
     local oldDesign = net.ReadInt( 17 ) or 1
     local newDesign = net.ReadInt( 17 ) or 1
 

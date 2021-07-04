@@ -59,7 +59,7 @@ function ENT:SetUnfurlStatus( state )
         self:ManipulateBoneScale( 2, SCALE_FURLED )
         self:ManipulateBoneScale( 3, SCALE_FURLED )
 
-        self:ManipulateBoneAngles( 0, ANG_FURLED_0) )
+        self:ManipulateBoneAngles( 0, ANG_FURLED_0 )
         self:ManipulateBoneAngles( 1, ANG_FURLED_1 )
         self:ManipulateBoneAngles( 2, ANG_FURLED_2 )
         self:ManipulateBoneAngles( 3, ANG_FURLED_3 )
