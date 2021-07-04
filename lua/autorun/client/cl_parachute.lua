@@ -3,6 +3,7 @@ CFC_Parachute = CFC_Parachute or {}
 CFC_Parachute.DesignMaterials = false
 CFC_Parachute.DesignMaterialNames = false
 CFC_Parachute.DesignMaterialCount = false
+CFC_Parachute.DesignWindow = false
 
 local DESIGN_MATERIALS
 local DESIGN_MATERIAL_NAMES
@@ -34,7 +35,7 @@ function CFC_Parachute.CreateDesignPreview( x, y, ind, panel )
 end
 
 function CFC_Parachute.OpenDesignMenu()
-    local window
+    local window = CFC_Parachute.DesignWindow
 
     if window then
         window:Show()
@@ -52,6 +53,9 @@ function CFC_Parachute.OpenDesignMenu()
     window:SetTitle( "CFC Parachute Designs" )
     window:SetDeleteOnClose( false )
     window:MakePopup()
+    window:SetDeleteOnClose()
+
+    CFC_Parachute.DesignWindow = window
 
     scrollPanel = vgui.Create( "DScrollPanel", window )
     scrollPanel:SetPos( 0, 20 )
