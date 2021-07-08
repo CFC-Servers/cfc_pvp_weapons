@@ -36,6 +36,8 @@ function SWEP:Initialize()
     self:SetRenderMode( RENDERMODE_TRANSCOLOR )
 
     timer.Simple( 0.1, function()
+        if not IsValid( self ) then return end
+
         self:SetHoldType( "passive" )
     end )
 end

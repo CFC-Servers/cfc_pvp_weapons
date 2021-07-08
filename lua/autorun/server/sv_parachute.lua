@@ -75,6 +75,8 @@ end
 local function trySetupLFS()
     if not LFS_EXISTS then return end
 
+    LFS_AUTO_CHUTE_HEIGHT = GetConVar( "cfc_parachute_lfs_auto_height" )
+
     local function onlyWorldFilter( ent )
         return ent:IsWorld()
     end
@@ -235,7 +237,6 @@ end )
 
 hook.Add( "InitPostEntity", "CFC_Parachute_CheckOptionalDependencies", function()
     LFS_EXISTS = simfphys and simfphys.LFS and true
-    LFS_AUTO_CHUTE_HEIGHT = LFS_EXISTS and GetConVar( "cfc_parachute_lfs_auto_height" )
 
     trySetupLFS()
 end )
