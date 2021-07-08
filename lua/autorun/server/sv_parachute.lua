@@ -17,8 +17,8 @@ local DESIGN_MATERIAL_COUNT = CFC_Parachute.DesignMaterialCount
 local DESIGN_REQUEST_BURST_LIMIT = 10
 local DESIGN_REQUEST_BURST_DURATION = 3
 
-local LFS_EXISTS = simfphys and simfphys.LFS and true
-local LFS_AUTO_CHUTE_HEIGHT = LFS_EXISTS and GetConVar( "cfc_parachute_lfs_auto_height" )
+local LFS_EXISTS
+local LFS_AUTO_CHUTE_HEIGHT
 
 local allChuteSweps = CFC_Parachute.AllChuteSweps
 
@@ -72,98 +72,9 @@ local function changeOwner( wep, ply )
     end )
 end
 
-hook.Add( "PlayerDroppedWeapon", "CFC_Parachute_ChangeOwner", function( ply, wep )
-    changeOwner( wep, ply )
-end )
+local function trySetupLFS()
+    if not LFS_EXISTS then return end
 
-hook.Add( "WeaponEquip", "CFC_Parachute_ChangeOwner", changeOwner )
-
-hook.Add( "KeyPress", "CFC_Parachute_HandleKeyPress", function( ply, key )
-    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-
-    if not IsValid( wep ) then return end
-
-    wep:KeyPress( ply, key, true )
-end )
-
-hook.Add( "KeyRelease", "CFC_Parachute_HandleKeyRelease", function( ply, key )
-    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-
-    if not IsValid( wep ) then return end
-
-    wep:KeyPress( ply, key, false )
-end )
-
-hook.Add( "OnPlayerHitGround", "CFC_Parachute_CloseChute", function( ply )
-    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-
-    if not IsValid( wep ) then return end
-
-    wep:ChangeOpenStatus( false )
-end )
-
-hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, data )
-    local owner = ent:GetOwner()
-
-    if not IsValid( owner ) then
-        owner = data.Attacker
-    end
-
-    if not IsValid( owner ) then return end
-
-    local chuteSwep = owner:GetWeapon( "cfc_weapon_parachute" )
-
-    if not IsValid( chuteSwep ) or not chuteSwep.chuteIsUnstable then return end
-
-    -- Sometimes this file loads before these convars are created properly
-    -- Not going to use InitPosEntity since lots of addons have a tendency to break that hook chain every now and then
-    if not UNSTABLE_SHOOT_LURCH_CHANCE or not UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE then
-        UNSTABLE_SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_lurch_chance" )
-        UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_change_chance" )
-    end
-
-    if math.Rand( 0, 1 ) <= UNSTABLE_SHOOT_LURCH_CHANCE:GetFloat() then
-        chuteSwep:ApplyUnstableLurch()
-    end
-
-    if math.Rand( 0, 1 ) <= UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE:GetFloat() then
-        chuteSwep:ApplyUnstableDirectionChange()
-    end
-end )
-
-hook.Add( "CFC_Parachute_ChuteCreated", "CFC_Parachute_DefineDesigns", function( chute )
-    local designMaterials = CFC_Parachute.DesignMaterials
-
-    if designMaterials then return end
-
-    designMaterials = chute:GetMaterials()
-    designMaterialNames = {}
-
-    local designMaterialCount = #designMaterials - 1
-    local designMaterialSub = CFC_Parachute.DesignMaterialSub
-
-    table.remove( designMaterials, 2 )
-
-    designMaterials[1034] = designMaterials[designMaterialCount]
-    designMaterialNames[1034] = designMaterials[1034]:sub( designMaterialSub )
-    designMaterials[designMaterialCount] = nil
-
-    designMaterialCount = designMaterialCount - 1
-
-    for i = 1, designMaterialCount do
-        designMaterialNames[i] = designMaterials[i]:sub( designMaterialSub )
-    end
-
-    CFC_Parachute.DesignMaterials = designMaterials
-    CFC_Parachute.DesignMaterialNames = designMaterialNames
-    CFC_Parachute.DesignMaterialCount = designMaterialCount
-
-    DESIGN_MATERIALS = designMaterials
-    DESIGN_MATERIAL_NAMES = designMaterialNames
-    DESIGN_MATERIAL_COUNT = designMaterialCount
-end )
-
-if LFS_EXISTS then
     local function onlyWorldFilter( ent )
         return ent:IsWorld()
     end
@@ -232,6 +143,102 @@ if LFS_EXISTS then
         if ply:GetInfoNum( "cfc_parachute_lfs_auto_equip", 1 ) == 0 then return false end
     end )
 end
+
+hook.Add( "PlayerDroppedWeapon", "CFC_Parachute_ChangeOwner", function( ply, wep )
+    changeOwner( wep, ply )
+end )
+
+hook.Add( "WeaponEquip", "CFC_Parachute_ChangeOwner", changeOwner )
+
+hook.Add( "KeyPress", "CFC_Parachute_HandleKeyPress", function( ply, key )
+    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+
+    if not IsValid( wep ) then return end
+
+    wep:KeyPress( ply, key, true )
+end )
+
+hook.Add( "KeyRelease", "CFC_Parachute_HandleKeyRelease", function( ply, key )
+    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+
+    if not IsValid( wep ) then return end
+
+    wep:KeyPress( ply, key, false )
+end )
+
+hook.Add( "OnPlayerHitGround", "CFC_Parachute_CloseChute", function( ply )
+    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+
+    if not IsValid( wep ) then return end
+
+    wep:ChangeOpenStatus( false )
+end )
+
+hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, data )
+    local owner = ent:GetOwner()
+
+    if not IsValid( owner ) then
+        owner = data.Attacker
+    end
+
+    if not IsValid( owner ) then return end
+
+    local chuteSwep = owner:GetWeapon( "cfc_weapon_parachute" )
+
+    if not IsValid( chuteSwep ) or not chuteSwep.chuteIsUnstable then return end
+
+    if not UNSTABLE_SHOOT_LURCH_CHANCE or not UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE then
+        UNSTABLE_SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_lurch_chance" )
+        UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_change_chance" )
+    end
+
+    if math.Rand( 0, 1 ) <= UNSTABLE_SHOOT_LURCH_CHANCE:GetFloat() then
+        chuteSwep:ApplyUnstableLurch()
+    end
+
+    if math.Rand( 0, 1 ) <= UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE:GetFloat() then
+        chuteSwep:ApplyUnstableDirectionChange()
+    end
+end )
+
+hook.Add( "CFC_Parachute_ChuteCreated", "CFC_Parachute_DefineDesigns", function( chute )
+    local designMaterials = CFC_Parachute.DesignMaterials
+
+    if designMaterials then return end
+
+    designMaterials = chute:GetMaterials()
+    designMaterialNames = {}
+
+    local designMaterialCount = #designMaterials - 1
+    local designMaterialSub = CFC_Parachute.DesignMaterialSub
+
+    table.remove( designMaterials, 2 )
+
+    designMaterials[1034] = designMaterials[designMaterialCount]
+    designMaterialNames[1034] = designMaterials[1034]:sub( designMaterialSub )
+    designMaterials[designMaterialCount] = nil
+
+    designMaterialCount = designMaterialCount - 1
+
+    for i = 1, designMaterialCount do
+        designMaterialNames[i] = designMaterials[i]:sub( designMaterialSub )
+    end
+
+    CFC_Parachute.DesignMaterials = designMaterials
+    CFC_Parachute.DesignMaterialNames = designMaterialNames
+    CFC_Parachute.DesignMaterialCount = designMaterialCount
+
+    DESIGN_MATERIALS = designMaterials
+    DESIGN_MATERIAL_NAMES = designMaterialNames
+    DESIGN_MATERIAL_COUNT = designMaterialCount
+end )
+
+hook.Add( "InitPostEntity", "CFC_Parachute_CheckOptionalDependencies", function()
+    LFS_EXISTS = simfphys and simfphys.LFS and true
+    LFS_AUTO_CHUTE_HEIGHT = LFS_EXISTS and GetConVar( "cfc_parachute_lfs_auto_height" )
+
+    trySetupLFS()
+end )
 
 net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
     if not IsValid( ply ) then return end
