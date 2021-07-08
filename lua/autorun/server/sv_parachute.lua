@@ -14,9 +14,11 @@ local UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE = GetConVar( "cfc_parachute_destabi
 local DESIGN_MATERIALS
 local DESIGN_MATERIAL_NAMES
 local DESIGN_MATERIAL_COUNT = CFC_Parachute.DesignMaterialCount
-
 local DESIGN_REQUEST_BURST_LIMIT = 10
 local DESIGN_REQUEST_BURST_DURATION = 3
+
+local LFS_EXISTS = simfphys and simfphys.LFS and true
+local LFS_AUTO_CHUTE_HEIGHT = LFS_EXISTS and GetConVar( "cfc_parachute_lfs_auto_height" )
 
 local allChuteSweps = CFC_Parachute.AllChuteSweps
 
@@ -160,6 +162,76 @@ hook.Add( "CFC_Parachute_ChuteCreated", "CFC_Parachute_DefineDesigns", function(
     DESIGN_MATERIAL_NAMES = designMaterialNames
     DESIGN_MATERIAL_COUNT = designMaterialCount
 end )
+
+if LFS_EXISTS then
+    local function onlyWorldFilter( ent )
+        return ent:IsWorld()
+    end
+
+    hook.Add( "PlayerLeaveVehicle", "CFC_Parachute_LFSAutoChute", function( ply, vehicle )
+        if not IsValid( ply ) or not ply:IsPlayer() or not ply:Alive() or not IsValid( vehicle ) then return end
+        
+        local lfsPlane = vehicle.LFSBaseEnt
+
+        if not IsValid( lfsPlane ) then return end
+        if hook.Run( "CFC_Parachute_CanLFSAutoChute", ply, vehicle, lfsPlane ) == false then return end
+
+        local minHeight = LFS_AUTO_CHUTE_HEIGHT:GetFloat()
+        local canAutoChute
+
+        if minHeight == 0 then
+            canAutoChute = true
+        else
+            local hull = ply:OBBMaxs() * Vector( 1, 1, 0 ) + Vector( 0, 0, 1 )
+            local plyPos = ply:GetPos()
+
+            local tr = util.TraceHull( {
+                start = plyPos,
+                endpos = plyPos + Vector( 0, 0, -minHeight ),
+                mins = -hull,
+                maxs = hull,
+                filter = onlyWorldFilter,
+            } )
+
+            canAutoChute = not tr.Hit
+        end
+
+        if not canAutoChute then return end
+
+        local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+
+        if not IsValid( wep ) then
+            wep = ents.Create( "cfc_weapon_parachute" )
+            wep:SetPos( Vector( 0, 0, 0 ) )
+            wep:SetOwner( ply )
+            wep:Spawn()
+
+            if hook.Run( "PlayerCanPickupWeapon", ply, wep ) == false then
+                wep:Remove()
+
+                return
+            end
+
+            ply:PickupWeapon( wep )
+        end
+
+        timer.Simple( 0.1, function()
+            if ply:GetActiveWeapon() == wep then return end
+
+            ply:SelectWeapon( "cfc_weapon_parachute" )
+        end )
+
+        timer.Simple( 0.2, function()
+            if wep.chuteIsOpen then return end
+
+            wep:PrimaryAttack()
+        end )
+    end )
+
+    hook.Add( "CFC_Parachute_CanLFSAutoChute", "CFC_Parachute_CheckAutoEquipConVar", function( ply )
+        if ply:GetInfoNum( "cfc_parachute_lfs_auto_equip", 1 ) == 0 then return false end
+    end )
+end
 
 net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
     if not IsValid( ply ) then return end

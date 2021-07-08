@@ -10,6 +10,7 @@ local DESIGN_MATERIAL_NAMES
 local DESIGN_MATERIAL_COUNT
 
 local DESIGN_CHOICE = CreateConVar( "cfc_parachute_design", 1, { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NEVER_AS_STRING }, "Your selected parachute design.", 1, 50000 )
+local LFS_AUTO_CHUTE
 
 local ANG_ZERO = Angle( 0, 0, 0 )
 local ANG_GRAB_RIGHT_UPPERARM = Angle( 127.3, 331.3, 368.5 )
@@ -18,6 +19,10 @@ local ANG_GRAB_RIGHT_HAND = Angle( 0, 26.7, 25.4 )
 local ANG_GRAB_LEFT_UPPERARM = Angle( -72.1, -166, 127.3 )
 local ANG_GRAB_LEFT_FOREARM = Angle( -11, 7.2, 26.5 )
 local ANG_GRAB_LEFT_HAND = Angle( 0, 8.7, 0 )
+
+if simfphys and simfphys.LFS then
+    LFS_AUTO_CHUTE = CreateClientConVar( "cfc_parachute_lfs_auto_equip", 1, true, true, "Whether or not to auto-equip a parachute when ejecting from an LFS plane in the air.", 0, 1 )
+end
 
 function CFC_Parachute.CreateDesignPreview( x, y, ind, panel )
     local icon = vgui.Create( "ContentIcon", panel )

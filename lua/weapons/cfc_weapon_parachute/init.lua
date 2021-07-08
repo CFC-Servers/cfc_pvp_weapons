@@ -184,8 +184,10 @@ function SWEP:ChangeOwner( ply )
 end
 
 function SWEP:ChangeOpenStatus( state )
-    local owner = self:GetOwner()
+    local owner = self:GetOwner() or self.chuteOwner
     local prevState = self.chuteIsOpen
+
+    if not IsValid( owner ) then return end
 
     if state == nil then
         state = not prevState
