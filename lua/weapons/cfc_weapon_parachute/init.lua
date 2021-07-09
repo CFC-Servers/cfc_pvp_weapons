@@ -407,16 +407,6 @@ function SWEP:Equip( ply )
     end )
 end
 
-function SWEP:Think()
-    if not self.ApplyChuteForces then return end
-
-    self:ApplyChuteForces()
-
-    self:NextThink( CurTime() )
-
-	return true
-end
-
 function SWEP:KeyPress( ply, key, state )
     if ply ~= self:GetOwner() or self.chuteIsUnstable then return end
     
