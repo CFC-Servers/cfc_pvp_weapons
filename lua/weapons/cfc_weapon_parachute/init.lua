@@ -227,7 +227,7 @@ end
 function SWEP:ApplyUnstableLurch()
     local owner = self:GetOwner()
 
-    if not IsValid( owner ) then return end
+    if not IsValid( owner ) or owner.cfcParachuteInstabilityImmune then return end
     
     local maxLurch = UNSTABLE_MAX_LURCH:GetFloat()
     local lurchForce = -math.Rand( 0, maxLurch )
@@ -236,6 +236,10 @@ function SWEP:ApplyUnstableLurch()
 end
 
 function SWEP:ApplyUnstableDirectionChange()
+    local owner = self:GetOwner() or self.chuteOwner
+
+    if not IsValid( owner ) or owner.cfcParachuteInstabilityImmune then return end
+
     local maxChange = UNSTABLE_MAX_DIR_CHANGE:GetFloat()
     local chuteDir = self.chuteDir
 

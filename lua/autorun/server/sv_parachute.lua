@@ -21,6 +21,7 @@ local LFS_EXISTS
 local LFS_AUTO_CHUTE_HEIGHT
 local LFS_EJECT_LAUNCH_FORCE
 local LFS_EJECT_LAUNCH_BIAS
+local LFS_ENTER_RADIUS
 
 local allChuteSweps = CFC_Parachute.AllChuteSweps
 
@@ -78,8 +79,10 @@ function CFC_Parachute.TrySetupLFS()
     if not LFS_EXISTS then return end
 
     LFS_AUTO_CHUTE_HEIGHT = CreateConVar( "cfc_parachute_lfs_eject_height", 500, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The minimum height above the ground a player must be for LFS eject events to trigger (e.g. auto-parachute and rendezook launch).", 0, 50000 )
-    LFS_EJECT_LAUNCH_FORCE = CreateConVar( "cfc_parachute_lfs_eject_launch_force", 1000, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The upwards force applied to players when they launch out of an LFS plane.", 0, 50000 )
+    LFS_EJECT_LAUNCH_FORCE = CreateConVar( "cfc_parachute_lfs_eject_launch_force", 1100, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The upwards force applied to players when they launch out of an LFS plane.", 0, 50000 )
     LFS_EJECT_LAUNCH_BIAS = CreateConVar( "cfc_parachute_lfs_eject_launch_bias", 25, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How many degrees the LFS eject launch should course-correct the player's trajectory to send them straight up, for if their plane is tilted.", 0, 90 )
+    LFS_EJECT_STABILITY_TIME = CreateConVar( "cfc_parachute_lfs_eject_stability_time", 5, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How many seconds a player is immune to parachute instability when they launch out of an LFS plane.", 0, 50000 )
+    LFS_ENTER_RADIUS = CreateConVar( "cfc_parachute_lfs_enter_radius", 800, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How close a player must be to enter an LFS if they are in a parachute and regular use detection fails. Makes it easier to get inside of an LFS for performing a Rendezook.", 0, 50000 )
 
     local function onlyWorldFilter( ent )
         return ent:IsWorld()
@@ -176,6 +179,12 @@ function CFC_Parachute.TrySetupLFS()
 
             ply:SetVelocity( dir * force + lfsVel )
         end )
+
+        ply.cfcParachuteInstabilityImmune = true
+
+        timer.Create( "CFC_Parachute_InstabilityImmuneTimeout_" .. ply:SteamID(), LFS_EJECT_STABILITY_TIME:GetFloat(), 1, function()
+            ply.cfcParachuteInstabilityImmune = false
+        end )
     end )
 
     hook.Add( "CFC_Parachute_CanLFSAutoChute", "CFC_Parachute_CheckAutoEquipConVar", function( ply )
@@ -184,6 +193,30 @@ function CFC_Parachute.TrySetupLFS()
     
     hook.Add( "CFC_Parachute_CanLFSEjectLaunch", "CFC_Parachute_CheckEjectLaunchConVar", function( ply )
         if ply:GetInfoNum( "cfc_parachute_lfs_eject_launch", 1 ) == 0 then return false end
+    end )
+
+    hook.Add( "FindUseEntity", "CFC_Parachute_LFSEasyEnter", function( ply, ent )
+        if IsValid( ent ) or not IsValid( ply ) or not ply:IsPlayer() or ply:InVehicle() then return end
+
+        local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+
+        if not IsValid( wep ) or not wep.chuteIsOpen then return end
+
+        local radiusSqr = LFS_ENTER_RADIUS:GetFloat() ^ 2
+        local lfsPlanes = ents.FindByClass( "lunasflightschool_*" )
+        local plyPos = ply:GetPos()
+
+        for i = 1, #lfsPlanes do
+            local plane = lfsPlanes[i]
+
+            if plane.GetDriverSeat then -- Verify that it's not some other type of LFS entity
+
+                if plane:GetPos():DistToSqr( plyPos ) <= radiusSqr then
+
+                    return plane
+                end
+            end
+        end
     end )
 end
 
@@ -222,6 +255,14 @@ hook.Add( "KeyRelease", "CFC_Parachute_HandleKeyRelease", function( ply, key )
 end )
 
 hook.Add( "OnPlayerHitGround", "CFC_Parachute_CloseChute", function( ply )
+    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+
+    if not IsValid( wep ) then return end
+
+    wep:ChangeOpenStatus( false )
+end )
+
+hook.Add( "PlayerEnteredVehicle", "CFC_Parachute_CloseChute", function( ply )
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
     if not IsValid( wep ) then return end

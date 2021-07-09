@@ -23,8 +23,10 @@
 | cfc_parachute_destabilize_shoot_lurch_chance | The chance for an unstable parachute to lurch downwards when the player shoots a bullet. | 0.2 |
 | cfc_parachute_destabilize_shoot_change_chance | The chance for an unstable parachute's direction to change when the player shoots a bullet. | 0.15 |
 | cfc_parachute_lfs_eject_height | The minimum height above the ground a player must be for LFS eject events to trigger (e.g. auto-parachute and rendezook launch). | 500 |
-| cfc_parachute_lfs_eject_launch_force | The upwards force applied to players when they launch out of an LFS plane. | 1000 |
+| cfc_parachute_lfs_eject_launch_force | The upwards force applied to players when they launch out of an LFS plane. | 1100 |
 | cfc_parachute_lfs_eject_launch_bias | How many degrees the LFS eject launch should course-correct the player's trajectory to send them straight up, for if their plane is tilted. | 25 |
+| cfc_parachute_lfs_eject_stability_time | How many seconds a player is immune to parachute instability when they launch out of an LFS plane. | 5 |
+| cfc_parachute_lfs_enter_radius | How close a player must be to enter an LFS if they are in a parachute and regular use detection fails. Makes it easier to get inside of an LFS for performing a Rendezook. | 800 |
 
 ## Client Convars
 
