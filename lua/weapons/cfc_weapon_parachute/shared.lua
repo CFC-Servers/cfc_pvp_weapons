@@ -43,7 +43,3 @@ CreateConVar( "cfc_parachute_destabilize_max_lurch", 300, { FCVAR_REPLICATED, FC
 CreateConVar( "cfc_parachute_destabilize_lurch_chance", 0.2, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The chance for an unstable parachute to lurch downwards when a direction change occurs.", 0, 180 )
 CreateConVar( "cfc_parachute_destabilize_shoot_lurch_chance", 0.2, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The chance for an unstable parachute to lurch downwards when the player shoots a bullet.", 0, 1 )
 CreateConVar( "cfc_parachute_destabilize_shoot_change_chance", 0.15, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The chance for an unstable parachute's direction to change when the player shoots a bullet.", 0, 1 )
-
-if simfphys and simfphys.LFS then
-    CreateConVar( "cfc_parachute_lfs_auto_height", 500, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The minimum height above the ground a player must be to auto-equip a parachute when ejecting from an LFS.", 0, 50000 )
-end

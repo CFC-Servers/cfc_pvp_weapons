@@ -39,6 +39,8 @@ local LFS_AUTO_CHUTE
 local function trySetupLFS()
     if not LFS_EXISTS then return end
 
+    CreateConVar( "cfc_parachute_lfs_auto_height", 500, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The minimum height above the ground a player must be to auto-equip a parachute when ejecting from an LFS.", 0, 50000 )
+    
     LFS_AUTO_CHUTE = CreateClientConVar( "cfc_parachute_lfs_auto_equip", 1, true, true, "Whether or not to auto-equip a parachute when ejecting from an LFS plane in the air.", 0, 1 )
 
     table.insert( CFC_Parachute.MenuToggleButtons, {

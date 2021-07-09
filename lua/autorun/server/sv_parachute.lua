@@ -75,7 +75,7 @@ end
 local function trySetupLFS()
     if not LFS_EXISTS then return end
 
-    LFS_AUTO_CHUTE_HEIGHT = GetConVar( "cfc_parachute_lfs_auto_height" )
+    LFS_AUTO_CHUTE_HEIGHT = CreateConVar( "cfc_parachute_lfs_auto_height", 500, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The minimum height above the ground a player must be to auto-equip a parachute when ejecting from an LFS.", 0, 50000 )
 
     local function onlyWorldFilter( ent )
         return ent:IsWorld()
