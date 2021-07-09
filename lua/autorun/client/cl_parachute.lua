@@ -35,18 +35,26 @@ local ANG_GRAB_LEFT_HAND = Angle( 0, 8.7, 0 )
 
 local LFS_EXISTS
 local LFS_AUTO_CHUTE
+local LFS_EJECT_LAUNCH
 
 local function trySetupLFS()
     if not LFS_EXISTS then return end
 
-    CreateConVar( "cfc_parachute_lfs_auto_height", 500, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The minimum height above the ground a player must be to auto-equip a parachute when ejecting from an LFS.", 0, 50000 )
+    CreateConVar( "cfc_parachute_lfs_eject_height", 500, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The minimum height above the ground a player must be to auto-equip a parachute when ejecting from an LFS.", 0, 50000 )
     
     LFS_AUTO_CHUTE = CreateClientConVar( "cfc_parachute_lfs_auto_equip", 1, true, true, "Whether or not to auto-equip a parachute when ejecting from an LFS plane in the air.", 0, 1 )
+    LFS_EJECT_LAUNCH = CreateClientConVar( "cfc_parachute_lfs_eject_launch", 1, true, true, "Whether or not to launch up high when ejecting from an LFS plane in the air. Useful for pulling off a Rendezook.", 0, 1 )
 
     table.insert( CFC_Parachute.MenuToggleButtons, {
         TextOff = "Enable LFS Auto-Parachute",
         TextOn = "Disable LFS Auto-Parachute",
         ConVar = "cfc_parachute_lfs_auto_equip"
+    } )
+
+    table.insert( CFC_Parachute.MenuToggleButtons, {
+        TextOff = "Enable LFS Eject-Launch",
+        TextOn = "Disable LFS Eject-Launch",
+        ConVar = "cfc_parachute_lfs_eject_launch"
     } )
 end
 

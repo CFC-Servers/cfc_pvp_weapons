@@ -19,8 +19,19 @@ local DESIGN_REQUEST_BURST_DURATION = 3
 
 local LFS_EXISTS
 local LFS_AUTO_CHUTE_HEIGHT
+local LFS_EJECT_LAUNCH_FORCE
+local LFS_EJECT_LAUNCH_BIAS
 
 local allChuteSweps = CFC_Parachute.AllChuteSweps
+
+local function changeOwner( wep, ply )
+    if not IsValid( wep ) then return end
+    if wep:GetClass() ~= "cfc_weapon_parachute" then return end
+
+    timer.Simple( 0, function()
+        wep:ChangeOwner( ply )
+    end )
+end
 
 function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
     if not IsValid( ply ) then return end
@@ -63,31 +74,23 @@ function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
     end
 end
 
-local function changeOwner( wep, ply )
-    if not IsValid( wep ) then return end
-    if wep:GetClass() ~= "cfc_weapon_parachute" then return end
-
-    timer.Simple( 0, function()
-        wep:ChangeOwner( ply )
-    end )
-end
-
-local function trySetupLFS()
+function CFC_Parachute.TrySetupLFS()
     if not LFS_EXISTS then return end
 
-    LFS_AUTO_CHUTE_HEIGHT = CreateConVar( "cfc_parachute_lfs_auto_height", 500, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The minimum height above the ground a player must be to auto-equip a parachute when ejecting from an LFS.", 0, 50000 )
+    LFS_AUTO_CHUTE_HEIGHT = CreateConVar( "cfc_parachute_lfs_eject_height", 500, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The minimum height above the ground a player must be for LFS eject events to trigger (e.g. auto-parachute and rendezook launch).", 0, 50000 )
+    LFS_EJECT_LAUNCH_FORCE = CreateConVar( "cfc_parachute_lfs_eject_launch_force", 1000, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The upwards force applied to players when they launch out of an LFS plane.", 0, 50000 )
+    LFS_EJECT_LAUNCH_BIAS = CreateConVar( "cfc_parachute_lfs_eject_launch_bias", 25, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How many degrees the LFS eject launch should course-correct the player's trajectory to send them straight up, for if their plane is tilted.", 0, 90 )
 
     local function onlyWorldFilter( ent )
         return ent:IsWorld()
     end
 
-    hook.Add( "PlayerLeaveVehicle", "CFC_Parachute_LFSAutoChute", function( ply, vehicle )
+    hook.Add( "PlayerLeaveVehicle", "CFC_Parachute_LFSAirEject", function( ply, vehicle )
         if not IsValid( ply ) or not ply:IsPlayer() or not ply:Alive() or not IsValid( vehicle ) then return end
         
         local lfsPlane = vehicle.LFSBaseEnt
 
         if not IsValid( lfsPlane ) then return end
-        if hook.Run( "CFC_Parachute_CanLFSAutoChute", ply, vehicle, lfsPlane ) == false then return end
 
         local minHeight = LFS_AUTO_CHUTE_HEIGHT:GetFloat()
         local canAutoChute
@@ -110,6 +113,12 @@ local function trySetupLFS()
         end
 
         if not canAutoChute then return end
+
+        hook.Run( "CFC_Parachute_LFSAirEject", ply, vehicle, lfsPlane )
+    end )
+
+    hook.Add( "CFC_Parachute_LFSAirEject", "CFC_Parachute_LFSAutoChute", function( ply, vehicle, lfsPlane )
+        if hook.Run( "CFC_Parachute_CanLFSAutoChute", ply, vehicle, lfsPlane ) == false then return end
 
         local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
@@ -141,8 +150,40 @@ local function trySetupLFS()
         end )
     end )
 
+    hook.Add( "CFC_Parachute_LFSAirEject", "CFC_Parachute_LFSAutoLaunch", function( ply, vehicle, lfsPlane )
+        if hook.Run( "CFC_Parachute_CanLFSEjectLaunch", ply, vehicle, lfsPlane ) == false then return end
+
+        local force = LFS_EJECT_LAUNCH_FORCE:GetFloat()
+        local bias = LFS_EJECT_LAUNCH_BIAS:GetFloat()
+
+        local dir = lfsPlane:GetUp()
+
+        if dir.z >= 0 then -- Biasing the direction if it's tilted down would be pointless
+            local forwardAng = lfsPlane:GetAngles()
+            local pitchCorrect = math.Clamp( forwardAng.p, -bias, bias )
+            local rollCorrect = math.Clamp( -forwardAng.r, -bias, bias )
+            
+            forwardAng:RotateAroundAxis( lfsPlane:GetRight(), pitchCorrect )
+            forwardAng:RotateAroundAxis( lfsPlane:GetForward(), rollCorrect )
+
+            dir = forwardAng:Up()
+        end
+
+        timer.Simple( 0.01, function()
+            if not IsValid( ply ) then return end
+
+            local lfsVel = IsValid( lfsPlane ) and lfsPlane:GetVelocity() * 1.2 or Vector( 0, 0, 0 )
+
+            ply:SetVelocity( dir * force + lfsVel )
+        end )
+    end )
+
     hook.Add( "CFC_Parachute_CanLFSAutoChute", "CFC_Parachute_CheckAutoEquipConVar", function( ply )
         if ply:GetInfoNum( "cfc_parachute_lfs_auto_equip", 1 ) == 0 then return false end
+    end )
+    
+    hook.Add( "CFC_Parachute_CanLFSEjectLaunch", "CFC_Parachute_CheckEjectLaunchConVar", function( ply )
+        if ply:GetInfoNum( "cfc_parachute_lfs_eject_launch", 1 ) == 0 then return false end
     end )
 end
 
@@ -250,7 +291,7 @@ end )
 hook.Add( "InitPostEntity", "CFC_Parachute_CheckOptionalDependencies", function()
     LFS_EXISTS = simfphys and simfphys.LFS and true
 
-    trySetupLFS()
+    CFC_Parachute.TrySetupLFS()
 end )
 
 net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
