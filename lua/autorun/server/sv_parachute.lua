@@ -195,7 +195,7 @@ hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, dat
         owner = data.Attacker
     end
 
-    if not IsValid( owner ) then return end
+    if not IsValid( owner ) or not owner:IsPlayer() then return end
 
     local chuteSwep = owner:GetWeapon( "cfc_weapon_parachute" )
 
