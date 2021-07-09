@@ -175,7 +175,7 @@ function CFC_Parachute.OpenDesignMenu()
 
     -- Design button setup
     offsetX = 0
-    offsetY = offsetY + ( y + 1 ) * buttonHeight + y * buttonGapY + 5
+    offsetY = offsetY + ( y > 0 and ( y + 1 ) * ( buttonHeight + buttonGapY ) ) or 0
     x = 0
     y = 0
     buttonWidth = 120
