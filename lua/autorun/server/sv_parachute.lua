@@ -84,6 +84,9 @@ function CFC_Parachute.TrySetupLFS()
     LFS_EJECT_STABILITY_TIME = CreateConVar( "cfc_parachute_lfs_eject_stability_time", 5, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How many seconds a player is immune to parachute instability when they launch out of an LFS plane.", 0, 50000 )
     LFS_ENTER_RADIUS = CreateConVar( "cfc_parachute_lfs_enter_radius", 800, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How close a player must be to enter an LFS if they are in a parachute and regular use detection fails. Makes it easier to get inside of an LFS for performing a Rendezook.", 0, 50000 )
 
+    LFS_AUTO_CHUTE_SV = CreateConVar( "cfc_parachute_lfs_auto_equip_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Whether or not to auto-equip a parachute when ejecting from an LFS plane in the air. Defines the default value for players.", 0, 1 )
+    LFS_EJECT_LAUNCH_SV = CreateConVar( "cfc_parachute_lfs_eject_launch_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Whether or not to launch up high when ejecting from an LFS plane in the air. Useful for pulling off a Rendezook. Defines the default value for players.", 0, 1 )
+
     local function onlyWorldFilter( ent )
         return ent:IsWorld()
     end
@@ -188,11 +191,15 @@ function CFC_Parachute.TrySetupLFS()
     end )
 
     hook.Add( "CFC_Parachute_CanLFSAutoChute", "CFC_Parachute_CheckAutoEquipConVar", function( ply )
-        if ply:GetInfoNum( "cfc_parachute_lfs_auto_equip", 1 ) == 0 then return false end
+        local plyVal = ply:GetInfoNum( "cfc_parachute_lfs_auto_equip", 2 )
+
+        if plyVal == 0 or ( plyVal == 2 and LFS_AUTO_CHUTE_SV:GetString() == "0" ) then return false end
     end )
     
     hook.Add( "CFC_Parachute_CanLFSEjectLaunch", "CFC_Parachute_CheckEjectLaunchConVar", function( ply )
-        if ply:GetInfoNum( "cfc_parachute_lfs_eject_launch", 1 ) == 0 then return false end
+        local plyVal = ply:GetInfoNum( "cfc_parachute_lfs_eject_launch", 2 )
+
+        if plyVal == 0 or ( plyVal == 2 and LFS_EJECT_LAUNCH_SV:GetString() == "0" ) then return false end
     end )
 
     hook.Add( "FindUseEntity", "CFC_Parachute_LFSEasyEnter", function( ply, ent )
