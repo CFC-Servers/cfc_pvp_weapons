@@ -170,13 +170,16 @@ function CFC_Parachute.CreateToggleButton( x, y, ind, panel, w, h )
         function button:Think()
             local isHovered = button:IsHovered()
 
+            if isHovered then
+                local x, y = panel:LocalCursorPos()
+
+                tooltip:SetPos( x, y )
+            end
+
             if hoverState ~= isHovered then
                 hoverState = isHovered
 
                 if hoverState then
-                    local x, y = panel:LocalCursorPos()
-
-                    tooltip:SetPos( x, y )
                     tooltip:MoveToFront()
                     tooltip:Show()
                 else
