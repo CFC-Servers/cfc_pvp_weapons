@@ -8,7 +8,7 @@ end )
 
 local function mixpanelTrackEvent( eventName, identifier, data )
     if not Mixpanel then return end
-    Mixpanel.TrackPlyEvent( eventName, identifier, data )
+    Mixpanel:TrackPlyEvent( eventName, identifier, data )
 end
 
 function ENT:Initialize()
