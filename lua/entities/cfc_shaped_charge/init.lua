@@ -6,9 +6,9 @@ ProtectedCall( function()
     require( "mixpanel" )
 end )
 
-local function mixpanelTrackEvent( eventName, identifier, data )
+local function mixpanelTrackEvent( eventName, ply, data )
     if not Mixpanel then return end
-    Mixpanel:TrackPlyEvent( eventName, identifier, data )
+    Mixpanel:TrackPlyEvent( eventName, ply, data )
 end
 
 function ENT:Initialize()
@@ -20,7 +20,7 @@ function ENT:Initialize()
         return
     end
 
-    mixpanelTrackEvent( "Shaped charge placed", "Placed" )
+    mixpanelTrackEvent( "Shaped charge placed", self.bombOwner )
 
     owner.plantedCharges = owner.plantedCharges or 0
     owner.plantedCharges = owner.plantedCharges + 1
@@ -57,7 +57,7 @@ function ENT:OnTakeDamage ( dmg )
     if self.bombHealth <= 0 then
         if not IsValid( self ) then return end
 
-        mixpanelTrackEvent( "Shaped charge broken", "ChargeBroken" )
+        mixpanelTrackEvent( "Shaped charge broken", self.bombOwner, {owner = self.bombOwner, breaker = dmg:GetAttacker(), weapon = dmg:GetAttacker():GetActiveWeapon() } )
 
         local effectdata = EffectData()
         effectdata:SetOrigin( self:GetPos() )
@@ -117,7 +117,7 @@ function ENT:Explode()
         end
     end
 
-    mixpanelTrackEvent( "Shaped charge props broken", "PropsBroken", { count = count } )
+    mixpanelTrackEvent( "Shaped charge props broken", self.bombOwner, { count = count } )
 
     util.BlastDamage( self, self.bombOwner, self:GetPos(), self.blastRange, self.blastDamage )
 
