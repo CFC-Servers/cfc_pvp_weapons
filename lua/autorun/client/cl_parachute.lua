@@ -233,9 +233,9 @@ function CFC_Parachute.OpenDesignMenu()
 
                 local tooltip = button.cfcParachuteTooltip
 
-                if tooltip then
-                    tooltip:SetText( button.cfcParachuteIntendedHoverText() )
-                end
+                if not tooltip then return end
+
+                tooltip:SetText( button.cfcParachuteIntendedHoverText() )
             end
         end
 

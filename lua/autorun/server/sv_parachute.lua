@@ -193,13 +193,23 @@ function CFC_Parachute.TrySetupLFS()
     hook.Add( "CFC_Parachute_CanLFSAutoChute", "CFC_Parachute_CheckAutoEquipConVar", function( ply )
         local plyVal = ply:GetInfoNum( "cfc_parachute_lfs_auto_equip", 2 )
 
-        if plyVal == 0 or ( plyVal == 2 and LFS_AUTO_CHUTE_SV:GetString() == "0" ) then return false end
+        if plyVal == 1 then return end
+        if plyVal == 0 then return false end
+
+        local serverDefault = LFS_AUTO_CHUTE_SV:GetString()
+
+        if serverDefault == "0" then return false end
     end )
     
     hook.Add( "CFC_Parachute_CanLFSEjectLaunch", "CFC_Parachute_CheckEjectLaunchConVar", function( ply )
         local plyVal = ply:GetInfoNum( "cfc_parachute_lfs_eject_launch", 2 )
 
-        if plyVal == 0 or ( plyVal == 2 and LFS_EJECT_LAUNCH_SV:GetString() == "0" ) then return false end
+        if plyVal == 1 then return end
+        if plyVal == 0 then return false end
+
+        local serverDefault = LFS_EJECT_LAUNCH_SV:GetString()
+
+        if serverDefault == "0" then return false end
     end )
 
     hook.Add( "FindUseEntity", "CFC_Parachute_LFSEasyEnter", function( ply, ent )
