@@ -122,6 +122,48 @@ function CFC_Parachute.PaintButtonHover( panel )
     end
 end
 
+function CFC_Parachute.CreateTooltip( panel, button )
+    button:SetMouseInputEnabled( true )
+
+    local tooltip = vgui.Create( "DLabel", panel )
+    local tX, tY = panel:LocalCursorPos()
+    local hoverText = button.cfcParachuteIntendedHoverText()
+    local hoverState = button:IsHovered()
+
+    tooltip:SetText( hoverText )
+    tooltip:SetPos( tX, tY )
+
+    local tW, tH = tooltip:GetTextSize()
+    local margin = 10
+
+    tooltip:SetSize( tW + margin, tH + margin )
+    tooltip:SetTextInset( margin / 2, 0 )
+    CFC_Parachute.PaintButtonHover( tooltip )
+
+    function button:Think()
+        local isHovered = button:IsHovered()
+
+        if isHovered then
+            local x, y = panel:LocalCursorPos()
+
+            tooltip:SetPos( x, y )
+        end
+
+        if hoverState ~= isHovered then
+            hoverState = isHovered
+
+            if hoverState then
+                tooltip:MoveToFront()
+                tooltip:Show()
+            else
+                tooltip:Hide()
+            end
+        end
+    end
+
+    button.cfcParachuteTooltip = tooltip
+end
+
 function CFC_Parachute.CreateToggleButton( x, y, ind, panel, w, h )
     local button = vgui.Create( "DButton", panel )
     local buttonData = CFC_Parachute.MenuToggleButtons[ind]
@@ -163,45 +205,7 @@ function CFC_Parachute.CreateToggleButton( x, y, ind, panel, w, h )
     end
 
     if hoverText then
-        button:SetMouseInputEnabled( true )
-
-        local tooltip = vgui.Create( "DLabel", panel )
-        local tX, tY = panel:LocalCursorPos()
-        local hoverText = button.cfcParachuteIntendedHoverText()
-        local hoverState = button:IsHovered()
-
-        tooltip:SetText( hoverText )
-        tooltip:SetPos( tX, tY )
-
-        local tW, tH = tooltip:GetTextSize()
-        local margin = 10
-
-        tooltip:SetSize( tW + margin, tH + margin )
-        tooltip:SetTextInset( margin / 2, 0 )
-        CFC_Parachute.PaintButtonHover( tooltip )
-
-        function button:Think()
-            local isHovered = button:IsHovered()
-
-            if isHovered then
-                local x, y = panel:LocalCursorPos()
-
-                tooltip:SetPos( x, y )
-            end
-
-            if hoverState ~= isHovered then
-                hoverState = isHovered
-
-                if hoverState then
-                    tooltip:MoveToFront()
-                    tooltip:Show()
-                else
-                    tooltip:Hide()
-                end
-            end
-        end
-
-        button.cfcParachuteTooltip = tooltip
+        CFC_Parachute.CreateTooltip( panel, button )
     end
 
     buttonData.DButton = button
