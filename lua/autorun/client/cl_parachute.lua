@@ -27,6 +27,19 @@ local DESIGN_MATERIAL_COUNT
 
 local DESIGN_CHOICE = CreateConVar( "cfc_parachute_design", 1, { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NEVER_AS_STRING }, "Your selected parachute design.", 1, 50000 )
 
+local MENU_COLOR = Color( 36, 41, 67, 255 )
+local MENU_BAR_COLOR = Color( 42, 47, 74, 255 )
+
+local BUTTON_TEXT_COLOR = Color( 255, 255, 255, 255 )
+local BUTTON_TEXT_HOVERED_COLOR = Color( 255, 255, 255, 255 )
+local BUTTON_OUTLINE_COLOR = Color( 255, 255, 255, 255 )
+local BUTTON_PRESSED_COLOR = Color( 83, 227, 251, 255 )
+local BUTTON_HOVERED_COLOR = Color( 35, 42, 69, 255 )
+local BUTTON_COLOR = Color( 42, 47, 74, 255 )
+
+local TOOLTIP_COLOR = Color( 24, 29, 59, 255 )
+local TOOLTIP_OUTLINE_COLOR = Color( 50, 58, 75, 255 )
+
 local ANG_ZERO = Angle( 0, 0, 0 )
 local ANG_GRAB_RIGHT_UPPERARM = Angle( 127.3, 331.3, 368.5 )
 local ANG_GRAB_RIGHT_FOREARM = Angle( -6.8, 41.4, 57.5 )
@@ -85,27 +98,27 @@ function CFC_Parachute.CreateDesignPreview( x, y, ind, panel )
 end
 
 function CFC_Parachute.PaintButton( panel ) -- Mimics appearance from CFC Loadouts for consistency
-    panel:SetTextColor( Color( 255, 255, 255 ) )
+    panel:SetTextColor( BUTTON_TEXT_COLOR )
 
     panel.Paint = function( self, w, h )
-        draw.RoundedBox( 0, 0, 0, w, h, Color( 255, 255, 255, 255 ) )
+        draw.RoundedBox( 0, 0, 0, w, h, BUTTON_OUTLINE_COLOR )
 
         if self:IsDown() then
-            draw.RoundedBox( 0, 1, 1, w - 2, h - 2, Color( 83, 227, 251, 255 ) )
+            draw.RoundedBox( 0, 1, 1, w - 2, h - 2, BUTTON_PRESSED_COLOR )
         elseif self:IsHovered() then
-            draw.RoundedBox( 0, 1, 1, w - 2, h - 2, Color( 35, 42, 69, 255 ) )
+            draw.RoundedBox( 0, 1, 1, w - 2, h - 2, BUTTON_HOVERED_COLOR )
         else
-            draw.RoundedBox( 0, 1, 1, w - 2, h - 2, Color( 42, 47, 74, 255 ) )
+            draw.RoundedBox( 0, 1, 1, w - 2, h - 2, BUTTON_COLOR )
         end
     end
 end
 
 function CFC_Parachute.PaintButtonHover( panel )
-    panel:SetTextColor( Color( 255, 255, 255 ) )
+    panel:SetTextColor( BUTTON_TEXT_HOVERED_COLOR )
 
     panel.Paint = function( self, w, h )
-        draw.RoundedBox( 0, 0, 0, w, h, Color( 50, 58, 75, 255 ) )
-        draw.RoundedBox( 0, 1, 1, w - 2, h - 2, Color( 24, 29, 59, 255 ) )
+        draw.RoundedBox( 0, 0, 0, w, h, TOOLTIP_OUTLINE_COLOR )
+        draw.RoundedBox( 0, 1, 1, w - 2, h - 2, TOOLTIP_COLOR )
     end
 end
 
@@ -243,8 +256,8 @@ function CFC_Parachute.OpenDesignMenu()
     scrollPanel:SetSize( windowWidth, windowHeight )
 
     window.Paint = function( _, w, h )
-        draw.RoundedBox( 8, 0, 0, w, h, Color( 36, 41, 67, 255 ) )
-        draw.RoundedBox( 8, 0, 0, w, 25, Color( 42, 47, 74, 255 ) )
+        draw.RoundedBox( 8, 0, 0, w, h, MENU_COLOR )
+        draw.RoundedBox( 8, 0, 0, w, 25, MENU_BAR_COLOR )
     end
 
     -- Toggle button setup
