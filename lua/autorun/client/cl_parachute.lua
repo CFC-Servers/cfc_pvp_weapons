@@ -227,13 +227,13 @@ function CFC_Parachute.OpenDesignMenu()
             if convarName and serverChoice and GetConVar( convarName ):GetString() == serverChoice then
                 local button = data.DButton
 
-                if not button then return end
+                if not button then continue end
 
                 button:SetText( button.cfcParachuteIntendedText() )
 
                 local tooltip = button.cfcParachuteTooltip
 
-                if not tooltip then return end
+                if not tooltip then continue end
 
                 tooltip:SetText( button.cfcParachuteIntendedHoverText() )
             end
@@ -344,9 +344,9 @@ hook.Add( "InitPostEntity", "CFC_Parachute_CheckOptionalDependencies", function(
 
                 local tooltip = button.cfcParachuteTooltip
 
-                if tooltip then
-                    tooltip:SetText( button.cfcParachuteIntendedHoverText() )
-                end
+                if not tooltip then return end
+
+                tooltip:SetText( button.cfcParachuteIntendedHoverText() )
             end )
         end
     end
