@@ -146,7 +146,7 @@ function CFC_Parachute.CreateToggleButton( x, y, ind, panel, w, h )
     end
 
     button.cfcParachuteIntendedHoverText = function()
-        local text = hoverText .. "\n\nCurrently "
+        local text = hoverText .. "\n\n" .. "Currently "
 
         return text .. ( button.cfcParachuteIsOn() and "enabled" or "disabled" )
     end
