@@ -129,22 +129,33 @@ function CFC_Parachute.CreateTooltip( panel, button )
     local tX, tY = panel:LocalCursorPos()
     local hoverText = button.cfcParachuteIntendedHoverText()
     local hoverState = button:IsHovered()
+    local clamp = math.Clamp
 
     tooltip:SetText( hoverText )
     tooltip:SetPos( tX, tY )
 
+    local pW, pH = panel:GetSize()
     local tW, tH = tooltip:GetTextSize()
-    local margin = 10
+    local textMargin = 10
+    local panelMargin = 5
+    local cursorOffsetX = -20
+    local cursorOffsetY = 25
 
-    tooltip:SetSize( tW + margin, tH + margin )
-    tooltip:SetTextInset( margin / 2, 0 )
+    tooltip:SetSize( tW + textMargin, tH + textMargin )
+    tooltip:SetTextInset( textMargin / 2, 0 )
     CFC_Parachute.PaintButtonHover( tooltip )
+
+    local xMax = pW - ( tW + textMargin + panelMargin )
+    local yMax = pH - ( tH + textMargin + panelMargin )
 
     function button:Think()
         local isHovered = button:IsHovered()
 
         if isHovered then
             local x, y = panel:LocalCursorPos()
+
+            x = clamp( x + cursorOffsetX, panelMargin, xMax )
+            y = clamp( y + cursorOffsetY, panelMargin, yMax )
 
             tooltip:SetPos( x, y )
         end
@@ -160,8 +171,6 @@ function CFC_Parachute.CreateTooltip( panel, button )
             end
         end
     end
-
-    button.cfcParachuteTooltip = tooltip
 end
 
 function CFC_Parachute.CreateToggleButton( x, y, ind, panel, w, h )
