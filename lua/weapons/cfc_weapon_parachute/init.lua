@@ -170,9 +170,13 @@ function SWEP:ChangeOwner( ply )
 
     ply = IsValid( ply ) and ply
 
+    self.chuteOwner = ply
+    self:SetOwner( ply )
+
     chute.chuteOwner = ply
     chute.chuteIsOpen = false
     chute.chuteIsUnfurled = false
+    chute:SetOwner( ply )
 
     timer.Simple( 0.01, function()
         net.Start( "CFC_Parachute_DefineChuteUnfurlStatus" )
