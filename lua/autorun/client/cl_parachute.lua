@@ -94,6 +94,16 @@ function CFC_Parachute.CreateDesignPreview( x, y, ind, panel )
         LocalPlayer():ConCommand( "cfc_parachute_design " .. ind )
     end
 
+    local oldPaint = icon.Paint
+
+    icon.Paint = function( self, w, h )
+        render.SuppressEngineLighting( true )
+
+        oldPaint( icon, w, h )
+
+        render.SuppressEngineLighting( false )
+    end
+
     return icon
 end
 
