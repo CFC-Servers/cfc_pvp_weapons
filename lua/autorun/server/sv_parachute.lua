@@ -238,6 +238,10 @@ function CFC_Parachute.TrySetupLFS()
 end
 
 hook.Add( "PlayerDroppedWeapon", "CFC_Parachute_ChangeOwner", function( ply, wep )
+    if not IsValid( wep ) then return end
+    if wep:GetClass() ~= "cfc_weapon_parachute" then return end
+
+    wep:ChangeOpenStatus( false, ply )
     changeOwner( wep, ply )
 end )
 
