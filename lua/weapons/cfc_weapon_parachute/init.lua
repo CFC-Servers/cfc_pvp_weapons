@@ -185,8 +185,8 @@ function SWEP:ChangeOwner( ply )
     chute:SetColor( COLOR_HIDE )
 end
 
-function SWEP:ChangeOpenStatus( state )
-    local owner = self:GetOwner() or self.chuteOwner
+function SWEP:ChangeOpenStatus( state, ply )
+    local owner = ply or self:GetOwner() or self.chuteOwner
     local prevState = self.chuteIsOpen
 
     if not IsValid( owner ) then return end
