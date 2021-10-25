@@ -37,7 +37,8 @@ local BUTTON_TEXT_COLOR = Color( 255, 255, 255, 255 )
 local BUTTON_TEXT_HOVERED_COLOR = Color( 255, 255, 255, 255 )
 local BUTTON_OUTLINE_COLOR = Color( 255, 255, 255, 255 )
 local BUTTON_PRESSED_COLOR = Color( 83, 227, 251, 255 )
-local BUTTON_HOVERED_COLOR = Color( 35, 42, 69, 255 )
+local BUTTON_HOVERED_COLOR = Color( 31, 37, 61, 255 )
+local BUTTON_OFF_COLOR = Color( 28, 33, 56, 255 )
 local BUTTON_COLOR = Color( 42, 47, 74, 255 )
 
 local TOOLTIP_COLOR = Color( 24, 29, 59, 255 )
@@ -151,6 +152,8 @@ function CFC_Parachute.PaintButton( panel ) -- Mimics appearance from CFC Loadou
             draw.RoundedBox( 0, 1, 1, w - 2, h - 2, BUTTON_PRESSED_COLOR )
         elseif self:IsHovered() then
             draw.RoundedBox( 0, 1, 1, w - 2, h - 2, BUTTON_HOVERED_COLOR )
+        elseif panel.cfcParachuteIsOn and not panel.cfcParachuteIsOn() then
+            draw.RoundedBox( 0, 1, 1, w - 2, h - 2, BUTTON_OFF_COLOR )
         else
             draw.RoundedBox( 0, 1, 1, w - 2, h - 2, BUTTON_COLOR )
         end
