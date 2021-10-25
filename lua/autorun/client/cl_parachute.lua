@@ -26,6 +26,8 @@ local DESIGN_MATERIAL_NAMES
 local DESIGN_MATERIAL_COUNT
 
 local DESIGN_CHOICE = CreateConVar( "cfc_parachute_design", 1, { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NEVER_AS_STRING }, "Your selected parachute design.", 1, 50000 )
+local UNFURL_TOGGLE = CreateClientConVar( "cfc_parachute_unfurl_toggle", 0, true, true, "When enabled, pressing jump will toggle the unfurl state instead of holding it. Jumps won't toggle unfurl if chute is closed.", 0, 1 )
+local UNFURL_INVERT = CreateClientConVar( "cfc_parachute_unfurl_invert", 0, true, true, "Whether or not your parachute will be unfurled by default. Don't forget to open it!", 0, 1 )
 
 local MENU_COLOR = Color( 36, 41, 67, 255 )
 local MENU_BAR_COLOR = Color( 42, 47, 74, 255 )
@@ -51,6 +53,22 @@ local ANG_GRAB_LEFT_HAND = Angle( 0, 8.7, 0 )
 local LFS_EXISTS
 local LFS_AUTO_CHUTE
 local LFS_EJECT_LAUNCH
+
+table.insert( CFC_Parachute.MenuToggleButtons, {
+    TextOff = "Set unfurl to toggle mode",
+    TextOn = "Set unfurl to hold mode",
+    ConVar = "cfc_parachute_unfurl_toggle"
+} )
+
+table.insert( CFC_Parachute.MenuToggleButtons, {
+    TextOff = "Start unfurled",
+    TextOn = "Start furled",
+    ConVar = "cfc_parachute_unfurl_invert",
+    HoverText = UNFURL_INVERT:GetHelpText() .. "\n\n" ..
+        "When a parachute is open, it will only slow your descent by a small amount." .. "\n" ..
+        "To slow down all the way, your parachute must be open AND unfurled." .. "\n" ..
+        "Leaving this setting on is useful if you only ever want to fall at maximum slowness."
+} )
 
 local function trySetupLFS()
     if not LFS_EXISTS then return end
@@ -154,6 +172,7 @@ function CFC_Parachute.CreateTooltip( panel, button )
     tooltip:SetSize( tW + textMargin, tH + textMargin )
     tooltip:SetTextInset( textMargin / 2, 0 )
     CFC_Parachute.PaintButtonHover( tooltip )
+    button.cfcParachuteTooltip = tooltip
 
     local xMax = pW - ( tW + textMargin + panelMargin )
     local yMax = pH - ( tH + textMargin + panelMargin )
@@ -288,13 +307,13 @@ function CFC_Parachute.OpenDesignMenu()
     local y = 0
     local offsetX = 5
     local offsetY = 10
-    local buttonWidth = 200
+    local buttonWidth = 190
     local buttonHeight = 20
     local buttonGapX = 5
     local buttonGapY = 5
 
     for i = 1, #CFC_Parachute.MenuToggleButtons do
-        if ( x + 1 ) * buttonWidth >= windowWidth then
+        if ( x + 1 ) * ( buttonWidth + buttonGapX ) > windowWidth then
             x = 0
             y = y + 1
         end

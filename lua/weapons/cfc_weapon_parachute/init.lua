@@ -102,6 +102,21 @@ function SWEP:SpawnChute()
 
     hook.Run( "CFC_Parachute_ChuteCreated", chute )
 
+    timer.Simple( 0.02, function()
+        local owner = self:GetOwner() or chute.chuteOwner
+
+        if not IsValid( owner ) then return end
+
+        local shouldBeUnfurled = owner:GetInfoNum( "cfc_parachute_unfurl_invert", 0 ) ~= 0
+        chute.chuteIsUnfurled = shouldBeUnfurled
+        self.chuteIsUnfurled = shouldBeUnfurled
+
+        net.Start( "CFC_Parachute_DefineChuteUnfurlStatus" )
+        net.WriteEntity( chute )
+        net.WriteBool( shouldBeUnfurled )
+        net.Broadcast()
+    end )
+
     return chute
 end
 
@@ -420,6 +435,15 @@ function SWEP:KeyPress( ply, key, state )
     
     if key == IN_JUMP then
         if not self.chuteCanUnfurl then return end
+
+        local isToggle = ply:GetInfoNum( "cfc_parachute_unfurl_toggle", 0 ) ~= 0
+
+        if isToggle then
+            if not state or not self.chuteIsOpen then return end
+            state = not self.chuteIsUnfurled
+        elseif ply:GetInfoNum( "cfc_parachute_unfurl_invert", 0 ) ~= 0 then
+            state = not state
+        end
 
         self.chuteCanUnfurl = false
         self.chuteIsUnfurled = state
