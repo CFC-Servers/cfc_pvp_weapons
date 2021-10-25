@@ -8,6 +8,7 @@ CFC_Parachute.DesignWindow = false
 CFC_Parachute.MenuToggleButtons = CFC_Parachute.MenuToggleButtons or {}
 --[[ Contains tables with the following syntax to represent toggle buttons which will get added to the top of the design menu:
 {
+    HideState = BOOLEAN, -- Will hide the "Enabled/Disabled" text appended to the bottom of the tooltip
     TextOff = STRING, -- Text displayed when the button's value is 'off'
     TextOn = STRING, -- Text displayed when the button's value is 'on'
     ConVar = STRING, -- ConVar to be toggled (optional if OnClick and IsOn are defined)
@@ -53,6 +54,21 @@ local ANG_GRAB_LEFT_HAND = Angle( 0, 8.7, 0 )
 local LFS_EXISTS
 local LFS_AUTO_CHUTE
 local LFS_EJECT_LAUNCH
+
+table.insert( CFC_Parachute.MenuToggleButtons, {
+    HideState = true,
+    TextOff = "Help/Info",
+    TextOn = "Help/Info",
+    HoverText = "Parachutes slow your descent and allow you to glide through the air faster than you can move on land." .. "\n\n" .. 
+        "Your chute will start off closed, and can be toggled open with left click." .. "\n" .. 
+        "While open, your chute will only slow your descent by a little. You must unfurl it as well with spacebar." .. "\n" .. 
+        "Right clicking with the parachute SWEP will bring up this config menu." .. "\n" .. 
+        "You can select various chute designs and config options with the buttons below." .. "\n\n" .. 
+        "With your parachute open, you can switch to a different weapon and shoot from the air." .. "\n" .. 
+        "Be careful though, while your hands are occupied, you cannot close/furl/unfurl the chute and" .. "\n" .. 
+        "you will lose a lot of horizontal control." .. "\n" .. 
+        "Shooting too much will send you careening in a different direction, or even towards the ground."
+} )
 
 table.insert( CFC_Parachute.MenuToggleButtons, {
     TextOff = "Set unfurl to toggle mode",
@@ -214,8 +230,11 @@ function CFC_Parachute.CreateToggleButton( x, y, ind, panel, w, h )
     local offText = buttonData.TextOff or "Enable [UNDEFINED]"
     local onText = buttonData.TextOn or "Disable [UNDEFINED]"
     local hoverText = buttonData.HoverText or ( convar and convar:GetHelpText() )
+    local hideState = buttonData.HideState
 
     button.cfcParachuteIsOn = buttonData.IsOn or function()
+        if not convar then return true end
+
         local curVal = convar:GetString()
 
         return curVal == onVal or ( curVal == svVal and GetConVar( convarName .. "_sv" ):GetString() == onVal )
@@ -226,6 +245,8 @@ function CFC_Parachute.CreateToggleButton( x, y, ind, panel, w, h )
     end
 
     button.cfcParachuteIntendedHoverText = function()
+        if hideState then return hoverText end
+
         local text = hoverText .. "\n\n" .. "Currently "
 
         return text .. ( button.cfcParachuteIsOn() and "enabled" or "disabled" )
@@ -238,6 +259,8 @@ function CFC_Parachute.CreateToggleButton( x, y, ind, panel, w, h )
 
     button.DoClick = buttonData.OnClick or function()
         local newVal = button.cfcParachuteIsOn() and offVal or onVal
+
+        if not convarName then return end
 
         LocalPlayer():ConCommand( convarName .. " " .. newVal )
     end
@@ -331,7 +354,7 @@ function CFC_Parachute.OpenDesignMenu()
     offsetX = 0
 
     if x > 0 then
-        y = y > 0 and y or 1
+        y = y + 1
 
         offsetY = offsetY + y * ( buttonHeight + buttonGapY )
     end
