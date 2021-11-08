@@ -41,7 +41,6 @@ SWEP.AdminOnly = false
 -- Primary
 SWEP.Primary.ClipSize = 1
 SWEP.Primary.DefaultClip = 1
-SWEP.Primary.Automatic = false
 SWEP.Primary.Ammo = ""
 SWEP.Primary.Automatic = true
 
