@@ -24,9 +24,10 @@ local LFS_EJECT_LAUNCH_BIAS
 local LFS_ENTER_RADIUS
 
 local allChuteSweps = CFC_Parachute.AllChuteSweps
+local isValid = IsValid
 
 local function changeOwner( wep, ply )
-    if not IsValid( wep ) then return end
+    if not isValid( wep ) then return end
     if wep:GetClass() ~= "cfc_weapon_parachute" then return end
 
     timer.Simple( 0, function()
@@ -35,7 +36,7 @@ local function changeOwner( wep, ply )
 end
 
 function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
-    if not IsValid( ply ) then return end
+    if not isValid( ply ) then return end
     
     oldDesign = oldDesign or 1
     newDesign = newDesign or 1
@@ -70,7 +71,7 @@ function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
 
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
-    if IsValid( wep ) then
+    if isValid( wep ) then
         wep:ApplyChuteDesign()
     end
 end
@@ -92,11 +93,11 @@ function CFC_Parachute.TrySetupLFS()
     end
 
     hook.Add( "PlayerLeaveVehicle", "CFC_Parachute_LFSAirEject", function( ply, vehicle )
-        if not IsValid( ply ) or not ply:IsPlayer() or not ply:Alive() or not IsValid( vehicle ) then return end
+        if not isValid( ply ) or not ply:IsPlayer() or not ply:Alive() or not isValid( vehicle ) then return end
         
         local lfsPlane = vehicle.LFSBaseEnt
 
-        if not IsValid( lfsPlane ) then return end
+        if not isValid( lfsPlane ) then return end
 
         local minHeight = LFS_AUTO_CHUTE_HEIGHT:GetFloat()
         local canAutoChute
@@ -128,7 +129,7 @@ function CFC_Parachute.TrySetupLFS()
 
         local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
-        if not IsValid( wep ) then
+        if not isValid( wep ) then
             wep = ents.Create( "cfc_weapon_parachute" )
             wep:SetPos( Vector( 0, 0, 0 ) )
             wep:SetOwner( ply )
@@ -176,9 +177,9 @@ function CFC_Parachute.TrySetupLFS()
         end
 
         timer.Simple( 0.01, function()
-            if not IsValid( ply ) then return end
+            if not isValid( ply ) then return end
 
-            local lfsVel = IsValid( lfsPlane ) and lfsPlane:GetVelocity() * 1.2 or Vector( 0, 0, 0 )
+            local lfsVel = isValid( lfsPlane ) and lfsPlane:GetVelocity() * 1.2 or Vector( 0, 0, 0 )
 
             ply:SetVelocity( dir * force + lfsVel )
         end )
@@ -213,11 +214,11 @@ function CFC_Parachute.TrySetupLFS()
     end )
 
     hook.Add( "FindUseEntity", "CFC_Parachute_LFSEasyEnter", function( ply, ent )
-        if IsValid( ent ) or not IsValid( ply ) or not ply:IsPlayer() or ply:InVehicle() then return end
+        if isValid( ent ) or not isValid( ply ) or not ply:IsPlayer() or ply:InVehicle() then return end
 
         local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
-        if not IsValid( wep ) or not wep.chuteIsOpen then return end
+        if not isValid( wep ) or not wep.chuteIsOpen then return end
 
         local radiusSqr = LFS_ENTER_RADIUS:GetFloat() ^ 2
         local lfsPlanes = ents.FindByClass( "lunasflightschool_*" )
@@ -238,7 +239,7 @@ function CFC_Parachute.TrySetupLFS()
 end
 
 hook.Add( "PlayerDroppedWeapon", "CFC_Parachute_ChangeOwner", function( ply, wep )
-    if not IsValid( wep ) then return end
+    if not isValid( wep ) then return end
     if wep:GetClass() ~= "cfc_weapon_parachute" then return end
 
     wep:ChangeOpenStatus( false, ply )
@@ -254,7 +255,7 @@ hook.Add( "Think", "CFC_Parachute_ApplyChuteForces", function()
     for i = count, 1, -1 do
         local wep = allChuteSweps[i]
 
-        if IsValid( wep ) then
+        if isValid( wep ) then
             wep:ApplyChuteForces()
         else
             didRemove = true
@@ -271,7 +272,7 @@ end )
 hook.Add( "KeyPress", "CFC_Parachute_HandleKeyPress", function( ply, key )
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
-    if not IsValid( wep ) then return end
+    if not isValid( wep ) then return end
 
     wep:KeyPress( ply, key, true )
 end )
@@ -279,7 +280,7 @@ end )
 hook.Add( "KeyRelease", "CFC_Parachute_HandleKeyRelease", function( ply, key )
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
-    if not IsValid( wep ) then return end
+    if not isValid( wep ) then return end
 
     wep:KeyPress( ply, key, false )
 end )
@@ -287,7 +288,7 @@ end )
 hook.Add( "OnPlayerHitGround", "CFC_Parachute_CloseChute", function( ply )
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
-    if not IsValid( wep ) then return end
+    if not isValid( wep ) then return end
 
     wep:ChangeOpenStatus( false )
 end )
@@ -295,7 +296,7 @@ end )
 hook.Add( "PlayerEnteredVehicle", "CFC_Parachute_CloseChute", function( ply )
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
-    if not IsValid( wep ) then return end
+    if not isValid( wep ) then return end
 
     wep:ChangeOpenStatus( false )
 end )
@@ -303,15 +304,15 @@ end )
 hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, data )
     local owner = ent:GetOwner()
 
-    if not IsValid( owner ) then
+    if not isValid( owner ) then
         owner = data.Attacker
     end
 
-    if not IsValid( owner ) or not owner:IsPlayer() then return end
+    if not isValid( owner ) or not owner:IsPlayer() then return end
 
     local chuteSwep = owner:GetWeapon( "cfc_weapon_parachute" )
 
-    if not IsValid( chuteSwep ) or not chuteSwep.chuteIsUnstable then return end
+    if not isValid( chuteSwep ) or not chuteSwep.chuteIsUnstable then return end
 
     if not UNSTABLE_SHOOT_LURCH_CHANCE or not UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE then
         UNSTABLE_SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_lurch_chance" )
@@ -366,7 +367,7 @@ hook.Add( "InitPostEntity", "CFC_Parachute_CheckOptionalDependencies", function(
 end )
 
 net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
-    if not IsValid( ply ) then return end
+    if not isValid( ply ) then return end
 
     local requestCount = ( ply.cfcParachuteDesignRequests or 0 ) + 1
 
@@ -374,7 +375,7 @@ net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
 
     if requestCount == 1 then
         timer.Simple( DESIGN_REQUEST_BURST_DURATION, function()
-            if not IsValid( ply ) then return end
+            if not isValid( ply ) then return end
 
             ply.cfcParachuteDesignRequests = nil
         end )
