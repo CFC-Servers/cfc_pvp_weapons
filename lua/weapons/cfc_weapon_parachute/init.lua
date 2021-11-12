@@ -19,7 +19,6 @@ local COLOR_SHOW = Color( 255, 255, 255, 255 )
 local COLOR_HIDE = Color( 255, 255, 255, 0 )
 
 local MOVE_KEYS = {
-    IN_JUMP,
     IN_FORWARD,
     IN_BACK,
     IN_MOVERIGHT,
@@ -517,11 +516,13 @@ function SWEP:UpdateMoveKeys()
 
     if not IsValid( owner ) or not owner:IsPlayer() then return end
 
+    if owner:GetInfoNum( "cfc_parachute_unfurl_toggle", 0 ) == 0 then
+        self:KeyPress( owner, IN_JUMP, owner:KeyDown( IN_JUMP ) )
+    end
+
     for i = 1, MOVE_KEY_COUNT do
         local moveKey = MOVE_KEYS[i]
 
-        if moveKey ~= IN_JUMP or owner:GetInfoNum( "cfc_parachute_unfurl_toggle", 0 ) == 0 then
-            self:KeyPress( owner, moveKey, owner:KeyDown( moveKey ) )
-        end
+        self:KeyPress( owner, moveKey, owner:KeyDown( moveKey ) )
     end
 end
