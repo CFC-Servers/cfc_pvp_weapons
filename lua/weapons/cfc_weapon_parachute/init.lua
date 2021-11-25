@@ -5,9 +5,6 @@ include( "shared.lua" )
 
 CFC_Parachute = CFC_Parachute or {}
 
-CFC_Parachute.AllChuteSwepsCount = CFC_Parachute.AllChuteSwepsCount or 0
-CFC_Parachute.AllChuteSweps = CFC_Parachute.AllChuteSweps or {}
-
 local DRAG_CUTOFF = 15 -- Don't apply drag if the value is equal to or lower than this (prevents near-infinite gliding)
 local UNSTABLE_MIN_GAP = GetConVar( "cfc_parachute_destabilize_min_gap" )
 local UNSTABLE_MAX_GAP = GetConVar( "cfc_parachute_destabilize_max_gap" )
@@ -36,11 +33,6 @@ function SWEP:Initialize()
     self.chuteIsUnstable = false
     self.chuteDir = Vector( 0, 0, 0 )
 
-    local count = CFC_Parachute.AllChuteSwepsCount + 1
-
-    CFC_Parachute.AllChuteSwepsCount = count
-    CFC_Parachute.AllChuteSweps[count] = self
-
     self:SetRenderMode( RENDERMODE_TRANSCOLOR )
 
     timer.Simple( 0.1, function()
@@ -51,14 +43,6 @@ function SWEP:Initialize()
 end
 
 function SWEP:OnRemove()
-    local allChuteSweps = CFC_Parachute.AllChuteSweps
-    local chuteInd = table.KeyFromValue( allChuteSweps, self )
-
-    if chuteInd then
-        CFC_Parachute.AllChuteSwepsCount = CFC_Parachute.AllChuteSwepsCount - 1
-        table.remove( allChuteSweps, chuteInd )
-    end
-
     timer.Remove( "CFC_Parachute_UnstableDirectionChange_" .. self:EntIndex() )
 
     local owner = self:GetOwner()
@@ -85,6 +69,7 @@ function SWEP:SpawnChute()
 
     chute.chuteIsOpen = false
     chute.chuteIsUnfurled = false
+    chute.chutePack = self
 
     if IsValid( owner ) then
         chute.chuteOwner = owner

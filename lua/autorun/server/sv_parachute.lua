@@ -1,8 +1,5 @@
 CFC_Parachute = CFC_Parachute or {}
 
-CFC_Parachute.AllChuteSwepsCount = CFC_Parachute.AllChuteSwepsCount or 0
-CFC_Parachute.AllChuteSweps = CFC_Parachute.AllChuteSweps or {}
-
 CFC_Parachute.DesignMaterials = false
 CFC_Parachute.DesignMaterialNames = false
 CFC_Parachute.DesignMaterialCount = 21 -- Default value for in case someone changes their design without anyone having spawned a parachute swep yet
@@ -23,7 +20,6 @@ local LFS_EJECT_LAUNCH_FORCE
 local LFS_EJECT_LAUNCH_BIAS
 local LFS_ENTER_RADIUS
 
-local allChuteSweps = CFC_Parachute.AllChuteSweps
 local isValid = IsValid
 
 local function changeOwner( wep, ply )
@@ -247,27 +243,6 @@ hook.Add( "PlayerDroppedWeapon", "CFC_Parachute_ChangeOwner", function( ply, wep
 end )
 
 hook.Add( "WeaponEquip", "CFC_Parachute_ChangeOwner", changeOwner )
-
-hook.Add( "Think", "CFC_Parachute_ApplyChuteForces", function()
-    local count = CFC_Parachute.AllChuteSwepsCount
-    local didRemove = false
-
-    for i = count, 1, -1 do
-        local wep = allChuteSweps[i]
-
-        if isValid( wep ) then
-            wep:ApplyChuteForces()
-        else
-            didRemove = true
-
-            table.remove( allChuteSweps, i )
-        end
-    end
-
-    if didRemove then -- In case SWEP:OnRemove() ever goes wonky or the count gets misaligned
-        CFC_Parachute.AllChuteSwepsCount = #allChuteSweps
-    end
-end )
 
 hook.Add( "KeyPress", "CFC_Parachute_HandleKeyPress", function( ply, key )
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )

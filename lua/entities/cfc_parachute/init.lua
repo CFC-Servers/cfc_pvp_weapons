@@ -70,3 +70,14 @@ function ENT:Initialize()
 
     self:PhysWake()
 end
+
+function ENT:Think()
+    local wep = self.chutePack
+
+    if not IsValid( wep ) then return end
+
+    wep:ApplyChuteForces()
+    self:NextThink( CurTime() )
+
+    return true
+end
