@@ -45,8 +45,7 @@ function ENT:Close()
     self:SetColor( COLOR_HIDE )
 end
 
-function ENT:Initialize()  
-
+function ENT:Initialize()
     local owner = self.chuteOwner
 
     if not isValid( owner ) then
