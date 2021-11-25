@@ -5,6 +5,8 @@ include( "shared.lua" )
 local COLOR_SHOW = Color( 255, 255, 255, 255 )
 local COLOR_HIDE = Color( 255, 255, 255, 0 )
 
+local isValid = IsValid
+
 function ENT:Unfurl()
     self.chuteIsUnfurled = true
 
@@ -47,9 +49,9 @@ function ENT:Initialize()
 
     local owner = self.chuteOwner
 
-    if not IsValid( owner ) then
+    if not isValid( owner ) then
         timer.Simple( 0.02, function()
-            if IsValid( self.chuteOwner ) then
+            if isValid( self.chuteOwner ) then
                 self:Initialize()
 
                 return
@@ -74,7 +76,7 @@ end
 function ENT:Think()
     local wep = self.chutePack
 
-    if not IsValid( wep ) then return end
+    if not isValid( wep ) then return end
 
     wep:ApplyChuteForces()
     self:NextThink( CurTime() )
