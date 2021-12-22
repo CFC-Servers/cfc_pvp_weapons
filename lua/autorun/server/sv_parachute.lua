@@ -141,12 +141,22 @@ function CFC_Parachute.TrySetupLFS()
         end
 
         timer.Simple( 0.1, function()
+            if not isValid( ply ) then return end
+
             if ply:GetActiveWeapon() == wep then return end
 
             ply:SelectWeapon( "cfc_weapon_parachute" )
         end )
 
         timer.Simple( 0.2, function()
+            if not isValid( ply ) or not isValid( wep ) then return end
+
+            if ply:InVehicle() then
+                wep:ChangeOpenStatus( false, ply )
+
+                return
+            end
+
             if wep.chuteIsOpen then return end
 
             wep:PrimaryAttack()
