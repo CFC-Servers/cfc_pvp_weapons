@@ -274,6 +274,12 @@ hook.Add( "PlayerEnteredVehicle", "CFC_Parachute_CloseChute", function( ply )
     if not isValid( wep ) then return end
 
     wep:ChangeOpenStatus( false )
+
+    timer.Simple( 0.1, function()
+        if not isValid( wep ) then return end
+
+        wep:ChangeOpenStatus( false )
+    end )
 end )
 
 hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, data )
