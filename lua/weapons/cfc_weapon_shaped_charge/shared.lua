@@ -9,8 +9,10 @@ game.AddAmmoType( {
 
 SWEP.Spawnable              = true
 
-SWEP.ViewModel              = "models/weapons/v_c4.mdl"
+SWEP.ViewModel              = "models/weapons/cstrike/c_c4.mdl"
 SWEP.WorldModel             = "models/weapons/w_c4.mdl"
+SWEP.HoldType               = "slam"
+SWEP.UseHands               = true
 
 SWEP.Primary.ClipSize       = 1
 SWEP.Primary.Delay          = 3
