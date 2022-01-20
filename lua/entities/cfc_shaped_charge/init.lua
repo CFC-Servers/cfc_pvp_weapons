@@ -3,8 +3,8 @@ AddCSLuaFile( "shared.lua" )
 include( "shared.lua" )
 
 local breakableClasses = {
-    ["prop_physics"] = true,
-    ["sent_spawnpoint"] = true
+    prop_physics = true,
+    sent_spawnpoint = true
 }
 
 ProtectedCall( function()
