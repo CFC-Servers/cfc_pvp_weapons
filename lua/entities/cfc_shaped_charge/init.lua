@@ -2,6 +2,11 @@ AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 include( "shared.lua" )
 
+local breakableClasses = {
+    ["prop_physics"] = true,
+    ["sent_spawnpoint"] = true
+}
+
 ProtectedCall( function()
     require( "mixpanel" )
 end )
@@ -171,7 +176,7 @@ end
 function ENT:CanDestroyProp( prop )
     if not IsValid( prop ) then return false end
     if not IsValid( prop:CPPIGetOwner() ) then return false end
-    if prop:GetClass() ~= "prop_physics" then return false end
+    if not breakableClasses[prop:GetClass()] then return false end
 
     local shouldDestroy = hook.Run( "CFC_SWEP_ShapedCharge_CanDestroyQuery", self, prop )
 
