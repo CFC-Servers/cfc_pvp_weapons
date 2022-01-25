@@ -11,7 +11,7 @@ SWEP.UseHands = true
 SWEP.HoldType = "knife"
 SWEP.DrawCrosshair = true
 SWEP.IconOverride = ""
-SWEP.ViewModel		= "models/weapons/v_knife_t.mdl"
+SWEP.ViewModel		= "models/weapons/cstrike/c_knife_t.mdl"
 SWEP.WorldModel		= "models/weapons/w_knife_t.mdl"
 SWEP.Slot = 3
 SWEP.SlotPos = 1
@@ -33,7 +33,7 @@ SWEP.HolsterSound = ""
 -- Functionals
 SWEP.Slot = 1
 SWEP.SlotPos = 1
-SWEP.Spawnable = false
+SWEP.Spawnable = true
 SWEP.AdminSpawnable = false
 SWEP.AdminOnly = false
 
@@ -70,6 +70,7 @@ end
 
 function SWEP:Deploy()
     self:EmitSound( self.DeploySound )
+    self:SendWeaponAnim( ACT_VM_DRAW )
     return true
 end
 
@@ -85,7 +86,7 @@ function SWEP:EntityFaceBack( ent )
     return false
 end
 
-function SWEP:DoAttack( primary )
+function SWEP:DoAttack( secondary ) -- true for secondary attack / "heavy attack"
     local ply = self:GetOwner()
     local curTime = CurTime()
     local traceEndPos = ply:EyePos() + ply:EyeAngles():Forward() * self.Range
@@ -129,7 +130,7 @@ function SWEP:DoAttack( primary )
         firerateMultiplier = self.BackStabFireRateMult
     end
 
-    if primary then
+    if not secondary then
         damageInfo:SetDamage( ( math.random( -self.DamageRandom, self.DamageRandom ) + self.PrimaryDamage ) * damageMultiplier )
         ent:DispatchTraceAttack( damageInfo, tr, ply:GetAimVector() )
 
@@ -146,17 +147,17 @@ function SWEP:DoAttack( primary )
     end
 
     self:SetAnimation( PLAYER_ATTACK1 )
-    self:SendWeaponAnim( ACT_VM_HITCENTER )
+    self:SendWeaponAnim( ACT_VM_SECONDARYATTACK )
     return true
 end
 
 function SWEP:PrimaryAttack()
-    self:DoAttack( true )
+    self:DoAttack( false )
 end
 
 function SWEP:SecondaryAttack()
     if CurTime() < self:GetNextPrimaryFire() then return end -- Both use primary fire to prevent prim and sec fire at the same time
-    self:DoAttack( false )
+    self:DoAttack( true )
 end
 
 function SWEP:Reload()
