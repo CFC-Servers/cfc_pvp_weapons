@@ -7,9 +7,7 @@ local breakableClasses = {
     sent_spawnpoint = true
 }
 
-ProtectedCall( function()
-    require( "mixpanel" )
-end )
+pcall( require, "mixpanel" )
 
 local function mixpanelTrackEvent( eventName, ply, data )
     if not Mixpanel then return end
