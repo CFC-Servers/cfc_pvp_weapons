@@ -193,6 +193,8 @@ function CFC_Parachute.TrySetupLFS()
         ply.cfcParachuteInstabilityImmune = true
 
         timer.Create( "CFC_Parachute_InstabilityImmuneTimeout_" .. ply:SteamID(), LFS_EJECT_STABILITY_TIME:GetFloat(), 1, function()
+            if not isValid( ply ) then return end
+
             ply.cfcParachuteInstabilityImmune = false
         end )
     end )
