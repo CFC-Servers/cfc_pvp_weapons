@@ -396,6 +396,8 @@ function SWEP:Equip( ply )
     if not isValid( ply ) or not ply:IsPlayer() then return end
 
     timer.Simple( 0.1, function()
+        if not isValid( ply ) then return end
+
         if not ply.cfcParachuteDesignID then
             -- Requests the client to send their design selection since :GetInfoNum() is not behaving correctly even with FCVAR_USERINFO
             -- Could be due to FCVAR_NEVER_AS_STRING if :GetInfoNum() expects a string that it then converts, without caring about the original type
