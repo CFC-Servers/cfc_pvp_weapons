@@ -27,6 +27,8 @@ local function changeOwner( wep, ply )
     if wep:GetClass() ~= "cfc_weapon_parachute" then return end
 
     timer.Simple( 0, function()
+        if not isValid( wep ) or not wep.ChangeOwner then return end
+
         wep:ChangeOwner( ply )
     end )
 end
