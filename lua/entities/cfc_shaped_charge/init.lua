@@ -7,7 +7,9 @@ local breakableClasses = {
     sent_spawnpoint = true
 }
 
-pcall( require, "mixpanel" )
+if file.Exists( "includes/modules/mixpanel.lua", "LUA" ) then
+    pcall( require, "mixpanel" )
+end
 
 local function mixpanelTrackEvent( eventName, ply, data )
     if not Mixpanel then return end
