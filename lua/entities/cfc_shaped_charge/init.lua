@@ -62,7 +62,16 @@ function ENT:OnTakeDamage ( dmg )
     if self.bombHealth <= 0 then
         if not IsValid( self ) then return end
 
-        mixpanelTrackEvent( "Shaped charge broken", self.bombOwner, {owner = self.bombOwner, breaker = dmg:GetAttacker(), weapon = dmg:GetAttacker():GetActiveWeapon():GetClass() } )
+        local attacker = dmg:GetAttacker()
+        local weaponClass = "invalid weapon"
+    
+        if IsValid( attacker ) then
+            local weapon = attacker:GetActiveWeapon()
+            if IsValid( weapon ) then
+                weaponClass = weapon:GetClass()
+            end
+        end
+        mixpanelTrackEvent( "Shaped charge broken", self.bombOwner, {owner = self.bombOwner, breaker = dmg:GetAttacker(), weapon = weaponClass } )
 
         local effectdata = EffectData()
         effectdata:SetOrigin( self:GetPos() )
