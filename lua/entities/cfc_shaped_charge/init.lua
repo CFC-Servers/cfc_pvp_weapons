@@ -57,7 +57,7 @@ function ENT:Initialize()
     self:bombVisualsTimer()
 end
 
-function ENT:OnTakeDamage ( dmg )
+function ENT:OnTakeDamage( dmg )
     self.bombHealth = self.bombHealth - dmg:GetDamage()
     if self.bombHealth <= 0 then
         if not IsValid( self ) then return end
@@ -65,11 +65,13 @@ function ENT:OnTakeDamage ( dmg )
         local attacker = dmg:GetAttacker()
         local weaponClass = "invalid weapon"
     
-        if IsValid( attacker ) then
+        if IsValid( attacker ) and attacker:IsPlayer() then
             local weapon = attacker:GetActiveWeapon()
             if IsValid( weapon ) then
                 weaponClass = weapon:GetClass()
             end
+        else
+            weaponClass = attacker:GetClass()
         end
         mixpanelTrackEvent( "Shaped charge broken", self.bombOwner, {owner = self.bombOwner, breaker = dmg:GetAttacker(), weapon = weaponClass } )
 
