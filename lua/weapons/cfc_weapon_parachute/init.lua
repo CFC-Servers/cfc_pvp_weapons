@@ -22,6 +22,7 @@ local MOVE_KEYS = {
     IN_MOVELEFT
 }
 local MOVE_KEY_COUNT = #MOVE_KEYS
+local MOVETYPE_NOCLIP = MOVETYPE_NOCLIP
 
 local isValid = IsValid
 
@@ -128,10 +129,6 @@ function SWEP:ApplyChuteForces()
     local owner = self:GetOwner() or chute.chuteOwner
 
     if not isValid( owner ) then return end
-
-    if owner:GetMoveType() == 8 then
-        self:ChangeOpenStatus( false, owner )
-    end
 
     local vel = owner:GetVelocity()
     local drag = math.max( -vel.z, 0 )

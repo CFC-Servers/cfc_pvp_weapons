@@ -361,6 +361,16 @@ hook.Add( "InitPostEntity", "CFC_Parachute_CheckOptionalDependencies", function(
     CFC_Parachute.TrySetupLFS()
 end )
 
+hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, state )
+    if not state then return end
+
+    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+
+    if not isValid( wep ) or wep == ply:GetActiveWeapon() then return end
+
+    wep:ChangeOpenStatus( false, ply )
+end, HOOK_LOW )
+
 net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
     if not isValid( ply ) then return end
 
