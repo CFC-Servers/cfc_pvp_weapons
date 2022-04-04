@@ -129,6 +129,10 @@ function SWEP:ApplyChuteForces()
 
     if not isValid( owner ) then return end
 
+    if owner:GetMoveType() == 8 then
+        self:ChangeOpenStatus( false, owner )
+    end
+
     local vel = owner:GetVelocity()
     local drag = math.max( -vel.z, 0 )
 
@@ -146,7 +150,7 @@ function SWEP:ApplyChuteForces()
         local eyeForward = eyeAngles:Forward()
         local eyeRight = eyeAngles:Right()
         local chuteDir = self.chuteDir
-        
+
         thrustDir = ( eyeForward * chuteDir.x + eyeRight * chuteDir.y ) * Vector( 1, 1, 0 )
     end
 
@@ -249,7 +253,7 @@ function SWEP:ApplyUnstableLurch()
     local owner = self:GetOwner()
 
     if not isValid( owner ) or owner.cfcParachuteInstabilityImmune then return end
-    
+
     local maxLurch = UNSTABLE_MAX_LURCH:GetFloat()
     local lurchForce = -math.Rand( 0, maxLurch )
 
@@ -315,7 +319,7 @@ function SWEP:ChangeInstabilityStatus( state )
     else
         self:SetChuteDirection()
         self.chuteLurch = 0
-        
+
         timer.Remove( "CFC_Parachute_UnstableDirectionChange_" .. self:EntIndex() )
     end
 end
@@ -345,14 +349,14 @@ end
 
 function SWEP:PrimaryAttack()
     self:SetNextPrimaryFire( CurTime() + self.Primary.Delay )
-    
+
     if self:CanPrimaryAttack() == false then return end
 
     self:ChangeOpenStatus()
 end
 
 function SWEP:SecondaryAttack()
-    
+
     self:SetNextSecondaryFire( CurTime() + self.Primary.Delay )
 end
 
@@ -362,7 +366,7 @@ function SWEP:Deploy()
     self:ChangeInstabilityStatus( false )
 
     if not isValid( owner ) then return end
-    
+
     local state = self.chuteIsOpen
 
     if not state then return end
@@ -379,7 +383,11 @@ function SWEP:Holster()
     self:ChangeInstabilityStatus( true )
 
     if not isValid( owner ) then return true end
-    
+
+    if owner:GetMoveType() == 8 then
+        self:ChangeOpenStatus( false, owner )
+    end
+
     local state = self.chuteIsOpen
 
     if not state then return true end
@@ -429,14 +437,14 @@ function SWEP:Equip( ply )
         net.WriteTable( CFC_Parachute.DesignMaterialNames )
         net.WriteInt( CFC_Parachute.DesignMaterialCount, 17 )
         net.Send( ply )
-        
+
         ply.cfcParachuteKnowsDesigns = true
     end )
 end
 
 function SWEP:KeyPress( ply, key, state )
     if ply ~= self:GetOwner() or self.chuteIsUnstable then return end
-    
+
     if key == IN_JUMP then
         if not self.chuteCanUnfurl then return end
 
@@ -460,7 +468,7 @@ function SWEP:KeyPress( ply, key, state )
             end
         else
             local chute = self:SpawnChute()
-            
+
             chute.chuteIsUnfurled = state
 
             net.Start( "CFC_Parachute_DefineChuteUnfurlStatus" )
@@ -482,7 +490,7 @@ function SWEP:KeyPress( ply, key, state )
         self.chuteMoveBack = state and 1 or 0
 
         if not self.chuteIsOpen then return end
-        
+
         self:SetChuteDirection()
     elseif key == IN_MOVERIGHT then
         self.chuteMoveRight = state and 1 or 0
