@@ -381,7 +381,7 @@ function SWEP:Holster()
 
     if not isValid( owner ) then return true end
 
-    if owner:GetMoveType() == 8 then
+    if owner:GetMoveType() == MOVETYPE_NOCLIP then
         self:ChangeOpenStatus( false, owner )
     end
 
