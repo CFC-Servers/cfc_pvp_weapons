@@ -25,68 +25,61 @@ function ENT:Initialize()
         return
     end
 
-    mixpanelTrackEvent( "Shaped charge placed", self.bombOwner )
+    mixpanelTrackEvent( self.swepName .. " placed", self.bombOwner )
 
-    owner.plantedCharges = owner.plantedCharges or 0
-    owner.plantedCharges = owner.plantedCharges + 1
-
-    self.bombHealth  = GetConVar( "cfc_shaped_charge_chargehealth" ):GetInt()
-    self.bombTimer   = GetConVar( "cfc_shaped_charge_timer" ):GetInt()
-    self.blastDamage = GetConVar( "cfc_shaped_charge_blastdamage" ):GetInt()
-    self.blastRange  = GetConVar( "cfc_shaped_charge_blastrange" ):GetInt()
-    self.traceRange  = GetConVar( "cfc_shaped_charge_tracerange" ):GetInt()
-
-    self:SetModel( "models/weapons/w_c4_planted.mdl" )
+    self:SetModel( self.swepModel )
+    self:SetModelScale( self.modelScale )
     self:PhysicsInit( SOLID_VPHYSICS )
     self:SetSolid( SOLID_VPHYSICS )
     self:DrawShadow( false )
     self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
 
+    self:SwepPlace( owner )
+
+    if IsColor( self.ColorIdentity ) then 
+        self:SetColor( self.ColorIdentity )
+    end
     self:PhysWake()
+
+end
+
+function ENT:SwepPlace( owner )
+    
+    owner.plantedCharges = owner.plantedCharges or 0
+    owner.plantedCharges = owner.plantedCharges + 1
+
+    local myClass = self:GetClass() 
+
+    self.bombHealth  = GetConVar( myClass .. "_chargehealth" ):GetInt()
+    self.bombTimer   = GetConVar( myClass .. "_timer" ):GetInt()
+    self.blastDamage = GetConVar( myClass .. "_blastdamage" ):GetInt()
+    self.blastRange  = GetConVar( myClass .. "_blastrange" ):GetInt()
+    self.traceRange  = GetConVar( myClass .. "_tracerange" ):GetInt()
+    self.defuseTime  = GetConVar( myClass .. "_defusetime" ):GetInt() or 0
 
     self:CreateLight()
 
     self.explodeTime = CurTime() + self.bombTimer
 
-    self:EmitSound( "items/ammocrate_close.wav", 100, 100, 1, CHAN_STATIC )
-    self:EmitSound( "npc/roller/blade_cut.wav", 100, 100, 1, CHAN_STATIC )
+    self:PlantEffects()
 
     self:SetNWFloat( "bombInitiated", CurTime() )
 
     self.spawnTime = CurTime()
     self:bombVisualsTimer()
+
+end
+
+function ENT:PlantEffects()
+    self:EmitSound( "items/ammocrate_close.wav", 100, 100, 1, CHAN_STATIC )
+    self:EmitSound( "npc/roller/blade_cut.wav", 100, 100, 1, CHAN_STATIC )
+
 end
 
 function ENT:OnTakeDamage( dmg )
     self.bombHealth = self.bombHealth - dmg:GetDamage()
     if self.bombHealth <= 0 then
-        if not IsValid( self ) then return end
-
-        local attacker = dmg:GetAttacker()
-        local weaponClass = "invalid weapon"
-    
-        if IsValid( attacker ) and attacker:IsPlayer() then
-            local weapon = attacker:GetActiveWeapon()
-            if IsValid( weapon ) then
-                weaponClass = weapon:GetClass()
-            end
-        else
-            weaponClass = attacker:GetClass()
-        end
-        mixpanelTrackEvent( "Shaped charge broken", self.bombOwner, {owner = self.bombOwner, breaker = dmg:GetAttacker(), weapon = weaponClass } )
-
-        local effectdata = EffectData()
-        effectdata:SetOrigin( self:GetPos() )
-        effectdata:SetMagnitude( 8 )
-        effectdata:SetScale( 1 )
-        effectdata:SetRadius( 16 )
-
-        util.Effect( "Sparks", effectdata )
-
-        self:EmitSound( "npc/roller/mine/rmine_taunt1.wav", 100, 100, 1, CHAN_STATIC )
-        self:EmitSound( "doors/vent_open1.wav", 100, 100, 1, CHAN_STATIC )
-
-        self:Remove()
+        self:PropBreak( dmg:GetAttacker() )
     end
     local effectdata = EffectData()
     effectdata:SetOrigin( self:GetPos() )
@@ -97,6 +90,35 @@ function ENT:OnTakeDamage( dmg )
 
     self:EmitSound( "Plastic_Box.Break", 100, 100, 1, CHAN_WEAPON )
     self:EmitSound( "npc/roller/code2.wav", 100, 100, 1, CHAN_WEAPON )
+end
+
+function ENT:PropBreak( attacker, prop )
+    if not IsValid( self ) then return end
+
+    local weaponClass = "invalid weapon"
+
+    if IsValid( attacker ) and attacker:IsPlayer() then
+        local weapon = attacker:GetActiveWeapon()
+        if IsValid( weapon ) then
+            weaponClass = weapon:GetClass()
+        end
+    else
+        weaponClass = self:GetClass()
+    end
+    mixpanelTrackEvent( "Shaped charge broken", self.bombOwner, {owner = self.bombOwner, breaker = attacker, weapon = weaponClass } )
+
+    local effectdata = EffectData()
+    effectdata:SetOrigin( self:GetPos() )
+    effectdata:SetMagnitude( self.sparkScale )
+    effectdata:SetScale( 1 )
+    effectdata:SetRadius( 16 )
+
+    util.Effect( "Sparks", effectdata )
+
+    self:EmitSound( "npc/roller/mine/rmine_taunt1.wav", 100, 100, 1, CHAN_STATIC )
+    self:EmitSound( "doors/vent_open1.wav", 100, 100, 1, CHAN_STATIC )
+
+    self:Remove()
 end
 
 function ENT:OnRemove()
@@ -128,7 +150,7 @@ function ENT:Explode()
     local count = 0
     for _, prop in pairs( props ) do
         if self:CanDestroyProp( prop ) then
-            prop:Remove()
+            prop:Fire("break",1,0)
             count = count + 1
         end
     end
@@ -137,16 +159,7 @@ function ENT:Explode()
 
     util.BlastDamage( self, self.bombOwner, self:GetPos(), self.blastRange, self.blastDamage )
 
-    local effectdata = EffectData()
-    effectdata:SetOrigin( self:GetPos() )
-    effectdata:SetNormal( -self:GetUp())
-    effectdata:SetRadius( 3 )
-
-    util.Effect( "AR2Explosion", effectdata )
-    util.Effect( "Explosion", effectdata )
-
-    self:EmitSound( "npc/strider/strider_step4.wav", 100, 100, 1, CHAN_STATIC )
-    self:EmitSound( "weapons/mortar/mortar_explode2.wav", 500, 100, 1, CHAN_WEAPON )
+    self:chargeExplodeEffects()
 
     self:Remove()
 end
@@ -159,7 +172,7 @@ function ENT:RunCountdownEffects()
         self.bombLight:SetKeyValue( "brightness", 0 )
     end )
 
-    self:EmitSound( "weapons/c4/c4_beep1.wav", 85, 100, 1, CHAN_STATIC )
+    self:EmitSound( self.countDownSound, 85, self.countDownPitch, 1, CHAN_STATIC )
     self:bombVisualsTimer()
 end
 
@@ -174,9 +187,13 @@ function ENT:bombVisualsTimer()
 end
 
 function ENT:CreateLight()
+    local r, g, b = 255, 0, 0
+    if IsColor( self.ColorIdentity ) then
+        r, g, b = self.ColorIdentity.r, self.ColorIdentity.g, self.ColorIdentity.b
+    end
     self.bombLight = ents.Create( "light_dynamic" )
     self.bombLight:SetPos( self:GetPos() + self:GetUp() * 10 )
-    self.bombLight:SetKeyValue( "_light", 255, 0, 0, 200 )
+    self.bombLight:SetKeyValue( "_light", r .. g .. b .. 200 )
     self.bombLight:SetKeyValue( "style", 0 )
     self.bombLight:SetKeyValue( "distance", 255 )
     self.bombLight:SetKeyValue( "brightness", 0 )
@@ -195,4 +212,95 @@ function ENT:CanDestroyProp( prop )
     if shouldDestroy ~= false then return true end
 
     return false
+end
+
+
+
+function ENT:KickAngles()
+    local vector = Vector()
+    vector:Random( -1, 1 )
+    local randComp = vector:Angle() / 100
+    self:SetAngles( self.StartAng + randComp )
+end
+
+function ENT:StartDefuse( defuser )
+    if not self:CanStartNewDefuse( defuser ) then return end 
+    self.NextDefuseSound = CurTime() + 1
+    self.StartAng = self:GetAngles()
+    self.DefuseStartTime = CurTime()
+    self.DefuseEndTime = CurTime() + self.defuseTime
+    self.Defuser = defuser
+    defuser.CfcArmoredChargeDefusing = self
+    self:DefuseThink( defuser )
+    self:EmitSound( "Plastic_Box.Strain", 80, 130 )
+    self:EmitSound( "common/wpn_select.wav", 80, 130 )
+    self:KickAngles()
+end
+
+function ENT:CanStartNewDefuse( defuser ) 
+    if self.defuseTime <= 0 or not self.defuseTime then return end
+    if defuser:GetVelocity():Length() > 65 then return false end
+    if IsValid( self.Defuser ) then return false end
+    if IsValid( defuser.CfcArmoredChargeDefusing ) then return false end
+    if defuser:GetEyeTrace().Entity ~= self then return false end
+    if not defuser:Alive() then return false end
+    return true
+end
+
+function ENT:ValidDefuse( defuser )
+    if not IsValid( self ) or not IsValid( defuser ) then return false end
+    if not defuser:Alive() then return false end
+    if not defuser:KeyDown( IN_USE ) then return false end
+    if defuser:GetVelocity():Length() > 65 then return false end
+    if defuser:GetEyeTrace().Entity ~= self then return false end
+    return true 
+end
+
+function ENT:DefuseThink( defuser )
+    if self.DefuseEndTime < CurTime() then self:Defuse( defuser, true ) return end
+    timer.Simple( 0.1, function() 
+        if not IsValid( self ) or not IsValid( defuser ) then return end
+        if not self:ValidDefuse( defuser ) then self:DefuseExit( defuser, true ) return end
+        self:DefuseThink( defuser ) 
+    end )
+    if self.NextDefuseSound > CurTime() then return end
+    self.NextDefuseSound = CurTime() + math.random( 0.9, 0.3 )
+    self:KickAngles()
+    self:EmitSound( "weapons/slam/mine_mode.wav", 80, math.random( 145, 155 ) )
+end
+
+function ENT:Defuse( defuser )
+    self:DefuseExit( defuser )
+    self:EmitSound( "npc/roller/blade_in.wav", 90, 110, 1 )
+
+    local Up = self:GetUp()
+    local ent = ents.Create('prop_physics')
+    ent:SetModel(self:GetModel())
+    ent:SetPos( self:GetPos() )
+    ent:SetAngles( self:GetAngles() )
+    ent:Spawn()
+    ent:SetCollisionGroup( 11 )
+    SafeRemoveEntityDelayed( ent, 45 )
+    ent.DoNotDuplicate = true
+    
+    local Obj = ent:GetPhysicsObject()
+    Obj:SetMaterial( "canister" )
+
+    self:PropBreak( defuser )
+end
+
+function ENT:DefuseExit( defuser, accidental )
+    self:SetAngles( self.StartAng )
+    self.DefuseStartTime = nil
+    self.DefuseEndTime = nil
+    self.Defuser = nil
+    if not IsValid( defuser ) then return end
+    defuser.CfcArmoredChargeDefusing = nil
+    if not accidental then return end 
+    defuser:EmitSound( "Plastic_Box.Strain", 80, 110 )
+
+end
+
+function ENT:Use( activator, caller, useType, value )
+    self:StartDefuse( activator )
 end
