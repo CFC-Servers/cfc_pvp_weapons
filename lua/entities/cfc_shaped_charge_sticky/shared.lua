@@ -34,7 +34,7 @@ function ENT:OnTakeDamage( dmg )
     util.Effect( "Sparks", effectdata )
 
     self:EmitSound( "Plastic_Box.Break", 100, 100, 1, CHAN_WEAPON )
-    self:EmitSound( "npc/roller/code2.wav", 100, 100, 1, CHAN_WEAPON )
+    self:EmitSound( "weapons/bugbait/bugbait_squeeze1.wav", 100, 160, 1, CHAN_WEAPON )
     self:EmitSound( "Flesh_Bloody.ImpactHard", 100, 100, 1, CHAN_WEAPON )
 end
 
@@ -50,4 +50,16 @@ function ENT:chargeExplodeEffects()
     self:EmitSound( "ambient/levels/labs/electric_explosion5.wav", 95, 100, 1, CHAN_STATIC )
     self:EmitSound( "garrysmod/balloon_pop_cute.wav", 95, 40, 1, CHAN_WEAPON )
 
+end
+
+function ENT:ChargeAttackPlayer( ply )
+    for _ = 1, 2 do
+        util.Decal( "PaintSplatGreen", self:GetPos() + ( self:GetUp() * 10 ), self:GetPos() + ( -self:GetUp() * 50 ), self )
+    end 
+end
+
+function ENT:PreExplodeEffects()
+    self:EmitSound( "physics/flesh/flesh_squishy_impact_hard3.wav", 90, 120, 1, CHAN_STATIC )
+    self:EmitSound( "weapons/bugbait/bugbait_squeeze3.wav", 90, 130, 1, CHAN_STATIC )
+    util.ScreenShake( self:GetPos(), 0.5, 50, 0.5, 500 )
 end

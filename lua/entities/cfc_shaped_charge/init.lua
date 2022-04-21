@@ -152,6 +152,8 @@ function ENT:Explode()
         if self:CanDestroyProp( prop ) then
             prop:Fire("break",1,0)
             count = count + 1
+        elseif prop:IsPlayer() and self.plantableOnPlayers then
+            self:ChargeAttackPlayer( prop )
         end
     end
 
@@ -162,6 +164,9 @@ function ENT:Explode()
     self:chargeExplodeEffects()
 
     self:Remove()
+end
+
+function ENT:ChargeAttackPlayer( ply )
 end
 
 function ENT:RunCountdownEffects()
@@ -179,6 +184,10 @@ end
 function ENT:bombVisualsTimer()
     local timePassed = CurTime() - self.spawnTime
     local timerDelay = math.Clamp( self.bombTimer / timePassed - 1, 0.13, 1 )
+    if timePassed > self.bombTimer + -1 then
+        self:PreExplodeEffects()
+        return
+    end
 
     timer.Simple( timerDelay, function()
         if not IsValid( self ) then return end
@@ -214,6 +223,9 @@ function ENT:CanDestroyProp( prop )
     return false
 end
 
+function ENT:PreExplodeEffects()
+    self:EmitSound( "npc/roller/blade_in.wav", 100, 70, 1, CHAN_WEAPON )
+end
 
 
 function ENT:KickAngles()
@@ -237,11 +249,17 @@ function ENT:StartDefuse( defuser )
     self:KickAngles()
 end
 
+local function PlyTooFast( ply )
+    if not IsValid( ply ) then return end
+    local vel = ply:GetVelocity()
+    return vel:Length() > 65
+end
+
 function ENT:CanStartNewDefuse( defuser ) 
     if self.defuseTime <= 0 or not self.defuseTime then return end
-    if defuser:GetVelocity():Length() > 65 then return false end
     if IsValid( self.Defuser ) then return false end
     if IsValid( defuser.CfcArmoredChargeDefusing ) then return false end
+    if PlyTooFast( ply ) then return false end
     if defuser:GetEyeTrace().Entity ~= self then return false end
     if not defuser:Alive() then return false end
     return true
@@ -251,8 +269,10 @@ function ENT:ValidDefuse( defuser )
     if not IsValid( self ) or not IsValid( defuser ) then return false end
     if not defuser:Alive() then return false end
     if not defuser:KeyDown( IN_USE ) then return false end
-    if defuser:GetVelocity():Length() > 65 then return false end
-    if defuser:GetEyeTrace().Entity ~= self then return false end
+    if PlyTooFast( ply ) then return false end
+    local trace = defuser:GetEyeTraceNoCursor()
+    if trace.StartPos:Distance( trace.HitPos ) > 100 then return false end
+    if trace.Entity ~= self then return false end
     return true 
 end
 

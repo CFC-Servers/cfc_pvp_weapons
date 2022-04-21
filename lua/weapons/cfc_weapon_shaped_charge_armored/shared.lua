@@ -7,6 +7,7 @@ SWEP.printName = "Armored Shaped Charge"
 SWEP.weapClass = "cfc_weapon_shaped_charge_armored"
 SWEP.spawnClass = "cfc_shaped_charge_armored"
 SWEP.ammoName = "armoredShapedCharge"
+SWEP.plantableOnPlayers = true
 
 game.AddAmmoType( {
     name = SWEP.ammoName,

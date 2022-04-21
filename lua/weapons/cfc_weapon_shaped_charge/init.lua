@@ -57,7 +57,9 @@ end
 function SWEP:ValidPlanting( planter )
     if not IsValid( self ) or not IsValid( planter ) then return false end
     if not planter:Alive() then return false end
-    if self.PlantingStartEntity ~= planter:GetEyeTraceNoCursor().Entity then return end
+    local trace = planter:GetEyeTraceNoCursor()
+    if self.PlantingStartEntity ~= trace.Entity then return end
+    if trace.StartPos:Distance( trace.HitPos ) > 100 then return false end
     if planter:GetVelocity():Length() > 65 then return false end
     return true 
 end
@@ -107,6 +109,8 @@ function SWEP:PlantCharge()
     local bomb = ents.Create( self.spawnClass )
     bomb:SetPos( trace.HitPos )
 
+    bomb.plantableOnPlayers = self.plantableOnPlayers
+
     local fixAngles = trace.HitNormal:Angle()
     local fixRotation = Vector( 270, 180, 0 )
 
@@ -116,7 +120,13 @@ function SWEP:PlantCharge()
 
     bomb:SetAngles( fixAngles )
     bomb.bombOwner = self:GetOwner()
-    bomb:SetParent( trace.Entity )
+    local ent = trace.Entity
+    if ent:IsPlayer() then
+        local attach = ent:LookupAttachment( "hips" )
+        bomb:SetParent( ent, attach )
+    else
+        bomb:SetParent( ent ) 
+    end
     bomb:Spawn()
 
     self:TakePrimaryAmmo( 1 )
@@ -137,7 +147,7 @@ function SWEP:CanPlace()
     local hitWorld = trace.HitNonWorld == false
     local maxCharges = GetConVar( self.spawnClass .. "_maxcharges" ):GetInt()
     local hasMaxCharges = ( self:GetOwner().plantedCharges or 0 ) >= maxCharges
-    local isPlayer = trace.Entity:IsPlayer()
+    local isPlayer = trace.Entity:IsPlayer() and not self.plantableOnPlayers
     local isNPC = trace.Entity:IsNPC()
 
     local canPlace = not hitWorld and not hasMaxCharges and not isPlayer and not isNPC
