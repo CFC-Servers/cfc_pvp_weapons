@@ -137,6 +137,9 @@ end
 
 function ENT:Think()
     if not IsValid( self ) then return end
+    if self:GetParent():IsPlayer() then
+        if not self:GetParent():Alive() then self:Defuse() return end
+    end 
 
     if self.explodeTime <= CurTime() then
         self:Explode()
@@ -232,17 +235,17 @@ function ENT:KickAngles()
     local vector = Vector()
     vector:Random( -1, 1 )
     local randComp = vector:Angle() / 100
-    self:SetAngles( self.StartAng + randComp )
+    self:SetAngles( self.StartDefuseAng + randComp )
 end
 
 function ENT:StartDefuse( defuser )
     if not self:CanStartNewDefuse( defuser ) then return end 
+    self.StartDefuseAng = self:GetAngles()
     self.NextDefuseSound = CurTime() + 1
-    self.StartAng = self:GetAngles()
     self.DefuseStartTime = CurTime()
     self.DefuseEndTime = CurTime() + self.defuseTime
     self.Defuser = defuser
-    defuser.CfcArmoredChargeDefusing = self
+    defuser.CfcShapedChargeDefusing = self
     self:DefuseThink( defuser )
     self:EmitSound( "Plastic_Box.Strain", 80, 130 )
     self:EmitSound( "common/wpn_select.wav", 80, 130 )
@@ -258,7 +261,7 @@ end
 function ENT:CanStartNewDefuse( defuser ) 
     if self.defuseTime <= 0 or not self.defuseTime then return end
     if IsValid( self.Defuser ) then return false end
-    if IsValid( defuser.CfcArmoredChargeDefusing ) then return false end
+    if IsValid( defuser.CfcShapedChargeDefusing ) then return false end
     if PlyTooFast( ply ) then return false end
     if defuser:GetEyeTrace().Entity ~= self then return false end
     if not defuser:Alive() then return false end
@@ -300,22 +303,27 @@ function ENT:Defuse( defuser )
     ent:SetAngles( self:GetAngles() )
     ent:Spawn()
     ent:SetCollisionGroup( 11 )
+    ent:SetColor( self.ColorIdentity )
     SafeRemoveEntityDelayed( ent, 45 )
     ent.DoNotDuplicate = true
     
-    local Obj = ent:GetPhysicsObject()
-    Obj:SetMaterial( "canister" )
+    if self.physMaterial then
+        local Obj = ent:GetPhysicsObject()
+        Obj:SetMaterial( self.physMaterial )
+    end
 
-    self:PropBreak( defuser )
+    self:Remove()
 end
 
 function ENT:DefuseExit( defuser, accidental )
-    self:SetAngles( self.StartAng )
     self.DefuseStartTime = nil
     self.DefuseEndTime = nil
     self.Defuser = nil
+    if isangle( self.StartDefuseAng ) then 
+        self:SetAngles( self.StartDefuseAng )
+    end
     if not IsValid( defuser ) then return end
-    defuser.CfcArmoredChargeDefusing = nil
+    defuser.CfcShapedChargeDefusing = nil
     if not accidental then return end 
     defuser:EmitSound( "Plastic_Box.Strain", 80, 110 )
 

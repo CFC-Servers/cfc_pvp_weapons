@@ -25,6 +25,8 @@ function SWEP:GetViewModelPosition( EyePos, EyeAng )
     local target = 0
     if canPlace then
         target = 2
+    else
+        target = -1
     end
     self.offset = math.Approach( self.offset or 0, target, 0.08 ) 
     EyePos = EyePos + Vector(0,0,self.offset)

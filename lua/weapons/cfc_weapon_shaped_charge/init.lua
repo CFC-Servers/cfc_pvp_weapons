@@ -100,6 +100,7 @@ function SWEP:PlantCharge()
     bomb:SetPos( trace.HitPos )
 
     bomb.plantableOnPlayers = self.plantableOnPlayers
+    bomb.physMaterial = self.physMaterial
 
     local fixAngles = trace.HitNormal:Angle()
     local fixRotation = Vector( 270, 180, 0 )

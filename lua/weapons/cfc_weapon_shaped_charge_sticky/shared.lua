@@ -8,6 +8,7 @@ SWEP.weapClass = "cfc_weapon_shaped_charge_sticky"
 SWEP.spawnClass = "cfc_shaped_charge_sticky"
 SWEP.ammoName = "stickyShapedCharge"
 SWEP.plantableOnPlayers = true
+SWEP.physMaterial = "watermelon"
 
 game.AddAmmoType( {
     name = SWEP.ammoName,
