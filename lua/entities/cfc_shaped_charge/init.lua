@@ -312,7 +312,11 @@ function ENT:Defuse( defuser )
         Obj:SetMaterial( self.physMaterial )
     end
 
-    self:Remove()
+    if IsValid( defuser ) then
+        self:PropBreak( defuser )
+    else
+        self:Remove()
+    end
 end
 
 function ENT:DefuseExit( defuser, accidental )
