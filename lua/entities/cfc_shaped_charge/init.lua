@@ -45,8 +45,9 @@ end
 
 function ENT:SwepPlace( owner )
     
-    owner.plantedCharges = owner.plantedCharges or 0
-    owner.plantedCharges = owner.plantedCharges + 1
+    local plantedCharges = owner:GetNWFloat( "plantedShapedCharges", 0 )
+    local plantedCharges = plantedCharges + 1 
+    owner:SetNWInt( "plantedShapedCharges", plantedCharges )
 
     local myClass = self:GetClass() 
 
@@ -129,11 +130,9 @@ function ENT:OnRemove()
         return
     end
 
-    owner.plantedCharges = owner.plantedCharges or 0
-    owner.plantedCharges = owner.plantedCharges - 1
-    if owner.plantedCharges <= 0 then
-        owner.plantedCharges = nil
-    end
+    local plantedCharges = owner:GetNWFloat( "plantedShapedCharges", 0 ) 
+    local plantedCharges = math.Clamp( plantedCharges - 1, 0, math.huge )
+    owner:SetNWFloat( "plantedShapedCharges", plantedCharges  )
 end
 
 function ENT:Think()
@@ -226,6 +225,7 @@ end
 function ENT:PreExplodeEffects()
     self:EmitSound( "npc/roller/blade_in.wav", 100, 70, 1, CHAN_WEAPON )
 end
+
 
 
 function ENT:KickAngles()

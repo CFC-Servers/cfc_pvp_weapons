@@ -39,3 +39,26 @@ CreateConVar( SWEP.spawnClass .. "_blastrange", 0, { FCVAR_REPLICATED, FCVAR_ARC
 CreateConVar( SWEP.spawnClass .. "_tracerange", 42, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The range the prop breaking explosion has.", 0 )
 CreateConVar( SWEP.spawnClass .. "_defusetime", 1, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Time it takes to defuse.", 0 )
 CreateConVar( SWEP.spawnClass .. "_planttime", 1, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Time it takes to defuse.", 0 )
+
+
+
+function SWEP:CanPlace()
+
+    local viewTrace = {}
+    viewTrace.start = self:GetOwner():GetShootPos()
+    viewTrace.endpos = self:GetOwner():GetShootPos() + 100 * self:GetOwner():GetAimVector()
+    viewTrace.filter = {self:GetOwner()}
+    local trace = util.TraceLine( viewTrace )
+
+    local hitWorld = trace.HitNonWorld == false
+    local maxCharges = GetConVar( self.spawnClass .. "_maxcharges" ):GetInt()
+    local hasMaxCharges = self:GetOwner():GetNWFloat( "plantedShapedCharges", 0 ) >= maxCharges
+    local isPlayer = trace.Entity:IsPlayer() and not self.plantableOnPlayers
+    local isNPC = trace.Entity:IsNPC()
+
+    -- print( self:GetOwner():GetNWInt( "plantedShapedCharges", 0 ) )
+
+    local canPlace = not hitWorld and not hasMaxCharges and not isPlayer and not isNPC
+    return canPlace, trace
+
+end

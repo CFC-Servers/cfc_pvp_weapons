@@ -18,3 +18,16 @@ end
 function SWEP:SecondaryAttack()
     return
 end
+
+
+function SWEP:GetViewModelPosition( EyePos, EyeAng )
+    canPlace = self:CanPlace()
+    local target = 0
+    if canPlace then
+        target = 2
+    end
+    self.offset = math.Approach( self.offset or 0, target, 0.08 ) 
+    EyePos = EyePos + Vector(0,0,self.offset)
+    return EyePos, EyeAng
+
+end

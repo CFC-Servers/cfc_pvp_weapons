@@ -4,18 +4,6 @@ AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 
 
-
-function SWEP:Think()
-    local canPlace = self:CanPlace()
-    if self.CouldPlace == canPlace then return end
-    self.CouldPlace = canPlace
-    if not canPlace then return end
-    local planter = self:GetOwner()
-    local VMod = planter:GetViewModel()
-    VMod:SendViewModelMatchingSequence( 1 )
-    VMod:FrameAdvance()
-end
-
 function SWEP:PrimaryAttack()
     self.plantTime = GetConVar( self.spawnClass .. "_planttime" ):GetInt()
     local canPlace = self:CanPlace()
@@ -42,7 +30,9 @@ function SWEP:StartPlanting( planter )
     self.PlantingRoughness:Play()
 
     local VMod = planter:GetViewModel()
-    VMod:SendViewModelMatchingSequence( 2 )
+    local rate = VMod:SequenceDuration( 3 )
+    VMod:SendViewModelMatchingSequence( 3 )
+    VMod:SetPlaybackRate( rate / self.plantTime )
     VMod:FrameAdvance()
 
 end
@@ -133,25 +123,6 @@ function SWEP:PlantCharge()
 
     if self:GetOwner():GetAmmoCount( self.Primary.Ammo ) > 0 then return end
     self:GetOwner():StripWeapon( self.weapClass )
-
-end
-
-function SWEP:CanPlace()
-
-    local viewTrace = {}
-    viewTrace.start = self:GetOwner():GetShootPos()
-    viewTrace.endpos = self:GetOwner():GetShootPos() + 100 * self:GetOwner():GetAimVector()
-    viewTrace.filter = {self:GetOwner()}
-    local trace = util.TraceLine( viewTrace )
-
-    local hitWorld = trace.HitNonWorld == false
-    local maxCharges = GetConVar( self.spawnClass .. "_maxcharges" ):GetInt()
-    local hasMaxCharges = ( self:GetOwner().plantedCharges or 0 ) >= maxCharges
-    local isPlayer = trace.Entity:IsPlayer() and not self.plantableOnPlayers
-    local isNPC = trace.Entity:IsNPC()
-
-    local canPlace = not hitWorld and not hasMaxCharges and not isPlayer and not isNPC
-    return canPlace, trace
 
 end
 

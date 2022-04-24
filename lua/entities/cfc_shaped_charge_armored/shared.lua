@@ -13,6 +13,7 @@ ENT.swepName = "Armored Shaped Charge"
 ENT.sparkScale = 10
 
 function ENT:OnTakeDamage( dmg )
+    if not dmg:IsBulletDamage() or not dmg:IsExplosionDamage() then return end
     self:EmitSound( "FX_RicochetSound.Ricochet", 100, 100, 1, CHAN_WEAPON )
 
 end
