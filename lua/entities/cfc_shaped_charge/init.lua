@@ -187,7 +187,7 @@ end
 function ENT:CanDestroyProp( prop )
     if not IsValid( prop ) then return false end
     if not IsValid( prop:CPPIGetOwner() ) then return false end
-    if not breakableClasses[prop:GetClass()] then return false end
+    --if not breakableClasses[prop:GetClass()] then return false end
 
     if not IsValid( self.bombOwner ) then return false end
     local shouldDestroy = hook.Run( "CFC_SWEP_ShapedCharge_CanDestroyQuery", self, prop )
