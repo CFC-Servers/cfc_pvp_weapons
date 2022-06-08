@@ -59,11 +59,11 @@ function SWEP:OnRemove()
 end
 
 function SWEP:SpawnChute()
-    local chute = self.chuteEnt
+    local chuteEnt = self.chuteEnt
 
-    if isValid( chute ) then return chute end
+    if isValid( chuteEnt ) then return chuteEnt end
 
-    local owner = self:GetOwner()
+    local chuteOwner = self:GetOwner()
     local chute = ents.Create( "cfc_parachute" )
 
     chute:SetPos( self:GetPos() + Vector( 0, 0, 146.6565 - 43.5 ) )
@@ -74,8 +74,8 @@ function SWEP:SpawnChute()
     chute.chuteIsUnfurled = false
     chute.chutePack = self
 
-    if isValid( owner ) then
-        chute.chuteOwner = owner
+    if isValid( chuteOwner ) then
+        chute.chuteOwner = chuteOwner
     else
         timer.Simple( 0.01, function()
             local owner = self:GetOwner()
@@ -126,7 +126,7 @@ end
 function SWEP:ApplyChuteForces()
     if not self.chuteIsOpen then return end
 
-    local owner = self:GetOwner() or chute.chuteOwner
+    local owner = self:GetOwner() or self.chuteOwner
 
     if not isValid( owner ) then return end
 
