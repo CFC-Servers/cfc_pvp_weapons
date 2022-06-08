@@ -1,6 +1,6 @@
 SWEP.Author         = "legokidlogan"
 SWEP.Contact        = "CFC Discord"
-SWEP.Instructions   = 
+SWEP.Instructions   =
     "Left click to open/close chute\n" ..
     "Right click to open customizer\n" ..
     "Hold spacebar to unfurl chute\n" ..
