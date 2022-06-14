@@ -27,7 +27,7 @@ local DESIGN_MATERIAL_NAMES
 local DESIGN_MATERIAL_COUNT
 
 local DESIGN_CHOICE = CreateConVar( "cfc_parachute_design", 1, { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NEVER_AS_STRING }, "Your selected parachute design.", 1, 50000 )
-local UNFURL_INVERT = CreateClientConVar( "cfc_parachute_unfurl_invert", 0, true, true, "Whether or not your parachute will be unfurled by default. Don't forget to open it!", 0, 1 )
+local UNFURL_INVERT = CreateClientConVar( "cfc_parachute_unfurl_invert", 1, true, true, "Whether or not your parachute will be unfurled by default. Don't forget to open it!", 0, 1 )
 CreateClientConVar( "cfc_parachute_unfurl_toggle", 0, true, true, "When enabled, pressing jump will toggle the unfurl state instead of holding it. Jumps won't toggle unfurl if chute is closed.", 0, 1 )
 
 
@@ -61,7 +61,7 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
     TextOn = "Help/Info",
     HoverText = "Parachutes slow your descent and allow you to glide through the air faster than you can move on land." .. "\n\n" ..
         "Your chute will start off closed, and can be toggled open with left click." .. "\n" ..
-        "While open, your chute will only slow your descent by a little. You must unfurl it as well with spacebar." .. "\n" ..
+        "While open, you can hold spacebar to furl the chute and fall a little faster." .. "\n" ..
         "Right clicking with the parachute SWEP will bring up this config menu." .. "\n" ..
         "You can select various chute designs and config options with the buttons below." .. "\n\n" ..
         "With your parachute open, you can switch to a different weapon and shoot from the air." .. "\n" ..
@@ -82,8 +82,10 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
     ConVar = "cfc_parachute_unfurl_invert",
     HoverText = UNFURL_INVERT:GetHelpText() .. "\n\n" ..
         "When a parachute is open, it will only slow your descent by a small amount." .. "\n" ..
-        "To slow down all the way, your parachute must be open AND unfurled." .. "\n" ..
-        "Leaving this setting on is useful if you only ever want to fall at maximum slowness."
+        "To slow down all the way, your parachute must be open AND unfurled." .. "\n\n" ..
+        "Leaving this setting ON will make it so chutes are unfurled by default," .. "\n" ..
+        "causing spacebar to instead furl the chute up," .. "\n" ..
+        "useful if you only ever want to fall at maximum slowness and not hold spacebar."
 } )
 
 local function trySetupLFS()
