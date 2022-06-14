@@ -309,6 +309,7 @@ function CFC_Parachute.OpenDesignMenu()
 
     local windowWidth = 800
     local windowHeight = 600
+    local menuBarHeight = 25
 
     window = vgui.Create( "DFrame" )
     window:SetSize( windowWidth, windowHeight )
@@ -321,12 +322,12 @@ function CFC_Parachute.OpenDesignMenu()
     CFC_Parachute.DesignWindow = window
 
     scrollPanel = vgui.Create( "DScrollPanel", window )
-    scrollPanel:SetPos( 0, 20 )
-    scrollPanel:SetSize( windowWidth, windowHeight )
+    scrollPanel:SetPos( 0, menuBarHeight )
+    scrollPanel:SetSize( windowWidth, windowHeight - menuBarHeight )
 
     window.Paint = function( _, w, h )
         draw.RoundedBox( 8, 0, 0, w, h, MENU_COLOR )
-        draw.RoundedBox( 8, 0, 0, w, 25, MENU_BAR_COLOR )
+        draw.RoundedBox( 8, 0, 0, w, menuBarHeight, MENU_BAR_COLOR )
     end
 
     -- Toggle button setup
