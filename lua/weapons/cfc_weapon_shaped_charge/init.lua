@@ -39,6 +39,7 @@ function SWEP:PrimaryAttack()
 
     if trace.Entity:IsValid() then
         local bomb = ents.Create( "cfc_shaped_charge" )
+        self:SetOwner( self:GetOwner() )
         bomb:SetPos( trace.HitPos )
 
         local fixAngles = trace.HitNormal:Angle()
