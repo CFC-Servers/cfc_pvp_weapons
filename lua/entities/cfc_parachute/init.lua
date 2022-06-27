@@ -31,7 +31,7 @@ end
 
 function ENT:Open()
     self.chuteIsOpen = true
-    self:DrawShadow( true )
+    self:SetNoDraw( false )
 
     self:EmitSound( "physics/cardboard/cardboard_box_break3.wav", 85, 100, 1 )
     self:SetColor( COLOR_SHOW )
@@ -39,7 +39,7 @@ end
 
 function ENT:Close()
     self.chuteIsOpen = false
-    self:DrawShadow( false )
+    self:SetNoDraw( true )
 
     self:EmitSound( "physics/wood/wood_crate_impact_hard4.wav", 85, 100, 1 )
     self:SetColor( COLOR_HIDE )
