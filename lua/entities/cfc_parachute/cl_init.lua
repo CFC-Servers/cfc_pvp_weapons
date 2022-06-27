@@ -18,6 +18,18 @@ function ENT:Initialize()
     self.chuteIsUnfurled = false
 end
 
+function ENT:Open()
+    self:SetNoDraw( false )
+end
+
+function ENT:Close()
+    timer.Simple( 0.01, function()
+        if not IsValid( self ) then return end
+
+        self:SetNoDraw( true )
+    end )
+end
+
 function ENT:SetChuteDirection( chuteDir )
     chuteDir = chuteDir or self.chuteDir
     self.chuteDir = chuteDir
@@ -63,5 +75,13 @@ function ENT:SetUnfurlStatus( state )
         self:ManipulateBoneAngles( 1, ANG_FURLED_1 )
         self:ManipulateBoneAngles( 2, ANG_FURLED_2 )
         self:ManipulateBoneAngles( 3, ANG_FURLED_3 )
+    end
+end
+
+function ENT:SetOpenStatus( state )
+    if state then
+        self:Open()
+    else
+        self:Close()
     end
 end

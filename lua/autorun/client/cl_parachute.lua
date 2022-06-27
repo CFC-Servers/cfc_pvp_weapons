@@ -433,6 +433,15 @@ net.Receive( "CFC_Parachute_DefineChuteUnfurlStatus", function()
     chute:SetUnfurlStatus( unfurlState )
 end )
 
+net.Receive( "CFC_Parachute_SetOpenState", function()
+    local chute = net.ReadEntity()
+    local openState = net.ReadBool()
+
+    if not chute.SetOpenStatus then return end
+
+    chute:SetOpenStatus( openState )
+end )
+
 net.Receive( "CFC_Parachute_DefineDesigns", function()
     DESIGN_MATERIALS = net.ReadTable()
     DESIGN_MATERIAL_NAMES = net.ReadTable()

@@ -35,6 +35,11 @@ function ENT:Open()
 
     self:EmitSound( "physics/cardboard/cardboard_box_break3.wav", 85, 100, 1 )
     self:SetColor( COLOR_SHOW )
+
+    net.Start( "CFC_Parachute_SetOpenState" )
+    net.WriteEntity( self )
+    net.WriteBool( true )
+    net.Broadcast()
 end
 
 function ENT:Close()
@@ -43,6 +48,11 @@ function ENT:Close()
 
     self:EmitSound( "physics/wood/wood_crate_impact_hard4.wav", 85, 100, 1 )
     self:SetColor( COLOR_HIDE )
+
+    net.Start( "CFC_Parachute_SetOpenState" )
+    net.WriteEntity( self )
+    net.WriteBool( false )
+    net.Broadcast()
 end
 
 function ENT:Initialize()
