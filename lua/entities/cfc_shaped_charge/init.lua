@@ -18,14 +18,14 @@ end
 
 function ENT:Initialize()
 
-    local owner = self.bombOwner
+    local owner = self:GetOwner()
 
     if not IsValid( owner ) then
         self:Remove()
         return
     end
 
-    mixpanelTrackEvent( "Shaped charge placed", self.bombOwner )
+    mixpanelTrackEvent( "Shaped charge placed", self:GetOwner() )
 
     owner.plantedCharges = owner.plantedCharges or 0
     owner.plantedCharges = owner.plantedCharges + 1
@@ -73,7 +73,7 @@ function ENT:OnTakeDamage( dmg )
         else
             weaponClass = attacker:GetClass()
         end
-        mixpanelTrackEvent( "Shaped charge broken", self.bombOwner, { owner = self.bombOwner, breaker = dmg:GetAttacker(), weapon = weaponClass } )
+        mixpanelTrackEvent( "Shaped charge broken", self:GetOwner(), { owner = self:GetOwner(), breaker = dmg:GetAttacker(), weapon = weaponClass } )
 
         local effectdata = EffectData()
         effectdata:SetOrigin( self:GetPos() )
@@ -100,7 +100,7 @@ function ENT:OnTakeDamage( dmg )
 end
 
 function ENT:OnRemove()
-    local owner = self.bombOwner
+    local owner = self:GetOwner()
 
     if not IsValid( owner ) then
         self:Remove()
@@ -133,9 +133,9 @@ function ENT:Explode()
         end
     end
 
-    mixpanelTrackEvent( "Shaped charge props broken", self.bombOwner, { count = count } )
+    mixpanelTrackEvent( "Shaped charge props broken", self:GetOwner(), { count = count } )
 
-    util.BlastDamage( self, self.bombOwner, self:GetPos(), self.blastRange, self.blastDamage )
+    util.BlastDamage( self, self:GetOwner(), self:GetPos(), self.blastRange, self.blastDamage )
 
     local effectdata = EffectData()
     effectdata:SetOrigin( self:GetPos() )
@@ -189,7 +189,7 @@ function ENT:CanDestroyProp( prop )
     if not IsValid( prop:CPPIGetOwner() ) then return false end
     --if not breakableClasses[prop:GetClass()] then return false end
 
-    if not IsValid( self.bombOwner ) then return false end
+    if not IsValid( self:GetOwner() ) then return false end
     local shouldDestroy = hook.Run( "CFC_SWEP_ShapedCharge_CanDestroyQuery", self, prop )
 
     if shouldDestroy ~= false then return true end
