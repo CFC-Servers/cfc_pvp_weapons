@@ -7,6 +7,8 @@ include( "shared.lua" )
 --     sent_spawnpoint = true
 -- }
 
+local IsValid = IsValid
+
 if file.Exists( "includes/modules/mixpanel.lua", "LUA" ) then
     require( "mixpanel" )
 end
@@ -116,6 +118,7 @@ end
 
 function ENT:Think()
     if not IsValid( self ) then return end
+    if not IsValid( self:GetOwner() ) then self:Remove() end
 
     if self.explodeTime <= CurTime() then
         self:Explode()
@@ -123,6 +126,8 @@ function ENT:Think()
 end
 
 function ENT:Explode()
+    if not IsValid( self:GetOwner() ) then self:Remove() end
+
     local props = ents.FindAlongRay( self:GetPos(), self:GetPos() + self.traceRange * -self:GetUp() )
 
     local count = 0
