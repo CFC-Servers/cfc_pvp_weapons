@@ -5,7 +5,6 @@ include( "shared.lua" )
 
 CFC_Parachute = CFC_Parachute or {}
 
-local DRAG_CUTOFF = 15 -- Don't apply drag if the value is equal to or lower than this (prevents near-infinite gliding)
 local UNSTABLE_MIN_GAP = GetConVar( "cfc_parachute_destabilize_min_gap" )
 local UNSTABLE_MAX_GAP = GetConVar( "cfc_parachute_destabilize_max_gap" )
 local UNSTABLE_MAX_DIR_CHANGE = GetConVar( "cfc_parachute_destabilize_max_direction_change" )
