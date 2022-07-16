@@ -14,6 +14,7 @@ local UNSTABLE_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_lurch_chance
 
 local COLOR_SHOW = Color( 255, 255, 255, 255 )
 local COLOR_HIDE = Color( 255, 255, 255, 0 )
+local TRACE_HULL_SCALE = Vector( 0.95, 0.95, 0.01 )
 
 local MOVE_KEYS = {
     IN_FORWARD,
@@ -95,12 +96,6 @@ function SWEP:SpawnChute()
     self.chuteIsUnfurled = false
     self.chuteDir = Vector( 0, 0, 0 )
 
-    self.chuteDrag  = GetConVar( "cfc_parachute_drag" ):GetFloat()
-    self.chuteDragUnfurled  = GetConVar( "cfc_parachute_drag_unfurled" ):GetFloat()
-    self.chuteSpeed  = GetConVar( "cfc_parachute_speed" ):GetFloat()
-    self.chuteSpeedUnfurled  = GetConVar( "cfc_parachute_speed_unfurled" ):GetFloat()
-    self.chuteSpeedMax  = GetConVar( "cfc_parachute_speed_max" ):GetFloat()
-
     hook.Run( "CFC_Parachute_ChuteCreated", chute )
 
     timer.Simple( 0.02, function()
@@ -123,52 +118,6 @@ function SWEP:SpawnChute()
     return chute
 end
 
-function SWEP:ApplyChuteForces()
-    if not self.chuteIsOpen then return end
-
-    local owner = self:GetOwner() or self.chuteOwner
-
-    if not isValid( owner ) then return end
-
-    local vel = owner:GetVelocity()
-    local drag = math.max( -vel.z, 0 )
-
-    if drag < DRAG_CUTOFF then return end
-
-    local thrustDir
-
-    local unfurled = self.chuteIsUnfurled
-    local thrust = drag * ( unfurled and self.chuteSpeedUnfurled or self.chuteSpeed )
-
-    if self.chuteIsUnstable then
-        thrustDir = self.chuteDir
-    else
-        local eyeAngles = owner:EyeAngles()
-        local eyeForward = eyeAngles:Forward()
-        local eyeRight = eyeAngles:Right()
-        local chuteDir = self.chuteDir
-
-        thrustDir = ( eyeForward * chuteDir.x + eyeRight * chuteDir.y ) * Vector( 1, 1, 0 )
-    end
-
-    local speedMax = self.chuteSpeedMax
-    local curSpeed = ( vel.x ^ 2 + vel.y ^ 2 ) ^ 0.5
-    local lurch = self.chuteLurch
-
-    drag = drag * ( unfurled and self.chuteDragUnfurled or self.chuteDrag )
-    thrust = math.min( thrust, self.chuteSpeedMax - curSpeed - thrust )
-
-    if curSpeed > speedMax * 1.5 then
-        owner:SetVelocity( Vector( 0, 0, drag + lurch ) - vel * Vector( 1, 1, 0 ) )
-    else
-        owner:SetVelocity( Vector( 0, 0, drag + lurch ) + thrustDir * thrust )
-    end
-
-    if lurch ~= 0 then
-        self.chuteLurch = 0
-    end
-end
-
 function SWEP:SetChuteDirection()
     local chuteDir = Vector( self.chuteMoveForward - self.chuteMoveBack, self.chuteMoveRight - self.chuteMoveLeft, 0 )
 
@@ -181,6 +130,7 @@ function SWEP:SetChuteDirection()
     chuteDir:Normalize()
 
     self.chuteDir = chuteDir
+    self.chuteDirAng = chuteDir:Angle()
 end
 
 function SWEP:ChangeOwner( ply )
@@ -246,6 +196,26 @@ function SWEP:ChangeOpenStatus( state, ply )
     net.Broadcast()
 end
 
+function SWEP:CloseIfOnGround()
+    if not self.chuteIsOpen then return end
+
+    local owner = self.chuteOwner
+
+    if not isValid( owner ) then return end
+
+    local tr = util.TraceHull( {
+        start = owner:GetPos() + Vector( 0, 0, 1 ),
+        endpos = owner:GetPos() + Vector( 0, 0, -2 ),
+        mins = owner:OBBMins() * TRACE_HULL_SCALE,
+        maxs = owner:OBBMaxs() * TRACE_HULL_SCALE,
+        filter = owner,
+    } )
+
+    if tr.Hit then
+        self:ChangeOpenStatus( false )
+    end
+end
+
 function SWEP:ApplyUnstableLurch()
     local owner = self:GetOwner()
 
@@ -266,6 +236,7 @@ function SWEP:ApplyUnstableDirectionChange()
     local chuteDir = self.chuteDir
 
     chuteDir:Rotate( Angle( 0, math.Rand( maxChange, maxChange ), 0 ) )
+    self.chuteDirAng = chuteDir:Angle()
 
     net.Start( "CFC_Parachute_DefineChuteDir" )
     net.WriteEntity( self:SpawnChute() )
@@ -311,6 +282,7 @@ function SWEP:ChangeInstabilityStatus( state )
         end
 
         self.chuteDir = ( eyeForward * chuteDir.x + eyeRight * chuteDir.y ) * Vector( 1, 1, 0 )
+        self.chuteDirAng = chuteDir:Angle()
 
         self:CreateUnstableDirectionTimer()
     else

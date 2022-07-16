@@ -5,8 +5,16 @@ CFC_Parachute.DesignMaterialNames = false
 CFC_Parachute.DesignMaterialCount = 21 -- Default value for in case someone changes their design without anyone having spawned a parachute swep yet
 CFC_Parachute.DesignMaterialSub = string.len( "models/cfc/parachute/parachute_" ) + 1
 
-local UNSTABLE_SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_lurch_chance" )
-local UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_change_chance" )
+local UNSTABLE_SHOOT_LURCH_CHANCE
+local UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE
+local FALL_SPEED
+local FALL_SPEED_UNFURLED
+local FALL_LERP
+local HORIZONTAL_SPEED
+local HORIZONTAL_SPEED_UNFURLED
+local HORIZONTAL_SPEED_LIMIT
+local SPRINT_BOOST
+local HANDLING
 
 local DESIGN_MATERIALS
 local DESIGN_MATERIAL_COUNT = CFC_Parachute.DesignMaterialCount
@@ -30,6 +38,87 @@ local function changeOwner( wep, ply )
 
         wep:ChangeOwner( ply )
     end )
+end
+
+--[[
+    - Increases the magnitude of velAdd if it opposes vel.
+    - Ultimately makes it faster to brake and change directions.
+    - To reduce the number of square-root calls, velAdd should be given as a unit vector.
+--]]
+local function improveHandling( vel, velAdd )
+    local velLength = vel:Length()
+
+    if velLength == 0 then return velAdd end
+
+    -- Manual dot product to avoid extra square root calls, assuming gmod uses the angular method
+    local dot = vel[1] * velAdd[1] + vel[2] * velAdd[2] + vel[3] * velAdd[3]
+    dot = dot / velLength -- Get dot product on 0-1 scale
+
+    if dot >= 0 then return velAdd end
+
+    local mult = math.max( -dot * HANDLING:GetFloat(), 1 )
+
+    return velAdd * mult
+end
+
+local function getHorizontalSpeed( moveData, isUnfurled )
+    local hSpeed = isUnfurled and HORIZONTAL_SPEED_UNFURLED:GetFloat() or HORIZONTAL_SPEED:GetFloat()
+
+    if moveData:KeyDown( IN_SPEED ) then
+        return hSpeed * SPRINT_BOOST:GetFloat()
+    end
+
+    return hSpeed
+end
+
+local function addHorizontalVel( vel, moveData, timeMult, isUnfurled, isUnstable )
+    local hVelAdd = Vector( 0, 0, 0 )
+    local ang = moveData:GetAngles()
+    ang[1] = 0 -- Force angle to be horizontal
+
+    -- Acquire direction based on moveData
+    if isUnstable then
+        hVelAdd = ang:Forward()
+    else
+        -- Forward/Backward
+        if moveData:KeyDown( IN_FORWARD ) then
+            if not moveData:KeyDown( IN_BACK ) then
+                hVelAdd = hVelAdd + ang:Forward()
+            end
+        elseif moveData:KeyDown( IN_BACK ) then
+            hVelAdd = hVelAdd - ang:Forward()
+        end
+
+        -- Right/Left
+        if moveData:KeyDown( IN_MOVERIGHT ) then
+            if not moveData:KeyDown( IN_MOVELEFT ) then
+                hVelAdd = hVelAdd + ang:Right()
+            end
+        elseif moveData:KeyDown( IN_MOVELEFT ) then
+            hVelAdd = hVelAdd - ang:Right()
+        end
+    end
+
+    -- Apply additional velocity
+    local hVelAddLength = hVelAdd:Length()
+
+    if hVelAddLength ~= 0 then
+        hVelAdd = improveHandling( vel, hVelAdd / hVelAddLength )
+        vel = vel + hVelAdd * timeMult * getHorizontalSpeed( moveData, isUnfurled )
+    end
+
+    -- Limit the horizontal speed
+    local hSpeedCur = vel:Length2D()
+    local hSpeedLimit = HORIZONTAL_SPEED_LIMIT:GetFloat()
+
+    if hSpeedCur > hSpeedLimit then
+        local mult = hSpeedLimit / hSpeedCur
+
+        vel[1] = vel[1] * mult
+        vel[2] = vel[2] * mult
+    end
+
+    return vel
 end
 
 function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
@@ -291,6 +380,49 @@ hook.Add( "PlayerEnteredVehicle", "CFC_Parachute_CloseChute", function( ply )
     end )
 end )
 
+hook.Add( "Move", "CFC_Parachute_SlowFall", function( ply, moveData )
+    if ply:GetMoveType() == MOVETYPE_NOCLIP then return end
+
+    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+
+    if not isValid( wep ) then return end
+    if not wep.chuteIsOpen then return end
+
+    local isUnfurled = wep.chuteIsUnfurled
+    local isUnstable = wep.chuteIsUnstable
+    local targetFallVel = -( isUnfurled and FALL_SPEED_UNFURLED:GetFloat() or FALL_SPEED:GetFloat() )
+    local vel = moveData:GetVelocity()
+    local velZ = vel[3]
+
+    if velZ > targetFallVel then return end
+
+    local timeMult = FrameTime()
+    local lurch = wep.chuteLurch or 0
+
+    -- Ensure we maintain the locked angle for unstable parachutes
+    if isUnstable then
+        local lockedAng = wep.chuteDirAng
+
+        if not lockedAng then
+            lockedAng = moveData:GetAngles()
+            wep.chuteDirAng = lockedAng
+        end
+
+        moveData:SetAngles( lockedAng )
+    end
+
+    -- Modify velocity
+    vel = addHorizontalVel( vel, moveData, timeMult, isUnfurled, isUnstable )
+    velZ = velZ + ( targetFallVel - velZ ) * FALL_LERP:GetFloat() * timeMult
+    vel[3] = velZ + lurch
+    wep.chuteLurch = 0
+
+    moveData:SetVelocity( vel )
+    moveData:SetOrigin( moveData:GetOrigin() + vel * timeMult )
+
+    return true
+end )
+
 hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, data )
     local owner = ent:GetOwner()
 
@@ -303,11 +435,6 @@ hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, dat
     local chuteSwep = owner:GetWeapon( "cfc_weapon_parachute" )
 
     if not isValid( chuteSwep ) or not chuteSwep.chuteIsUnstable then return end
-
-    if not UNSTABLE_SHOOT_LURCH_CHANCE or not UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE then
-        UNSTABLE_SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_lurch_chance" )
-        UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_change_chance" )
-    end
 
     if math.Rand( 0, 1 ) <= UNSTABLE_SHOOT_LURCH_CHANCE:GetFloat() then
         chuteSwep:ApplyUnstableLurch()
@@ -354,6 +481,19 @@ hook.Add( "InitPostEntity", "CFC_Parachute_CheckOptionalDependencies", function(
     LFS_EXISTS = simfphys and simfphys.LFS and true
 
     CFC_Parachute.TrySetupLFS()
+end )
+
+hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
+    UNSTABLE_SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_lurch_chance" )
+    UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_change_chance" )
+    FALL_SPEED = GetConVar( "cfc_parachute_fall_speed" )
+    FALL_SPEED_UNFURLED = GetConVar( "cfc_parachute_fall_speed_unfurled" )
+    FALL_LERP = GetConVar( "cfc_parachute_fall_lerp" )
+    HORIZONTAL_SPEED = GetConVar( "cfc_parachute_horizontal_speed" )
+    HORIZONTAL_SPEED_UNFURLED = GetConVar( "cfc_parachute_horizontal_speed_unfurled" )
+    HORIZONTAL_SPEED_LIMIT = GetConVar( "cfc_parachute_horizontal_speed_limit" )
+    SPRINT_BOOST = GetConVar( "cfc_parachute_sprint_boost" )
+    HANDLING = GetConVar( "cfc_parachute_handling" )
 end )
 
 hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, state )
