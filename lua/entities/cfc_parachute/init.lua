@@ -77,7 +77,7 @@ function ENT:Think()
 
     if not isValid( wep ) then return end
 
-    wep:ApplyChuteForces()
+    wep:CloseIfOnGround()
     self:NextThink( CurTime() )
 
     return true
