@@ -78,6 +78,7 @@ function ENT:Think()
     if not isValid( wep ) then return end
 
     wep:CloseIfOnGround()
+    wep:CloseIfInWater()
     self:NextThink( CurTime() )
 
     return true

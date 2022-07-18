@@ -215,6 +215,14 @@ function SWEP:CloseIfOnGround()
     end
 end
 
+function SWEP:CloseIfInWater()
+    if not self.chuteIsOpen then return end
+    if self:WaterLevel() == 0 then return end
+    -- Water level updates seem to get suppressed on the player while using the Move hook, but we can conveniently check the swep instead
+
+    self:ChangeOpenStatus( false )
+end
+
 function SWEP:ApplyUnstableLurch()
     local owner = self:GetOwner()
 
