@@ -33,8 +33,11 @@ local TRACE_HULL_SCALE_SIDEWAYS = Vector( 1.05, 1.05, 1.05 )
 local TRACE_HULL_SCALE_DOWN = Vector( 0.95, 0.95, 0.01 )
 local VEC_REMOVE_Z = Vector( 1, 1, 0 )
 local VEC_ZERO = Vector( 0, 0, 0 )
+local ANG_ZERO = Angle( 0, 0, 0 )
+local VIEW_PUNCH_CHECK_INTERVAL = 0.25
 
 local isValid = IsValid
+local realTime = RealTime
 
 
 local function mSign( x )
@@ -235,6 +238,26 @@ local function verifyLurch( moveData, ply, timeMult, velZ, lurch )
     local amountToRemove = traceLength - hitLength + extraBuffer
 
     return math.min( lurchUpLimit, lurch + amountToRemove )
+end
+
+-- Messing with the Move hook causes view punch velocity to sometimes get stuck while in a parachute.
+-- This periodically checks and clears out view punch when it gets stuck.
+local function clearStuckViewPunch( ply )
+    local now = realTime()
+    local nextCheckTime = ply.cfcParachuteNextViewPunchCheck or now
+
+    if nextCheckTime > now then return end
+
+    local punchVelOld = ply.cfcParachuteViewPunchVel
+    local punchVelNew = ply:GetViewPunchVelocity()
+
+    ply.cfcParachuteNextViewPunchCheck = now + VIEW_PUNCH_CHECK_INTERVAL
+    ply.cfcParachuteViewPunchVel = punchVelNew
+
+    if punchVelNew == ANG_ZERO or punchVelNew ~= punchVelOld then return end
+
+    ply:SetViewPunchVelocity( ANG_ZERO )
+    ply.cfcParachuteViewPunchVel = nil
 end
 
 function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
@@ -512,6 +535,8 @@ hook.Add( "Move", "CFC_Parachute_SlowFall", function( ply, moveData )
     local velZ = vel[3]
 
     if velZ > targetFallVel then return end
+
+    clearStuckViewPunch( ply )
 
     local timeMult = FrameTime()
     local lurch = wep.chuteLurch or 0
