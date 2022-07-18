@@ -13,7 +13,7 @@ local UNSTABLE_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_lurch_chance
 
 local COLOR_SHOW = Color( 255, 255, 255, 255 )
 local COLOR_HIDE = Color( 255, 255, 255, 0 )
-local TRACE_HULL_SCALE = Vector( 0.95, 0.95, 0.01 )
+local TRACE_HULL_SCALE_DOWN = Vector( 0.95, 0.95, 0.01 )
 
 local MOVE_KEYS = {
     IN_FORWARD,
@@ -205,8 +205,8 @@ function SWEP:CloseIfOnGround()
     local tr = util.TraceHull( {
         start = owner:GetPos() + Vector( 0, 0, 1 ),
         endpos = owner:GetPos() + Vector( 0, 0, -2 ),
-        mins = owner:OBBMins() * TRACE_HULL_SCALE,
-        maxs = owner:OBBMaxs() * TRACE_HULL_SCALE,
+        mins = owner:OBBMins() * TRACE_HULL_SCALE_DOWN,
+        maxs = owner:OBBMaxs() * TRACE_HULL_SCALE_DOWN,
         filter = owner,
     } )
 

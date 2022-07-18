@@ -27,6 +27,9 @@ local LFS_EJECT_LAUNCH_FORCE
 local LFS_EJECT_LAUNCH_BIAS
 local LFS_ENTER_RADIUS
 
+local TRACE_HULL_SCALE_SIDEWAYS = Vector( 1.05, 1.05, 1.05 )
+local VEC_REMOVE_Z = Vector( 1, 1, 0 )
+
 local isValid = IsValid
 
 local function changeOwner( wep, ply )
@@ -71,7 +74,28 @@ local function getHorizontalSpeed( moveData, isUnfurled )
     return hSpeed
 end
 
-local function addHorizontalVel( vel, moveData, timeMult, isUnfurled, isUnstable )
+-- Ensures the move velocity doesn't cause a player to clip into a wall
+local function verifyVel( moveData, ply, vel, timeMult )
+    if timeMult == 0 then return vel end
+
+    local startPos = moveData:GetOrigin()
+    local velVert = Vector( 0, 0, vel[3] ) -- Keep track of z-vel since this func should only modify the horizontal portion
+    local tr = util.TraceHull( {
+        start = startPos,
+        endpos = startPos + ( vel - velVert ) * timeMult,
+        mins = ply:OBBMins() * TRACE_HULL_SCALE_SIDEWAYS,
+        maxs = ply:OBBMaxs() * TRACE_HULL_SCALE_SIDEWAYS,
+        filter = ply,
+    } )
+
+    if tr.Hit then
+        vel = ( tr.HitPos - startPos ) * VEC_REMOVE_Z + velVert
+    end
+
+    return vel
+end
+
+local function addHorizontalVel( moveData, ply, vel, timeMult, isUnfurled, isUnstable )
     local hVelAdd = Vector( 0, 0, 0 )
     local ang = moveData:GetAngles()
     ang[1] = 0 -- Force angle to be horizontal
@@ -117,6 +141,8 @@ local function addHorizontalVel( vel, moveData, timeMult, isUnfurled, isUnstable
         vel[1] = vel[1] * mult
         vel[2] = vel[2] * mult
     end
+
+    vel = verifyVel( moveData, ply, vel, timeMult )
 
     return vel
 end
@@ -412,7 +438,7 @@ hook.Add( "Move", "CFC_Parachute_SlowFall", function( ply, moveData )
     end
 
     -- Modify velocity
-    vel = addHorizontalVel( vel, moveData, timeMult, isUnfurled, isUnstable )
+    vel = addHorizontalVel( moveData, ply, vel, timeMult, isUnfurled, isUnstable )
     velZ = velZ + ( targetFallVel - velZ ) * FALL_LERP:GetFloat() * timeMult
     vel[3] = velZ + lurch
     wep.chuteLurch = 0
