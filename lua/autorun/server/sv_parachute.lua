@@ -33,10 +33,6 @@ local VEC_ZERO = Vector( 0, 0, 0 )
 
 local isValid = IsValid
 
--- Manual dot product to avoid extra square root calls, assuming gmod uses the angular method
-local function dotQuick( a, b )
-    return a[1] * b[1] + a[2] * b[2] + a[3] * b[3]
-end
 
 local function mSign( x )
     if x == 0 then return 0 end
@@ -76,7 +72,7 @@ local function improveHandling( vel, velAdd )
 
     if velLength == 0 then return velAdd end
 
-    local dot = dotQuick( vel, velAdd )
+    local dot = vel:Dot( velAdd )
     dot = dot / velLength -- Get dot product on 0-1 scale
 
     if dot >= 0 then return velAdd end
@@ -130,7 +126,7 @@ local function verifyVel( moveData, ply, vel, timeMult )
         local norm = tr.HitNormal
 
         -- Leave things be if vel would bring us away from the wall
-        if dotQuick( norm, velHoriz ) > 0 then return vel end
+        if norm:Dot( velHoriz ) > 0 then return vel end
 
         local traceDiff = tr.HitPos - startPos
 
