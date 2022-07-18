@@ -29,8 +29,31 @@ local LFS_ENTER_RADIUS
 
 local TRACE_HULL_SCALE_SIDEWAYS = Vector( 1.05, 1.05, 1.05 )
 local VEC_REMOVE_Z = Vector( 1, 1, 0 )
+local VEC_ZERO = Vector( 0, 0, 0 )
 
 local isValid = IsValid
+
+-- Manual dot product to avoid extra square root calls, assuming gmod uses the angular method
+local function dotQuick( a, b )
+    return a[1] * b[1] + a[2] * b[2] + a[3] * b[3]
+end
+
+local function mSign( x )
+    if x == 0 then return 0 end
+    if x > 0 then return 1 end
+    return -1
+end
+
+-- Individually scales up the x and y axes so they each have magnitude >= min
+-- Doesn't scale the whole vector at once since a tiny x could result in a huge y, etc
+local function minBoundVector( vec, xMin, yMin )
+    local x = vec[1]
+    local y = vec[2]
+    x = mSign( x ) * math.max( math.abs( x ), xMin )
+    y = mSign( y ) * math.max( math.abs( y ), yMin )
+
+    return Vector( x, y, vec[3] )
+end
 
 local function changeOwner( wep, ply )
     if not isValid( wep ) then return end
@@ -53,8 +76,7 @@ local function improveHandling( vel, velAdd )
 
     if velLength == 0 then return velAdd end
 
-    -- Manual dot product to avoid extra square root calls, assuming gmod uses the angular method
-    local dot = vel[1] * velAdd[1] + vel[2] * velAdd[2] + vel[3] * velAdd[3]
+    local dot = dotQuick( vel, velAdd )
     dot = dot / velLength -- Get dot product on 0-1 scale
 
     if dot >= 0 then return velAdd end
@@ -74,22 +96,51 @@ local function getHorizontalSpeed( moveData, isUnfurled )
     return hSpeed
 end
 
+-- uses a TraceLine to see if a velocity does NOT clip into a wall when we don't know the wall's position or normal
+local function velLeavesCloseWall( ply, startPos, velHorizEff )
+    -- Small inwards velocities pass due to being short, so we need to extend the length
+    local minBoundExtra = 2
+    local minBounds = ply:OBBMaxs() + Vector( minBoundExtra, minBoundExtra, 0 )
+
+    local tr = util.TraceLine( {
+        start = startPos,
+        endpos = startPos + minBoundVector( velHorizEff, minBounds[1], minBounds[2] ),
+        filter = ply,
+    } )
+
+    return not tr.Hit
+end
+
 -- Ensures the move velocity doesn't cause a player to clip into a wall
 local function verifyVel( moveData, ply, vel, timeMult )
     if timeMult == 0 then return vel end
 
     local startPos = moveData:GetOrigin()
     local velVert = Vector( 0, 0, vel[3] ) -- Keep track of z-vel since this func should only modify the horizontal portion
+    local velHoriz = vel - velVert
     local tr = util.TraceHull( {
         start = startPos,
-        endpos = startPos + ( vel - velVert ) * timeMult,
+        endpos = startPos + velHoriz * timeMult,
         mins = ply:OBBMins() * TRACE_HULL_SCALE_SIDEWAYS,
         maxs = ply:OBBMaxs() * TRACE_HULL_SCALE_SIDEWAYS,
         filter = ply,
     } )
 
     if tr.Hit then
-        vel = ( tr.HitPos - startPos ) * VEC_REMOVE_Z + velVert
+        local norm = tr.HitNormal
+
+        -- Leave things be if vel would bring us away from the wall
+        if dotQuick( norm, velHoriz ) > 0 then return vel end
+
+        local traceDiff = tr.HitPos - startPos
+
+        -- If the player is *right* up against a wall, we need a second trace to know if vel faces towards or away from the wall
+        if norm == VEC_ZERO and traceDiff == VEC_ZERO then
+            local velIsGood = velLeavesCloseWall( ply, startPos, velHoriz * timeMult )
+            if velIsGood then return vel end
+        end
+
+        vel = traceDiff * VEC_REMOVE_Z + velVert
     end
 
     return vel
