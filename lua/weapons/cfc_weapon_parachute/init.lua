@@ -204,7 +204,7 @@ function SWEP:CloseIfOnGround()
 
     local tr = util.TraceHull( {
         start = owner:GetPos() + Vector( 0, 0, 1 ),
-        endpos = owner:GetPos() + Vector( 0, 0, -2 ),
+        endpos = owner:GetPos() + Vector( 0, 0, -4 ),
         mins = owner:OBBMins() * TRACE_HULL_SCALE_DOWN,
         maxs = owner:OBBMaxs() * TRACE_HULL_SCALE_DOWN,
         filter = owner,
