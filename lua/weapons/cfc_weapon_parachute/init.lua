@@ -166,7 +166,7 @@ function SWEP:ChangeOpenStatus( state, ply )
         state = not prevState
     elseif state == prevState then return end
 
-    if owner:IsOnGround() and state then return end
+    if state and ( owner:IsOnGround() or owner:WaterLevel() > 0 ) then return end
 
     local chute = self:SpawnChute()
 
