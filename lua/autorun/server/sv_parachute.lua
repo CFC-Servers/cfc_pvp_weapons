@@ -12,6 +12,7 @@ local FALL_SPEED_UNFURLED
 local FALL_LERP
 local HORIZONTAL_SPEED
 local HORIZONTAL_SPEED_UNFURLED
+local HORIZONTAL_SPEED_UNSTABLE
 local HORIZONTAL_SPEED_LIMIT
 local SPRINT_BOOST
 local HANDLING
@@ -82,16 +83,6 @@ local function improveHandling( vel, velAdd )
     return velAdd * mult
 end
 
-local function getHorizontalSpeed( moveData, isUnfurled )
-    local hSpeed = isUnfurled and HORIZONTAL_SPEED_UNFURLED:GetFloat() or HORIZONTAL_SPEED:GetFloat()
-
-    if moveData:KeyDown( IN_SPEED ) then
-        return hSpeed * SPRINT_BOOST:GetFloat()
-    end
-
-    return hSpeed
-end
-
 -- uses a TraceLine to see if a velocity does NOT clip into a wall when we don't know the wall's position or normal
 local function velLeavesCloseWall( ply, startPos, velHorizEff )
     -- Small inwards velocities pass due to being short, so we need to extend the length
@@ -142,40 +133,58 @@ local function verifyVel( moveData, ply, vel, timeMult )
     return vel
 end
 
-local function addHorizontalVel( moveData, ply, vel, timeMult, isUnfurled, isUnstable )
-    local hVelAdd = Vector( 0, 0, 0 )
-    local ang = moveData:GetAngles()
-    ang[1] = 0 -- Force angle to be horizontal
+local function getHorizontalSpeed( moveData, isUnfurled, isUnstableControl, ignoreSprint )
+    local hSpeed = isUnstableControl and HORIZONTAL_SPEED_UNSTABLE:GetFloat() or
+                   isUnfurled        and HORIZONTAL_SPEED_UNFURLED:GetFloat() or
+                                         HORIZONTAL_SPEED:GetFloat()
 
-    -- Acquire direction based on moveData
-    if isUnstable then
-        hVelAdd = ang:Forward()
-    else
-        -- Forward/Backward
-        if moveData:KeyDown( IN_FORWARD ) then
-            if not moveData:KeyDown( IN_BACK ) then
-                hVelAdd = hVelAdd + ang:Forward()
-            end
-        elseif moveData:KeyDown( IN_BACK ) then
-            hVelAdd = hVelAdd - ang:Forward()
-        end
-
-        -- Right/Left
-        if moveData:KeyDown( IN_MOVERIGHT ) then
-            if not moveData:KeyDown( IN_MOVELEFT ) then
-                hVelAdd = hVelAdd + ang:Right()
-            end
-        elseif moveData:KeyDown( IN_MOVELEFT ) then
-            hVelAdd = hVelAdd - ang:Right()
-        end
+    if not ignoreSprint and moveData:KeyDown( IN_SPEED ) then
+        return hSpeed * SPRINT_BOOST:GetFloat()
     end
 
-    -- Apply additional velocity
+    return hSpeed
+end
+
+local function getHorizontalMoveVel( moveData )
+    local hVelAdd = Vector( 0, 0, 0 )
+    local ang = moveData:GetAngles()
+    ang = Angle( 0, ang[2], ang[3] ) -- Force angle to be horizontal
+
+    -- Forward/Backward
+    if moveData:KeyDown( IN_FORWARD ) then
+        if not moveData:KeyDown( IN_BACK ) then
+            hVelAdd = hVelAdd + ang:Forward()
+        end
+    elseif moveData:KeyDown( IN_BACK ) then
+        hVelAdd = hVelAdd - ang:Forward()
+    end
+
+    -- Right/Left
+    if moveData:KeyDown( IN_MOVERIGHT ) then
+        if not moveData:KeyDown( IN_MOVELEFT ) then
+            hVelAdd = hVelAdd + ang:Right()
+        end
+    elseif moveData:KeyDown( IN_MOVELEFT ) then
+        hVelAdd = hVelAdd - ang:Right()
+    end
+
+    return hVelAdd
+end
+
+local function addHorizontalVel( moveData, ply, vel, timeMult, isUnfurled, unstableDir )
+    -- Acquire direction based on moveData
+    local hVelAdd = getHorizontalMoveVel( moveData )
+
+    -- Apply the additional velocity
     local hVelAddLength = hVelAdd:Length()
 
     if hVelAddLength ~= 0 then
         hVelAdd = improveHandling( vel, hVelAdd / hVelAddLength )
-        vel = vel + hVelAdd * timeMult * getHorizontalSpeed( moveData, isUnfurled )
+        vel = vel + hVelAdd * timeMult * getHorizontalSpeed( moveData, isUnfurled, unstableDir, false )
+    end
+
+    if unstableDir then
+        vel = vel + unstableDir * timeMult * getHorizontalSpeed( moveData, isUnfurled, false, true )
     end
 
     -- Limit the horizontal speed
@@ -463,6 +472,7 @@ hook.Add( "Move", "CFC_Parachute_SlowFall", function( ply, moveData )
 
     local isUnfurled = wep.chuteIsUnfurled
     local isUnstable = wep.chuteIsUnstable
+    local unstableDir
     local targetFallVel = -( isUnfurled and FALL_SPEED_UNFURLED:GetFloat() or FALL_SPEED:GetFloat() )
     local vel = moveData:GetVelocity()
     local velZ = vel[3]
@@ -478,14 +488,16 @@ hook.Add( "Move", "CFC_Parachute_SlowFall", function( ply, moveData )
 
         if not lockedAng then
             lockedAng = moveData:GetAngles()
+            lockedAng = Angle( 0, ang[2], ang[3] ) -- Force angle to be horizontal
+
             wep.chuteDirAng = lockedAng
         end
 
-        moveData:SetAngles( lockedAng )
+        unstableDir = lockedAng:Forward()
     end
 
     -- Modify velocity
-    vel = addHorizontalVel( moveData, ply, vel, timeMult, isUnfurled, isUnstable )
+    vel = addHorizontalVel( moveData, ply, vel, timeMult, isUnfurled, unstableDir )
     velZ = velZ + ( targetFallVel - velZ ) * FALL_LERP:GetFloat() * timeMult
     vel[3] = velZ + lurch
     wep.chuteLurch = 0
@@ -564,6 +576,7 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     FALL_LERP = GetConVar( "cfc_parachute_fall_lerp" )
     HORIZONTAL_SPEED = GetConVar( "cfc_parachute_horizontal_speed" )
     HORIZONTAL_SPEED_UNFURLED = GetConVar( "cfc_parachute_horizontal_speed_unfurled" )
+    HORIZONTAL_SPEED_UNSTABLE = GetConVar( "cfc_parachute_horizontal_speed_unstable" )
     HORIZONTAL_SPEED_LIMIT = GetConVar( "cfc_parachute_horizontal_speed_limit" )
     SPRINT_BOOST = GetConVar( "cfc_parachute_sprint_boost" )
     HANDLING = GetConVar( "cfc_parachute_handling" )
