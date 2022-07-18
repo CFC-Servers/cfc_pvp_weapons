@@ -7,6 +7,7 @@ CFC_Parachute.DesignMaterialSub = string.len( "models/cfc/parachute/parachute_" 
 
 local UNSTABLE_SHOOT_LURCH_CHANCE
 local UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE
+local UNSTABLE_MAX_FALL_LURCH
 local FALL_SPEED
 local FALL_SPEED_UNFURLED
 local FALL_LERP
@@ -29,6 +30,7 @@ local LFS_EJECT_LAUNCH_BIAS
 local LFS_ENTER_RADIUS
 
 local TRACE_HULL_SCALE_SIDEWAYS = Vector( 1.05, 1.05, 1.05 )
+local TRACE_HULL_SCALE_DOWN = Vector( 0.95, 0.95, 0.01 )
 local VEC_REMOVE_Z = Vector( 1, 1, 0 )
 local VEC_ZERO = Vector( 0, 0, 0 )
 
@@ -201,6 +203,38 @@ local function addHorizontalVel( moveData, ply, vel, timeMult, isUnfurled, unsta
     vel = verifyVel( moveData, ply, vel, timeMult )
 
     return vel
+end
+
+-- Ensures large amounts of lurch doesn't cause the player to clip through the floor
+local function verifyLurch( moveData, ply, timeMult, velZ, lurch )
+    if lurch >= 0 then return lurch end
+    if math.abs( velZ ) >= UNSTABLE_MAX_FALL_LURCH:GetFloat() then return 0 end
+
+    if timeMult == 0 then
+        timeMult = 0.03
+    end
+
+    local startHoist = 5 -- Raises the startPos for in case ply is already starting to clip into the floor
+    local traceExtend = 4 -- Extends the trace so we can check for shortly beyond where velZ and lurch will place the player
+    local startPos = moveData:GetOrigin() + Vector( 0, 0, startHoist )
+    local traceLength = math.abs( velZ * timeMult + lurch ) + traceExtend + startHoist
+
+    local tr = util.TraceHull( {
+        start = startPos,
+        endpos = startPos + Vector( 0, 0, -traceLength ),
+        mins = ply:OBBMins() * TRACE_HULL_SCALE_DOWN,
+        maxs = ply:OBBMaxs() * TRACE_HULL_SCALE_DOWN,
+        filter = ply,
+    } )
+
+    if not tr.Hit then return lurch end
+
+    local hitLength = traceLength * tr.Fraction - startHoist -- Distance from moveOrigin to hitPos
+    local extraBuffer = 2.5 / timeMult -- Try to end up slightly above the floor, for just in case
+    local lurchUpLimit = extraBuffer / 2 -- Don't yield a positive (upwards) lurch beyond this value
+    local amountToRemove = traceLength - hitLength + extraBuffer
+
+    return math.min( lurchUpLimit, lurch + amountToRemove )
 end
 
 function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
@@ -499,8 +533,14 @@ hook.Add( "Move", "CFC_Parachute_SlowFall", function( ply, moveData )
     -- Modify velocity
     vel = addHorizontalVel( moveData, ply, vel, timeMult, isUnfurled, unstableDir )
     velZ = velZ + ( targetFallVel - velZ ) * FALL_LERP:GetFloat() * timeMult
-    vel[3] = velZ + lurch
-    wep.chuteLurch = 0
+
+    if lurch ~= 0 then
+        lurch = verifyLurch( moveData, ply, timeMult, velZ, lurch )
+        vel[3] = velZ + lurch
+        wep.chuteLurch = 0
+    else
+        vel[3] = velZ
+    end
 
     moveData:SetVelocity( vel )
     moveData:SetOrigin( moveData:GetOrigin() + vel * timeMult )
@@ -571,6 +611,7 @@ end )
 hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     UNSTABLE_SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_lurch_chance" )
     UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_change_chance" )
+    UNSTABLE_MAX_FALL_LURCH = GetConVar( "cfc_parachute_destabilize_max_fall_lurch" )
     FALL_SPEED = GetConVar( "cfc_parachute_fall_speed" )
     FALL_SPEED_UNFURLED = GetConVar( "cfc_parachute_fall_speed_unfurled" )
     FALL_LERP = GetConVar( "cfc_parachute_fall_lerp" )
