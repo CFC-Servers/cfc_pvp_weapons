@@ -202,9 +202,21 @@ function SWEP:CloseIfOnGround()
 
     if not isValid( owner ) then return end
 
+    -- Extends the trace length to ensure the player doesn't clip into the floor, even at (reasonably) high velocities
+    local extendByVelMult = 0.5
+    local extendByVelMax = 30
+    local extendFlat = 4
+
+    local velZ = owner:GetVelocity()[3]
+    local traceExtend = extendFlat
+
+    if velZ < 0 then
+        traceExtend = traceExtend + math.min( -velZ * extendByVelMult, extendByVelMax )
+    end
+
     local tr = util.TraceHull( {
-        start = owner:GetPos() + Vector( 0, 0, 1 ),
-        endpos = owner:GetPos() + Vector( 0, 0, -4 ),
+        start = owner:GetPos() + Vector( 0, 0, owner:OBBMaxs()[3] * 0.9 ),
+        endpos = owner:GetPos() + Vector( 0, 0, -traceExtend ),
         mins = owner:OBBMins() * TRACE_HULL_SCALE_DOWN,
         maxs = owner:OBBMaxs() * TRACE_HULL_SCALE_DOWN,
         filter = owner,

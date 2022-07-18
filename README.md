@@ -23,6 +23,7 @@
 | cfc_parachute_destabilize_max_gap | Maximum time between direction changes while a parachute destabilizes, in seconds. | 2.5 |
 | cfc_parachute_destabilize_max_direction_change | Maximum angle change in a parachute's direction while it is destabilized. | 30 |
 | cfc_parachute_destabilize_max_lurch | Maximum downwards force a parachute can receive from random lurches while destabilized. | 150 |
+| cfc_parachute_destabilize_max_fall_lurch | Maximum downwards velocity before a parachute stops being affected by lurch. Puts a soft-cap on how fast you plummet from shooting weapons. | 550 |
 | cfc_parachute_destabilize_lurch_chance | The chance for an unstable parachute to lurch downwards when a direction change occurs. | 0.2 |
 | cfc_parachute_destabilize_shoot_lurch_chance | The chance for an unstable parachute to lurch downwards when the player shoots a bullet. | 0.1 |
 | cfc_parachute_destabilize_shoot_change_chance | The chance for an unstable parachute's direction to change when the player shoots a bullet. | 0.25 |
