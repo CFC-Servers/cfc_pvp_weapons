@@ -14,6 +14,35 @@ local UNSTABLE_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_lurch_chance
 local COLOR_SHOW = Color( 255, 255, 255, 255 )
 local COLOR_HIDE = Color( 255, 255, 255, 0 )
 local TRACE_HULL_SCALE_DOWN = Vector( 0.95, 0.95, 0.01 )
+local GROUND_CLASS_IGNORE = { -- Classes that should be ignored for the CloseIfOnGround() check
+    -- HL2
+    crossbow_bolt = true,
+    prop_combine_ball = true,
+    npc_satchel = true,
+    npc_grenade_frag = true,
+    -- CW2
+    ent_ins2rpgrocket = true,
+    cw_grenade_thrown = true,
+    cw_flash_thrown = true,
+    cw_smoke_thrown = true,
+    cw_40mm_explosive = true,
+    -- LFS
+    lunasflightschool_missile = true,
+    -- M9K
+    m9k_proxy = true,
+    m9k_thrown_nitrox = true,
+    m9k_thrown_m61 = true,
+    m9k_thrown_sticky_grenade = true,
+    m9k_thrown_harpoon = true,
+    m9k_nervegasnade = true,
+    m9k_ammo_rpg_heat = true,
+    m9k_thrown_knife = true,
+    m9k_ammo_matador_90mm = true,
+    m9k_launched_m79 = true,
+    m9k_launched_flare = true,
+    -- Misc
+    env_flare = true,
+}
 
 local MOVE_KEYS = {
     IN_FORWARD,
@@ -223,6 +252,11 @@ function SWEP:CloseIfOnGround()
     } )
 
     if tr.Hit then
+        local ent = tr.Entity
+
+        -- Don't close from projectiles like crossbow bolts or RPGs. Annoyingly, all these objects have different collision groups, etc, and aren't standardized at all.
+        if isValid( ent ) and GROUND_CLASS_IGNORE[ent:GetClass()] then return end
+
         self:ChangeOpenStatus( false )
     end
 end
