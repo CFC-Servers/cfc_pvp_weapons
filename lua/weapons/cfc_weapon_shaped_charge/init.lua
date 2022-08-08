@@ -30,9 +30,10 @@ function SWEP:PrimaryAttack()
     local isPlayer = trace.Entity:IsPlayer()
     local isNPC = trace.Entity:IsNPC()
 
-    local canPlace = hitWorld or hasMaxCharges or isPlayer or isNPC
+    local hookResult = hook.Run( "CFC_SWEP_ShapedCharge_ShouldBlockChargePlace", self:GetOwner(), trace.Entity )
+    local cantPlace = hitWorld or hasMaxCharges or isPlayer or isNPC or hookResult
 
-    if canPlace then
+    if cantPlace then
         self:GetOwner():EmitSound( "common/wpn_denyselect.wav", 100, 100, 1, CHAN_WEAPON )
         return
     end
