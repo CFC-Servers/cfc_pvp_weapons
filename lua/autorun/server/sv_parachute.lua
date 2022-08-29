@@ -101,11 +101,9 @@ function CFC_Parachute.TrySetupLFS()
             local hull = ply:OBBMaxs() * Vector( 1, 1, 0 ) + Vector( 0, 0, 1 )
             local plyPos = ply:GetPos()
 
-            local filterTable = { vehicle, lfsPlane, ply }
+            local otherEnts = { vehicle, lfsPlane, ply }
             local constrainedEnts = constraint.GetAllConstrainedEntities( lfsPlane )
-            for _, v in pairs( constrainedEnts ) do
-                table.insert( filterTable, v )
-            end
+            local filterTable = table.Add( constrainedEnts, otherEnts )
 
             local tr = util.TraceHull( {
                 start = plyPos,
