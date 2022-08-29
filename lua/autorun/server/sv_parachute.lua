@@ -106,7 +106,7 @@ function CFC_Parachute.TrySetupLFS()
                 endpos = plyPos + Vector( 0, 0, -minHeight ),
                 mins = -hull,
                 maxs = hull,
-                filter = vehicle,
+                filter = { vehicle, ply },
             } )
 
             canAutoChute = not tr.Hit
