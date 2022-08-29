@@ -85,10 +85,6 @@ function CFC_Parachute.TrySetupLFS()
     LFS_AUTO_CHUTE_SV = CreateConVar( "cfc_parachute_lfs_auto_equip_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Whether or not to auto-equip a parachute when ejecting from an LFS plane in the air. Defines the default value for players.", 0, 1 )
     LFS_EJECT_LAUNCH_SV = CreateConVar( "cfc_parachute_lfs_eject_launch_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Whether or not to launch up high when ejecting from an LFS plane in the air. Useful for pulling off a Rendezook. Defines the default value for players.", 0, 1 )
 
-    local function onlyWorldFilter( ent )
-        return ent:IsWorld()
-    end
-
     hook.Add( "PlayerLeaveVehicle", "CFC_Parachute_LFSAirEject", function( ply, vehicle )
         if not isValid( ply ) or not ply:IsPlayer() or not ply:Alive() or not isValid( vehicle ) then return end
 
@@ -110,7 +106,7 @@ function CFC_Parachute.TrySetupLFS()
                 endpos = plyPos + Vector( 0, 0, -minHeight ),
                 mins = -hull,
                 maxs = hull,
-                filter = onlyWorldFilter,
+                filter = vehicle,
             } )
 
             canAutoChute = not tr.Hit
