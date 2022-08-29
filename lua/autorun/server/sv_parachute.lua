@@ -103,8 +103,8 @@ function CFC_Parachute.TrySetupLFS()
 
             local filterTable = { vehicle, lfsPlane, ply }
             local constrainedEnts = constraint.GetAllConstrainedEntities( lfsPlane )
-            for k in pairs( constrainedEnts ) do
-                table.insert( filterTable, k )
+            for _, v in pairs( constrainedEnts ) do
+                table.insert( filterTable, v )
             end
 
             local tr = util.TraceHull( {
