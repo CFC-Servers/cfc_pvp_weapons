@@ -291,7 +291,7 @@ function SWEP:SlapWeaponOutOfHands( ent )
     wep:SetPos( pos )
     wep:SetOwner( ent )
     wep:Spawn()
-    wep.CannotPickup = CurTime() + 3
+    wep.SlapperCannotPickup = CurTime() + 3
     local phys = wep:GetPhysicsObject()
 
     if IsValid( phys ) then
@@ -303,7 +303,7 @@ function SWEP:SlapWeaponOutOfHands( ent )
 end
 
 hook.Add( "PlayerCanPickupWeapon", "SlapCanPickup", function( _, weapon )
-    if weapon.CannotPickup and weapon.CannotPickup > CurTime() then return false end
+    if weapon.SlapperCannotPickup and weapon.SlapperCannotPickup > CurTime() then return false end
 end )
 
 if CLIENT then
