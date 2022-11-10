@@ -1,0 +1,10 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models\weapons\watch"
+	"$bumpmap" "models\weapons\watch_normal"
+	"$model" "1"
+	"$phong" "1"
+	"$phongboost" "4"
+	"$phongexponenttexture"  "models\weapons\watch_phong"								
+	"$phongfresnelranges"	"[.5 5 2]"
+}

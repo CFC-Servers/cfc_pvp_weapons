@@ -42,3 +42,7 @@
 | cfc_parachute_lfs_eject_launch | Whether or not to launch up high when ejecting from an LFS plane in the air. Useful for pulling off a Rendezook. | 1 |
 | cfc_parachute_unfurl_toggle | When enabled, pressing jump will toggle the unfurl state instead of holding it. Jumps won't toggle unfurl if chute is closed. | 0 |
 | cfc_parachute_unfurl_invert | Whether or not your parachute will be unfurled by default. Don't forget to open it! | 1 |
+
+## Credits
+
+- [Slap swep](https://steamcommunity.com/sharedfiles/filedetails/?id=1052253533) - Workshop
