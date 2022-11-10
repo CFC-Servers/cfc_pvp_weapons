@@ -16,6 +16,7 @@ end
 SWEP.Spawnable = true
 SWEP.AdminSpawnable = true
 SWEP.PrintName = "Slappers"
+SWEP.Category = "CFC"
 SWEP.Slot = 1
 SWEP.SlotPos = 0
 SWEP.ViewModel = Model( "models/weapons/v_watch.mdl" )
