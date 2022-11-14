@@ -78,7 +78,7 @@ if SERVER then
     function SWEP:Think()
         local vm = self:GetOwner():GetViewModel()
 
-        if self:GetNextPrimaryFire() + self.Primary.Delay < CurTime() and vm:GetSequence() ~= 0 then
+        if self:GetNextPrimaryFire() < CurTime() and vm:GetSequence() ~= 0 then
             vm:ResetSequence( 0 )
         end
     end
