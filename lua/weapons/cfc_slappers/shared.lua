@@ -47,8 +47,6 @@ SWEP.NPCFilter = { "npc_monk", "npc_alyx", "npc_barney", "npc_citizen", "npc_kle
 SWEP.Mins = Vector( -8, -8, -8 )
 SWEP.Maxs = Vector( 8, 8, 8 )
 
-SWEP.Offset = Vector( 0, 0, -100 )
-
 --[[
 	Weapon Config
 ]]
