@@ -351,7 +351,7 @@ function SWEP:SlapProp( ent, tr )
         ent:Use( self:GetOwner(), self:GetOwner() ) -- Open door
     elseif ent:Health() > 0 then
         if ent:Health() <= damage then
-            ent:Fire( "Break" )
+            ent:Fire( "Break", "nil", 0, owner, ent )
         else
             -- Damage props with health
             local dmginfo = DamageInfo()
