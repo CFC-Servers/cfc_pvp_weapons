@@ -37,9 +37,25 @@ SWEP.Secondary = SWEP.Primary
 SWEP.Sounds = {
     LoseWeapon = Sound( "npc/zombie/zombie_pound_door.wav" ),
     Miss = Sound( "Weapon_Knife.Slash" ),
-    HitWorld = { Sound( "d1_canals.citizenpunch_pain_1" ), Sound( "Flesh.ImpactHard" ) },
-    Hurt = { Sound( "npc_citizen.pain01" ), Sound( "npc_citizen.pain05" ) },
-    Slap = { Sound( "elevator/effects/slap_hit01.wav" ), Sound( "elevator/effects/slap_hit02.wav" ), Sound( "elevator/effects/slap_hit03.wav" ), Sound( "elevator/effects/slap_hit04.wav" ), Sound( "elevator/effects/slap_hit05.wav" ), Sound( "elevator/effects/slap_hit06.wav" ), Sound( "elevator/effects/slap_hit07.wav" ), Sound( "elevator/effects/slap_hit08.wav" ), Sound( "elevator/effects/slap_hit09.wav" ) }
+    HitWorld = {
+        Sound( "Flesh.ImpactHard" ),
+        Sound( "d1_canals.citizenpunch_pain_1" )
+    },
+    Hurt = {
+        Sound( "npc_citizen.pain01" ),
+        Sound( "npc_citizen.pain05" )
+    },
+    Slap = {
+        Sound( "elevator/effects/slap_hit01.wav" ),
+        Sound( "elevator/effects/slap_hit02.wav" ),
+        Sound( "elevator/effects/slap_hit03.wav" ),
+        Sound( "elevator/effects/slap_hit04.wav" ),
+        Sound( "elevator/effects/slap_hit05.wav" ),
+        Sound( "elevator/effects/slap_hit06.wav" ),
+        Sound( "elevator/effects/slap_hit07.wav" ),
+        Sound( "elevator/effects/slap_hit08.wav" ),
+        Sound( "elevator/effects/slap_hit09.wav" )
+    }
 }
 
 SWEP.NPCFilter = { "npc_monk", "npc_alyx", "npc_barney", "npc_citizen", "npc_kleiner", "npc_magnusson", "npc_eli", "npc_fisherman", "npc_gman", "npc_mossman", "npc_odessa", "npc_breen" }
