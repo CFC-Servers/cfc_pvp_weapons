@@ -7,9 +7,9 @@ if SERVER then
         resource.AddFile( string.format( "sound/elevator/effects/slap_hit0%s.wav", i ) )
     end
 
-    CreateConVar( "slappers_slap_weapons_consecutive", 8, FCVAR_REPLICATED, "Consecutive hits required to slap weapons" )
-    CreateConVar( "slappers_slap_weapons", 1, FCVAR_REPLICATED, "Slap weapons out of players' hands" )
-    CreateConVar( "slappers_force", 180, FCVAR_REPLICATED, "Force of the slappers" )
+    CreateConVar( "slappers_slap_weapons_consecutive", 8, FCVAR_ARCHIVE, "Consecutive hits required to slap weapons" )
+    CreateConVar( "slappers_slap_weapons", 1, FCVAR_ARCHIVE, "Slap weapons out of players' hands" )
+    CreateConVar( "slappers_force", 180, FCVAR_ARCHIVE, "Force of the slappers" )
     util.AddNetworkString( "SlapAnimation" )
 end
 
