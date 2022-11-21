@@ -58,7 +58,20 @@ SWEP.Sounds = {
     }
 }
 
-SWEP.NPCFilter = { "npc_monk", "npc_alyx", "npc_barney", "npc_citizen", "npc_kleiner", "npc_magnusson", "npc_eli", "npc_fisherman", "npc_gman", "npc_mossman", "npc_odessa", "npc_breen" }
+SWEP.NPCFilter = {
+    npc_eli = true,
+    npc_alyx = true,
+    npc_gman = true,
+    npc_monk = true,
+    npc_breen = true,
+    npc_barney = true,
+    npc_odessa = true,
+    npc_citizen = true,
+    npc_kleiner = true,
+    npc_mossman = true,
+    npc_fisherman = true,
+    npc_magnusson = true,
+}
 
 SWEP.Mins = Vector( -8, -8, -8 )
 SWEP.Maxs = Vector( 8, 8, 8 )
@@ -92,7 +105,10 @@ end
 ]]
 if SERVER then
     function SWEP:Think()
-        local vm = self:GetOwner():GetViewModel()
+        local owner = self:GetOwner()
+        if not IsValid( owner ) then return end
+
+        local vm = owner:GetViewModel()
 
         if self:GetNextPrimaryFire() < CurTime() and vm:GetSequence() ~= 0 then
             vm:ResetSequence( 0 )
@@ -151,10 +167,9 @@ if CLIENT then
     local shouldHideVM = false
 
     function SWEP:PreDrawViewModel( vm )
-        if shouldHideVM then
-            shouldHideVM = false
-            vm:SetMaterial( "engine/occlusionproxy" )
-        end
+        if not shouldHideVM then return end
+        shouldHideVM = false
+        vm:SetMaterial( "engine/occlusionproxy" )
     end
 
     local viewOffs = Vector( -0.2, 0, -1.65 )
@@ -175,12 +190,13 @@ if CLIENT then
     end
 
     function SWEP:OnRemove()
-        if not IsValid( self:GetOwner() ) then return end
-        local vm = self:GetOwner():GetViewModel()
+        local owner = self:GetOwner()
+        if not IsValid( owner ) then return end
 
-        if IsValid( vm ) then
-            vm:SetMaterial( "" )
-        end
+        local vm = owner:GetViewModel()
+        if not IsValid( vm ) then return end
+
+        vm:SetMaterial( "" )
     end
 end
 
@@ -189,15 +205,17 @@ end
 ]]
 function SWEP:SlapWeaponOutOfHands( ent )
     if not GetConVar( "slappers_slap_weapons" ):GetBool() then return end
+
     local weapon = ent:GetActiveWeapon()
     if not IsValid( weapon ) then return end
+
     local class = weapon:GetClass()
     if class == "slappers" then return end
     if class == "weapon_fists" then return end
+
     local pos = weapon:GetPos()
 
-    local consecutives = weapon.ConsecutiveSlaps or 0
-    weapon.ConsecutiveSlaps = consecutives + 1
+    weapon.ConsecutiveSlaps = ( weapon.ConsecutiveSlaps or 0 ) + 1
 
     timer.Simple( 2, function()
         if not IsValid( weapon ) then return end
@@ -228,11 +246,7 @@ function SWEP:SlapWeaponOutOfHands( ent )
     local wep = ents.Create( class )
     local hand = ent:LookupBone( "ValveBiped.Bip01_R_Hand" )
 
-    if hand then
-        pos = ent:GetBonePosition( hand )
-    else
-        pos = ent:GetPos()
-    end
+    pos = hand and ent:GetBonePosition( hand ) or ent:GetPos()
 
     wep:SetPos( pos )
     wep:SetOwner( ent )
@@ -249,11 +263,13 @@ function SWEP:SlapWeaponOutOfHands( ent )
 end
 
 hook.Add( "PlayerCanPickupWeapon", "SlapCanPickup", function( _, weapon )
-    if weapon.SlapperCannotPickup and weapon.SlapperCannotPickup > CurTime() then return false end
+    local timeout = weapon.SlapperCannotPickup
+    if not timeout then return end
+    
+    if timeout > CurTime() then return false end
 end )
 
 function SWEP:SlapPlayer( ply, tr )
-
     local myUser = self:GetOwner()
     local toSlap = ply
     if hook.Run( "slappers_weapon_can_slap_otherplayer", myUser, toSlap ) == false then return end
@@ -263,7 +279,7 @@ function SWEP:SlapPlayer( ply, tr )
     local vec = ( tr.HitPos - tr.StartPos ):GetNormal()
     local mul = GetConVar( "slappers_force" ):GetInt()
     local slapVel = vec * mul
-    slapVel.z = math.Clamp( slapVel.z, 75, math.huge )
+    slapVel.z = math.max( slapVel.z, 75 )
     local vel = slapVel + origVel
     ply:SetLocalVelocity( vel )
 
@@ -283,6 +299,7 @@ end
 
 function SWEP:SlapNPC( ent, tr )
     local vec = ( tr.HitPos - tr.StartPos ):GetNormal()
+
     -- Apply slap velocity to NPC
     if ent.GetPhysicsObject then
         local obj = ent:GetPhysicsObject()
@@ -295,7 +312,7 @@ function SWEP:SlapNPC( ent, tr )
     end
 
     -- Filter entities that respond to slaps
-    if table.HasValue( self.NPCFilter, ent:GetClass() ) then
+    if self.NPCFilter[ent:GetClass()] then
         ent:EmitSound( table.Random( self.Sounds.Hurt ), 50, math.random( 95, 105 ) )
     end
 
@@ -340,15 +357,23 @@ function SWEP:SlapWorld( _, tr )
 
 end
 
+local interactables = {
+    func_door = true,
+    func_button = true,
+    gmod_button = true,
+    gmod_wire_button = true,
+    func_door_rotating = true,
+    prop_door_rotating = true,
+}
+
 function SWEP:SlapProp( ent, tr )
     local vec = ( tr.HitPos - tr.StartPos ):GetNormal()
     local emitSound = self.Sounds.HitWorld
     local damage = math.random( 4, 6 )
 
-    if ent:GetClass() == "func_button" then
-        ent:Use( self:GetOwner(), self:GetOwner() ) -- Press button
-    elseif string.match( ent:GetClass(), "door" ) then
-        ent:Use( self:GetOwner(), self:GetOwner() ) -- Open door
+    if interactables[ent:GetClass()] then
+        local owner = self:GetOwner()
+        ent:Use( owner, owner ) -- Press button
     elseif ent:Health() > 0 then
         if ent:Health() <= damage then
             ent:Fire( "Break", "nil", 0, owner, ent )
@@ -394,9 +419,8 @@ function SWEP:SlapAnimation()
 
     -- Change back to normal holdtype once we're done
     timer.Simple( 0.3, function()
-        if IsValid( self ) then
-            self:SetWeaponHoldType( self.HoldType )
-        end
+        if not IsValid( self ) then return end
+        self:SetWeaponHoldType( self.HoldType )
     end )
 end
 
@@ -416,48 +440,49 @@ function SWEP:Slap()
     self:SlapAnimation()
 
     -- Perform trace
-    if SERVER then
-        -- Use view model slap animation
-        self:SendWeaponAnim( ACT_VM_PRIMARYATTACK_2 )
+    if not SERVER then return end
 
-        local punchScale = 1
+    -- Use view model slap animation
+    self:SendWeaponAnim( ACT_VM_PRIMARYATTACK_2 )
 
-        -- Trace for slap hit
-        local tr = util.TraceHull( {
-            start = self:GetOwner():GetShootPos(),
-            endpos = self:GetOwner():GetShootPos() + self:GetOwner():GetAimVector() * 54,
-            mins = self.Mins,
-            maxs = self.Maxs,
-            filter = self:GetOwner()
-        } )
+    local punchScale = 1
+    local owner = self:GetOwner()
+    local shootPos = owner:GetShootPos()
 
-        local ent = tr.Entity
+    -- Trace for slap hit
+    local tr = util.TraceHull( {
+        start = shootPos,
+        endpos = shootPos + owner:GetAimVector() * 54,
+        mins = self.Mins,
+        maxs = self.Maxs,
+        filter = owner
+    } )
 
-        if IsValid( ent ) or game.GetWorld() == ent then
-            if ent:IsPlayer() then
-                self:SlapPlayer( ent, tr )
-            elseif ent:IsNPC() then
-                self:SlapNPC( ent, tr )
-            elseif ent:IsWorld() then
-                self:SlapWorld( ent, tr )
-            else
-                self:SlapProp( ent, tr )
-            end
+    local ent = tr.Entity
+
+    if IsValid( ent ) or game.GetWorld() == ent then
+        if ent:IsPlayer() then
+            self:SlapPlayer( ent, tr )
+        elseif ent:IsNPC() then
+            self:SlapNPC( ent, tr )
+        elseif ent:IsWorld() then
+            self:SlapWorld( ent, tr )
         else
-            self:GetOwner():EmitSound( self.Sounds.Miss, 80, math.random( 92, 108 ) )
-            punchScale = 0.1
+            self:SlapProp( ent, tr )
         end
-
-        local side = -4
-        if self.ViewModelFlip then
-            side = -side
-        end
-
-        local oldPunchAng = self:GetOwner():GetViewPunchAngles()
-        local punchAng = oldPunchAng + Angle( -6, side, 0 ) * punchScale
-        self:GetOwner():ViewPunch( punchAng )
-
+    else
+        owner:EmitSound( self.Sounds.Miss, 80, math.random( 92, 108 ) )
+        punchScale = 0.1
     end
+
+    local side = -4
+    if self.ViewModelFlip then
+        side = -side
+    end
+
+    local oldPunchAng = owner:GetViewPunchAngles()
+    local punchAng = oldPunchAng + Angle( -6, side, 0 ) * punchScale
+    owner:ViewPunch( punchAng )
 end
 
 --[[
