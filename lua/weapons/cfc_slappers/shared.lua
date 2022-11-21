@@ -157,7 +157,7 @@ if CLIENT then
         end
     end
 
-    local viewOffs = Vector( -0.2,0,-1.65 )
+    local viewOffs = Vector( -0.2, 0, -1.65 )
     function SWEP:GetViewModelPosition( pos, ang )
         return pos + viewOffs,ang
     end
