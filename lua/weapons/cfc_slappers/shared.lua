@@ -121,10 +121,12 @@ end
 
 function SWEP:SlapSound()
     self:GetOwner():EmitSound( table.Random( self.Sounds.Slap ), self:Level( 80 ), self:Pitch( math.random( 92, 108 ) ), 1, CHAN_STATIC )
+
 end
 
 function SWEP:ViewPunchSlapper( ent, punchAng )
     ent:ViewPunch( punchAng )
+
 end
 
 --[[
@@ -169,23 +171,27 @@ if CLIENT then
         if not shouldHideVM then return end
         shouldHideVM = false
         vm:SetMaterial( "engine/occlusionproxy" )
+
     end
 
     local viewOffs = Vector( -0.2, 0, -1.65 )
     function SWEP:GetViewModelPosition( pos, ang )
-        return pos + viewOffs,ang
+        return pos + viewOffs, ang
+
     end
 
     function SWEP:SetupHands()
         local useHands = CvarUseHands:GetBool()
         self.UseHands = useHands
         shouldHideVM = useHands
+
     end
 
     function SWEP:Holster()
         self:OnRemove()
 
         return true
+
     end
 
     function SWEP:OnRemove()
@@ -196,6 +202,7 @@ if CLIENT then
         if not IsValid( vm ) then return end
 
         vm:SetMaterial( "" )
+
     end
 end
 
