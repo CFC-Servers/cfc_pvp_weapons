@@ -85,6 +85,7 @@ function SWEP:Initialize()
 
     if CLIENT then
         self:SetupHands()
+
     end
 end
 
@@ -120,12 +121,38 @@ function SWEP:Level( level )
 end
 
 function SWEP:SlapSound()
-    self:GetOwner():EmitSound( table.Random( self.Sounds.Slap ), self:Level( 80 ), self:Pitch( math.random( 92, 108 ) ), 1, CHAN_STATIC )
+    self:playRandomSound( self:GetOwner(), self.Sounds.Slap, self:Level( 80 ), self:Pitch( math.random( 92, 108 ) ), CHAN_STATIC )
 
 end
 
 function SWEP:ViewPunchSlapper( ent, punchAng )
     ent:ViewPunch( punchAng )
+
+end
+
+
+
+function SWEP:playRandomSound( ent, sounds, level, pitch, channel )
+    if not channel then
+        channel = CHAN_STATIC
+    end
+    local soundName = sounds[math.random( #sounds )]
+
+    ent:EmitSound( soundName, level, pitch, 1, channel )
+
+end
+
+function SWEP:ReactionForce( owner, tr, scale )
+
+    -- Apply force to self
+    local origVel = owner:GetVelocity()
+    local vec = ( tr.HitPos - tr.StartPos ):GetNormal()
+    local mul = GetConVar( "slappers_base_force" ):GetInt() * self:ForceMul() * scale
+
+    local slapVel = -vec * mul
+    local vel = slapVel * 0.6 + origVel
+
+    owner:SetLocalVelocity( vel )
 
 end
 
@@ -142,8 +169,10 @@ if SERVER then
         local nextFire = nil
         if self.PrimaryAttacking then
             nextFire = self:GetNextPrimaryFire()
+
         else
             nextFire = self:GetNextSecondaryFire()
+
         end
         if nextFire < CurTime() and vm:GetSequence() ~= 0 then
             vm:ResetSequence( 0 )
@@ -242,6 +271,7 @@ function SWEP:SlapWeaponOutOfHands( ent )
 
     local entMaxHealth = ent:GetMaxHealth()
     local multiplier = entMaxHealth / 100
+    -- stronger npcs/players should be accounted for
     local consecutiveQuotaAdjusted = GetConVar( "slappers_slap_weapons_consecutive" ):GetInt() * multiplier
 
     if weapon.ConsecutiveSlaps < consecutiveQuotaAdjusted then return end
@@ -265,21 +295,31 @@ function SWEP:SlapWeaponOutOfHands( ent )
     wep:SetOwner( ent )
     wep:Spawn()
     wep.SlapperCannotPickup = CurTime() + 3
+
     local phys = wep:GetPhysicsObject()
+    if not IsValid( phys ) then return end
 
-    if IsValid( phys ) then
-        timer.Simple( 0.01, function()
-            local ang = self:GetOwner():EyeAngles()
+    timer.Simple( 0.01, function()
+        if not IsValid( self ) then return end
+        if not IsValid( phys ) then return end
 
-            local relative = ang:Forward() * 3000 + ang:Right() * 3000
-            local alwaysUp = ang:Forward() * 3000 + ang:Right() * 3000 + Vector( 0, 0, math.Rand( 1500, 3000 ) )
-            local force = relative + alwaysUp
-            local forceMultiplied = force * self:ForceMul()
+        local owner = self:GetOwner()
+        if not IsValid( owner ) then return end
 
-            phys:ApplyForceCenter( forceMultiplied )
+        local ang = owner:EyeAngles()
 
-        end )
-    end
+        local modifier = 3000
+
+        local forward = ang:Forward() * modifier
+        local leftRight = ang:Right() * modifier * self.SlapDirectionMul
+        local alwaysUp = Vector( 0, 0, math.Rand( modifier * 0.5, modifier ) )
+
+        local force = forward + leftRight + alwaysUp
+        local forceMultiplied = force * self:ForceMul()
+
+        phys:ApplyForceCenter( forceMultiplied )
+
+    end )
 end
 
 hook.Add( "PlayerCanPickupWeapon", "SlapCanPickup", function( _, weapon )
@@ -289,10 +329,9 @@ hook.Add( "PlayerCanPickupWeapon", "SlapCanPickup", function( _, weapon )
     if timeout > CurTime() then return false end
 end )
 
-function SWEP:SlapPlayer( ply, tr )
-    local myUser = self:GetOwner()
+function SWEP:SlapPlayer( ply, tr, owner )
     local toSlap = ply
-    if hook.Run( "slappers_weapon_can_slap_otherplayer", myUser, toSlap ) == false then return end
+    if hook.Run( "slappers_weapon_can_slap_otherplayer", owner, toSlap ) == false then return end
 
     local origVel = ply:GetVelocity()
 
@@ -310,13 +349,23 @@ function SWEP:SlapPlayer( ply, tr )
 
     ply:SetLocalVelocity( vel )
 
+    local damage = math.random( 0.5, 1 ) * self:ForceMul() --weak vs players
+
+    local dmginfo = DamageInfo()
+    dmginfo:SetDamageType( DMG_CLUB )
+    dmginfo:SetAttacker( owner )
+    dmginfo:SetInflictor( self )
+    dmginfo:SetDamageForce( vel * 100 ) -- slap corpses too!
+    dmginfo:SetDamage( damage )
+    ply:TakeDamageInfo( dmginfo )
+
     -- Slap current weapon out of player's hands
     self:SlapWeaponOutOfHands( ply )
 
     -- Emit slap sound
-    self:SlapSound()
+    self:SlapSound() -- use modifiable sound
     -- Emit hurt sound on player
-    ply:EmitSound( table.Random( self.Sounds.Hurt ), 50, math.random( 92, 108 ) ) -- don't allow ply's pitch/level to be modified
+    self:playRandomSound( ply, self.Sounds.Hurt, 50, math.random( 92, 108 ) ) -- this stays the same
 
     local oldPunchAng = ply:GetViewPunchAngles()
     local punchAng = oldPunchAng + Angle( -3, 2, 0 )
@@ -324,40 +373,43 @@ function SWEP:SlapPlayer( ply, tr )
 
 end
 
-function SWEP:SlapNPC( ent, tr )
+function SWEP:SlapNPC( ent, tr, owner )
     local vec = ( tr.HitPos - tr.StartPos ):GetNormal()
+    local finalVelocity = nil
 
     -- Apply slap velocity to NPC
     if ent.GetPhysicsObject then
         local obj = ent:GetPhysicsObject()
+
         if obj:IsValid() then
             local force = math.Clamp( GetConVar( "slappers_base_force" ):GetInt() - obj:GetMass(), 0, math.huge )
             local vel = vec * force * 4.75
             vel.z = math.Clamp( vel.z, 50, 500 ) -- don't get out of hand!
 
-            local velMultiplied = vel * self:ForceMul()
+            finalVelocity = vel * self:ForceMul()
 
-            ent:SetLocalVelocity( velMultiplied )
+            ent:SetLocalVelocity( finalVelocity )
 
         end
     end
 
     -- Filter entities that respond to slaps
     if self.NPCFilter[ent:GetClass()] then
-        ent:EmitSound( table.Random( self.Sounds.Hurt ), 50, math.random( 95, 105 ) ) -- don't mod this either
+        self:playRandomSound( ent, self.Sounds.Hurt, 50, math.random( 95, 105 ) )
+
     end
 
-    -- Only hurt non-friendly NPCs
-    if ent:Disposition( self:GetOwner() ) ~= D_LI then
-        -- Damage potential enemies
-        local dmginfo = DamageInfo()
-        dmginfo:SetDamagePosition( tr.HitPos )
-        dmginfo:SetDamageType( DMG_CLUB )
-        dmginfo:SetAttacker( self:GetOwner() )
-        dmginfo:SetInflictor( self:GetOwner() )
-        dmginfo:SetDamage( math.random( 4, 6 ) )
-        ent:TakeDamageInfo( dmginfo )
-    end
+    local damage = math.random( 4, 6 ) * self:ForceMul()
+
+    local dmginfo = DamageInfo()
+    dmginfo:SetDamagePosition( tr.HitPos )
+    dmginfo:SetDamageType( DMG_CLUB )
+    dmginfo:SetAttacker( owner )
+    dmginfo:SetInflictor( self )
+    dmginfo:SetDamageForce( finalVelocity * 100 ) -- slap corpses too!
+    dmginfo:SetDamage( damage )
+    ent:TakeDamageInfo( dmginfo )
+
 
     -- Slap current weapon out of NPC's hands
     self:SlapWeaponOutOfHands( ent )
@@ -367,28 +419,22 @@ function SWEP:SlapNPC( ent, tr )
 
 end
 
-function SWEP:SlapWorld( _, tr )
-    self:GetOwner():EmitSound( table.Random( self.Sounds.HitWorld ), self:Level( 80 ), self:Pitch( math.random( 92, 108 ) ) )
+function SWEP:SlapWorld( _, _, owner )
+
+    self:playRandomSound( owner, self.Sounds.HitWorld, self:Level( 80 ), self:Pitch( math.random( 92, 108 ) ) )
     self:SlapSound()
-    -- i just slapped a wall! that oughta hurt!
-    local damage = math.random( 1, 2 ) * self:ForceMul() -- damage is proportional to the swep's force
+
+    local damage = math.random( 1, 2 ) * self:ForceMul()
     local dmginfo = DamageInfo()
     dmginfo:SetDamageType( DMG_CLUB )
-    dmginfo:SetAttacker( self:GetOwner() )
-    dmginfo:SetInflictor( game.GetWorld() )
+    dmginfo:SetAttacker( owner )
+    dmginfo:SetInflictor( self )
     dmginfo:SetDamage( damage )
-    self:GetOwner():TakeDamageInfo( dmginfo )
-
-    -- Apply force to self
-    local origVel = self:GetOwner():GetVelocity()
-    local vec = ( tr.HitPos - tr.StartPos ):GetNormal()
-    local mul = GetConVar( "slappers_base_force" ):GetInt()
-    local mulMultiplied = mul * self:ForceMul() -- double!!!
-    local slapVel = -vec * mulMultiplied
-    local vel = slapVel * 0.6 + origVel
-    self:GetOwner():SetLocalVelocity( vel )
+    owner:TakeDamageInfo( dmginfo )
 
 end
+
+
 
 local interactables = {
     func_door = true,
@@ -399,25 +445,31 @@ local interactables = {
     prop_door_rotating = true,
 }
 
-function SWEP:SlapProp( ent, tr )
-    local vec = ( tr.HitPos - tr.StartPos ):GetNormal()
+local forceInsteadOfVelMagic = 500 -- slapprop can do force instead of directly setting velocity
+local weightToStartScaling = 100
+
+function SWEP:SlapProp( ent, tr, owner )
+    local hitPos = tr.HitPos
+    local vec = ( hitPos - tr.StartPos ):GetNormal()
     local damage = math.random( 4, 6 )
 
     if interactables[ent:GetClass()] then
-        local owner = self:GetOwner()
         ent:Use( owner, owner ) -- Press button
+
     elseif ent:Health() > 0 then
         if ent:Health() <= damage then
             ent:Fire( "Break", "nil", 0, owner, ent )
+
         else
             -- Damage props with health
             local dmginfo = DamageInfo()
-            dmginfo:SetDamagePosition( tr.HitPos )
+            dmginfo:SetDamagePosition( hitPos )
             dmginfo:SetDamageType( DMG_CLUB )
-            dmginfo:SetAttacker( self:GetOwner() )
-            dmginfo:SetInflictor( self:GetOwner() )
+            dmginfo:SetAttacker( owner )
+            dmginfo:SetInflictor( owner )
             dmginfo:SetDamage( damage )
             ent:TakeDamageInfo( dmginfo )
+
         end
     end
 
@@ -426,15 +478,17 @@ function SWEP:SlapProp( ent, tr )
 
     if IsValid( phys ) then
         self:SlapSound()
-        local mul = GetConVar( "slappers_base_force" ):GetInt() * self:ForceMul()
-        local mulMultiplied = mul * math.Clamp( 100 / phys:GetMass(), 0, 1 )
 
-        local newForce = vec * mul * mulMultiplied
+        local mul = GetConVar( "slappers_base_force" ):GetInt() * forceInsteadOfVelMagic
+        local mulMultiplied = mul * self:ForceMul()
+        local smallMassScaling = math.Clamp( phys:GetMass() / weightToStartScaling, 0, 1 )
 
-        phys:ApplyForceCenter( newForce )
+        local force = vec * mulMultiplied * smallMassScaling
+
+        phys:ApplyForceOffset( force, hitPos )
 
     else
-        self:GetOwner():EmitSound( table.Random( self.Sounds.HitWorld ), self:Level( 80 ), self:Pitch( math.random( 92, 108 ) ) )
+        self:playRandomSound( owner, self.Sounds.HitWorld, self:Level( 80 ), self:Pitch( math.random( 92, 108 ) ) )
 
     end
 
@@ -445,22 +499,25 @@ end
 	Third Person Slap Hack
 ]]
 function SWEP:SlapAnimation()
+    local owner = self:GetOwner()
     -- Inform players of slap
     if SERVER and not game.SinglePlayer() then
         net.Start( "SlapAnimation" )
-        net.WriteEntity( self:GetOwner() )
+        net.WriteEntity( owner )
         net.Broadcast()
+
     end
 
     -- Temporarily change hold type so that we
     -- can use the crowbar melee animation
     self:SetWeaponHoldType( "melee" )
-    self:GetOwner():SetAnimation( PLAYER_ATTACK1 )
+    owner:SetAnimation( PLAYER_ATTACK1 )
 
     -- Change back to normal holdtype once we're done
     timer.Simple( 0.3, function()
         if not IsValid( self ) then return end
         self:SetWeaponHoldType( self.HoldType )
+
     end )
 end
 
@@ -492,9 +549,9 @@ function SWEP:Slap()
     if not SERVER then return end
 
     local punchScale = 1
-    local swepOwner = self:GetOwner()
-    local shootPos = swepOwner:GetShootPos()
-    local vm = swepOwner:GetViewModel()
+    local owner = self:GetOwner()
+    local shootPos = owner:GetShootPos()
+    local vm = owner:GetViewModel()
 
     -- Use view model slap animation
     self:SendWeaponAnim( ACT_VM_PRIMARYATTACK_2 )
@@ -503,37 +560,50 @@ function SWEP:Slap()
     -- Trace for slap hit
     local tr = util.TraceHull( {
         start = shootPos,
-        endpos = shootPos + swepOwner:GetAimVector() * 54,
+        endpos = shootPos + owner:GetAimVector() * 54,
         mins = self.Mins,
         maxs = self.Maxs,
-        filter = swepOwner
+        filter = owner
     } )
 
     local ent = tr.Entity
 
     if IsValid( ent ) or game.GetWorld() == ent then
+        local scale = 1
+
         if ent:IsPlayer() then
-            self:SlapPlayer( ent, tr )
+            self:SlapPlayer( ent, tr, owner )
+            scale = 0.5
+
         elseif ent:IsNPC() then
-            self:SlapNPC( ent, tr )
+            self:SlapNPC( ent, tr, owner )
+            scale = 0.5
+
         elseif ent:IsWorld() then
-            self:SlapWorld( ent, tr )
+            self:SlapWorld( ent, tr, owner )
+
         else
-            self:SlapProp( ent, tr )
+            self:SlapProp( ent, tr, owner )
+            scale = 0.5
+
         end
+
+        self:ReactionForce( owner, tr, scale )
+
     else
-        swepOwner:EmitSound( self.Sounds.Miss, self:Level( 80 ), self:Pitch( math.random( 92, 108 ) ) )
+        owner:EmitSound( self.Sounds.Miss, self:Level( 80 ), self:Pitch( math.random( 92, 108 ) ) )
         punchScale = 0.1
+
     end
 
-    local side = 4
-    if not self.PrimaryAttacking then
-        side = -side
-    end
+    local side = 4 * self.SlapDirectionMul
+    local oldPunchAng = owner:GetViewPunchAngles()
+    local punchOffset = Angle( -6, side, 0 ) * punchScale
 
-    local oldPunchAng = swepOwner:GetViewPunchAngles()
-    local punchAng = oldPunchAng + Angle( -6, side, 0 ) * punchScale
-    self:ViewPunchSlapper( swepOwner, punchAng )
+    local punchAng = oldPunchAng + punchOffset
+
+    self:ViewPunchSlapper( owner, punchAng )
+
 end
 
 --[[
@@ -546,9 +616,11 @@ function SWEP:PrimaryAttack()
 
     -- Left handed slap
     self.PrimaryAttacking = true
+    self.SlapDirectionMul = 1
     self.ViewModelFlip = false
     self:Slap()
     self:SetNextPrimaryFire( CurTime() + self.Primary.Delay )
+
 end
 
 function SWEP:SecondaryAttack()
@@ -558,7 +630,9 @@ function SWEP:SecondaryAttack()
 
     -- Right handed slap
     self.PrimaryAttacking = false
+    self.SlapDirectionMul = -1
     self.ViewModelFlip = true
     self:Slap()
     self:SetNextSecondaryFire( CurTime() + self.Primary.Delay )
+
 end

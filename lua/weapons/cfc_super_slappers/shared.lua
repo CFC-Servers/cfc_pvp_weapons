@@ -22,6 +22,15 @@ SWEP.Primary = {
 
 SWEP.Secondary = SWEP.Primary
 
+SWEP.SuperSlapSounds = {
+    -- all the really strong slap sounds
+    Slap = {
+        Sound( "elevator/effects/slap_hit06.wav" ),
+        Sound( "elevator/effects/slap_hit07.wav" ),
+        Sound( "elevator/effects/slap_hit09.wav" )
+    }
+}
+
 function SWEP:ForceMul()
     return 13
 end
@@ -40,7 +49,7 @@ end
 
 function SWEP:SlapSound()
     for _ = 1, 4 do
-        self:GetOwner():EmitSound( table.Random( self.Sounds.Slap ), self:Level( 80 ), self:Pitch( math.random( 92, 108 ) ), 1, CHAN_STATIC )
+        self:playRandomSound( self:GetOwner(), self.SuperSlapSounds.Slap, self:Level( 80 ), self:Pitch( math.random( 92, 108 ) ) )
 
     end
 end
