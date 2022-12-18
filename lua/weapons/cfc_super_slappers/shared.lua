@@ -20,6 +20,7 @@ SWEP.Primary = {
     Ammo = "none"
 }
 
+SWEP.Bonk.Enabled = true
 SWEP.Secondary = SWEP.Primary
 
 SWEP.SuperSlapSounds = {
