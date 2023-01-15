@@ -32,7 +32,7 @@ SWEP.SuperSlapSounds = {
 }
 
 function SWEP:ForceMul()
-    return 13
+    return 10
 end
 
 function SWEP:WeaponKnockWeight()
@@ -40,11 +40,23 @@ function SWEP:WeaponKnockWeight()
 end
 
 function SWEP:Pitch( pitch )
-    return pitch + -50
+    return pitch + -55
 end
 
 function SWEP:Level( level )
     return level + 30
+end
+
+function SWEP:SlapEffects( slappedPos )
+    util.ScreenShake( slappedPos, 30, 20, 0.4, 1000 ) -- strong for nearby
+    util.ScreenShake( slappedPos, 1, 20, 2, 4000 ) -- weak for far away
+
+end
+
+function SWEP:MissEffect()
+    util.ScreenShake( self:GetOwner():GetPos(), 10, 1, 0.4, 500 ) -- strong for nearby
+    util.ScreenShake( self:GetOwner():GetPos(), 0.5, 1, 2, 4000 ) -- weak for far away
+
 end
 
 function SWEP:SlapSound()

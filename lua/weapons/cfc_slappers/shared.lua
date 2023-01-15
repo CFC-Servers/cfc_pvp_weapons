@@ -7,9 +7,9 @@ if SERVER then
         resource.AddFile( string.format( "sound/elevator/effects/slap_hit0%s.wav", i ) )
     end
 
-    CreateConVar( "slappers_slap_weapons_consecutive", 8, FCVAR_ARCHIVE, "Consecutive hits required to slap weapons" )
+    CreateConVar( "slappers_slap_weapons_consecutive", 3, FCVAR_ARCHIVE, "Consecutive hits required to slap weapons" )
     CreateConVar( "slappers_slap_weapons", 1, FCVAR_ARCHIVE, "Slap weapons out of players' hands" )
-    CreateConVar( "slappers_base_force", 180, FCVAR_ARCHIVE, "Base force of the slappers" )
+    CreateConVar( "slappers_base_force", 240, FCVAR_ARCHIVE, "Base force of the slappers" )
     util.AddNetworkString( "SlapAnimation" )
 end
 
@@ -24,6 +24,8 @@ SWEP.ViewModel = Model( "models/weapons/v_watch.mdl" )
 SWEP.WorldModel = ""
 SWEP.HoldType = "normal"
 
+SWEP.IsSlappersBased = true
+
 SWEP.Primary = {
     ClipSize = -1,
     Delay = 0.4,
@@ -36,7 +38,7 @@ SWEP.Secondary = SWEP.Primary
 
 SWEP.Sounds = {
     LoseWeapon = Sound( "npc/zombie/zombie_pound_door.wav" ),
-    Miss = Sound( "Weapon_Knife.Slash" ),
+    Miss = Sound( "weapons/slam/throw.wav" ),
     HitWorld = {
         Sound( "Flesh.ImpactHard" ),
         Sound( "d1_canals.citizenpunch_pain_1" )
@@ -130,6 +132,13 @@ function SWEP:ViewPunchSlapper( ent, punchAng )
 
 end
 
+function SWEP:SlapEffects()
+
+end
+
+function SWEP:MissEffect()
+
+end
 
 
 function SWEP:playRandomSound( ent, sounds, level, pitch, channel )
@@ -247,8 +256,9 @@ function SWEP:SlapWeaponOutOfHands( ent )
     local weapon = ent:GetActiveWeapon()
     if not IsValid( weapon ) then return end
 
+    if weapon.IsSlappersBased then return end
+
     local class = weapon:GetClass()
-    if class == "slappers" then return end
     if class == "weapon_fists" then return end
 
     local pos = weapon:GetPos()
@@ -271,6 +281,13 @@ function SWEP:SlapWeaponOutOfHands( ent )
 
     local entMaxHealth = ent:GetMaxHealth()
     local multiplier = entMaxHealth / 100
+
+    -- npcs are way easier to slap than players
+    if not ent:IsPlayer() then
+        multiplier = multiplier * 2
+
+    end
+
     -- stronger npcs/players should be accounted for
     local consecutiveQuotaAdjusted = GetConVar( "slappers_slap_weapons_consecutive" ):GetInt() * multiplier
 
@@ -349,7 +366,7 @@ function SWEP:SlapPlayer( ply, tr, owner )
 
     ply:SetLocalVelocity( vel )
 
-    local damage = math.random( 0.5, 1 ) * self:ForceMul() --weak vs players
+    local damage = math.random( 2, 4 ) * self:ForceMul() --weak vs players
 
     local dmginfo = DamageInfo()
     dmginfo:SetDamageType( DMG_CLUB )
@@ -368,14 +385,14 @@ function SWEP:SlapPlayer( ply, tr, owner )
     self:playRandomSound( ply, self.Sounds.Hurt, 50, math.random( 92, 108 ) ) -- this stays the same
 
     local oldPunchAng = ply:GetViewPunchAngles()
-    local punchAng = oldPunchAng + Angle( -3, 2, 0 )
+    local punchAng = oldPunchAng + Angle( -24, 16, 0 )
     self:ViewPunchSlapper( ply, punchAng )
 
 end
 
 function SWEP:SlapNPC( ent, tr, owner )
     local vec = ( tr.HitPos - tr.StartPos ):GetNormal()
-    local finalVelocity = nil
+    local finalVelocity = Vector( 0, 0, 0 )
 
     -- Apply slap velocity to NPC
     if ent.GetPhysicsObject then
@@ -433,7 +450,6 @@ function SWEP:SlapWorld( _, _, owner )
     owner:TakeDamageInfo( dmginfo )
 
 end
-
 
 
 local interactables = {
@@ -560,7 +576,7 @@ function SWEP:Slap()
     -- Trace for slap hit
     local tr = util.TraceHull( {
         start = shootPos,
-        endpos = shootPos + owner:GetAimVector() * 54,
+        endpos = shootPos + owner:GetAimVector() * 70,
         mins = self.Mins,
         maxs = self.Maxs,
         filter = owner
@@ -569,6 +585,7 @@ function SWEP:Slap()
     local ent = tr.Entity
 
     if IsValid( ent ) or game.GetWorld() == ent then
+
         local scale = 1
 
         if ent:IsPlayer() then
@@ -589,10 +606,12 @@ function SWEP:Slap()
         end
 
         self:ReactionForce( owner, tr, scale )
+        self:SlapEffects( tr.HitPos )
 
     else
         owner:EmitSound( self.Sounds.Miss, self:Level( 80 ), self:Pitch( math.random( 92, 108 ) ) )
         punchScale = 0.1
+        self:MissEffect()
 
     end
 
