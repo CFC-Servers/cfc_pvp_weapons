@@ -348,7 +348,7 @@ end )
 
 function SWEP:SlapPlayer( ply, tr, owner )
     local toSlap = ply
-    if hook.Run( "SlappersCanSlap", owner, toSlap ) == false then return end
+    if hook.Run( "Slappers_CanSlap", owner, toSlap ) == false then return end
 
     local origVel = ply:GetVelocity()
 
