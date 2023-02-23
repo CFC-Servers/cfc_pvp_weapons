@@ -75,8 +75,8 @@ SWEP.NPCFilter = {
     npc_magnusson = true,
 }
 
-SWEP.Mins = Vector( -8, -8, -8 )
-SWEP.Maxs = Vector( 8, 8, 8 )
+SWEP.Maxs = Vector( 20, 20, 20 )
+SWEP.Mins = SWEP.Maxs
 
 --[[
 	Weapon Config
@@ -576,7 +576,7 @@ function SWEP:Slap()
     -- Trace for slap hit
     local tr = util.TraceHull( {
         start = shootPos,
-        endpos = shootPos + owner:GetAimVector() * 70,
+        endpos = shootPos + owner:GetAimVector() * 100,
         mins = self.Mins,
         maxs = self.Maxs,
         filter = owner
