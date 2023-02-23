@@ -75,7 +75,7 @@ SWEP.NPCFilter = {
     npc_magnusson = true,
 }
 
-SWEP.Maxs = Vector( 20, 20, 20 )
+SWEP.Maxs = Vector( 14, 14, 14 )
 SWEP.Mins = SWEP.Maxs
 
 --[[
