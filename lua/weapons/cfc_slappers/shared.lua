@@ -30,7 +30,7 @@ SWEP.Primary = {
     ClipSize = -1,
     Delay = 0.4,
     DefaultClip = -1,
-    Automatic = false,
+    Automatic = true,
     Ammo = "none"
 }
 
@@ -75,8 +75,8 @@ SWEP.NPCFilter = {
     npc_magnusson = true,
 }
 
-SWEP.Maxs = Vector( 14, 14, 14 )
-SWEP.Mins = SWEP.Maxs
+SWEP.Hull  = Vector( 14, 14, 14 )
+SWEP.Range = 100
 
 --[[
 	Weapon Config
@@ -140,6 +140,14 @@ function SWEP:MissEffect()
 
 end
 
+function SWEP:DamageMul()
+    return 1
+end
+
+function SWEP:GetHull()
+    return -self.Hull, self.Hull
+
+end
 
 function SWEP:playRandomSound( ent, sounds, level, pitch, channel )
     if not channel then
@@ -159,7 +167,7 @@ function SWEP:ReactionForce( owner, tr, scale )
     local mul = GetConVar( "slappers_base_force" ):GetInt() * self:ForceMul() * scale
 
     local slapVel = -vec * mul
-    local vel = slapVel * 0.6 + origVel
+    local vel = slapVel * 0.7 + origVel
 
     owner:SetLocalVelocity( vel )
 
@@ -366,13 +374,13 @@ function SWEP:SlapPlayer( ply, tr, owner )
 
     ply:SetLocalVelocity( vel )
 
-    local damage = math.random( 2, 4 ) * self:ForceMul() --weak vs players
+    local damage = math.random( 2, 4 ) * self:DamageMul() --weak vs players
 
     local dmginfo = DamageInfo()
     dmginfo:SetDamageType( DMG_CLUB )
     dmginfo:SetAttacker( owner )
     dmginfo:SetInflictor( self )
-    dmginfo:SetDamageForce( vel * 100 ) -- slap corpses too!
+    dmginfo:SetDamageForce( vel * 200 ) -- slap corpses too!
     dmginfo:SetDamage( damage )
     ply:TakeDamageInfo( dmginfo )
 
@@ -416,7 +424,7 @@ function SWEP:SlapNPC( ent, tr, owner )
 
     end
 
-    local damage = math.random( 4, 6 ) * self:ForceMul()
+    local damage = math.random( 4, 6 ) * self:DamageMul()
 
     local dmginfo = DamageInfo()
     dmginfo:SetDamagePosition( tr.HitPos )
@@ -441,7 +449,7 @@ function SWEP:SlapWorld( _, _, owner )
     self:playRandomSound( owner, self.Sounds.HitWorld, self:Level( 80 ), self:Pitch( math.random( 92, 108 ) ) )
     self:SlapSound()
 
-    local damage = math.random( 1, 2 ) * self:ForceMul()
+    local damage = math.Rand( 0.5, 1.5 ) * self:DamageMul()
     local dmginfo = DamageInfo()
     dmginfo:SetDamageType( DMG_CLUB )
     dmginfo:SetAttacker( owner )
@@ -467,7 +475,7 @@ local weightToStartScaling = 100
 function SWEP:SlapProp( ent, tr, owner )
     local hitPos = tr.HitPos
     local vec = ( hitPos - tr.StartPos ):GetNormal()
-    local damage = math.random( 4, 6 )
+    local damage = math.random( 4, 6 ) * self:DamageMul()
 
     if interactables[ent:GetClass()] then
         ent:Use( owner, owner ) -- Press button
@@ -568,23 +576,42 @@ function SWEP:Slap()
     local owner = self:GetOwner()
     local shootPos = owner:GetShootPos()
     local vm = owner:GetViewModel()
+    local world = game.GetWorld()
 
     -- Use view model slap animation
     self:SendWeaponAnim( ACT_VM_PRIMARYATTACK_2 )
     vm:SetPlaybackRate( 1.5 ) -- faster slap
 
-    -- Trace for slap hit
-    local tr = util.TraceHull( {
-        start = shootPos,
-        endpos = shootPos + owner:GetAimVector() * 100,
-        mins = self.Mins,
-        maxs = self.Maxs,
+    local start = shootPos
+    local endpos = shootPos + owner:GetAimVector() * self.Range
+
+    -- always hit what is aimed at, and if there's nothing there, then do the hull
+    local traceDat = {
+        start = start,
+        endpos = endpos,
         filter = owner
-    } )
+    }
+
+    local tr = util.TraceLine( traceDat )
+
+    if not IsValid( tr.Entity ) and world ~= tr.Entity then
+        local mins, maxs = self:GetHull()
+        local hullTraceDat = {
+            start = start,
+            endpos = endpos,
+            mins = mins,
+            maxs = maxs,
+            filter = owner
+        }
+
+        -- Trace for slap hit
+        tr = util.TraceHull( hullTraceDat )
+
+    end
 
     local ent = tr.Entity
 
-    if IsValid( ent ) or game.GetWorld() == ent then
+    if IsValid( ent ) or world == ent then
 
         local scale = 1
 
@@ -617,7 +644,7 @@ function SWEP:Slap()
 
     local side = 4 * self.SlapDirectionMul
     local oldPunchAng = owner:GetViewPunchAngles()
-    local punchOffset = Angle( -6, side, 0 ) * punchScale
+    local punchOffset = Angle( -4, side, 0 ) * punchScale
 
     local punchAng = oldPunchAng + punchOffset
 

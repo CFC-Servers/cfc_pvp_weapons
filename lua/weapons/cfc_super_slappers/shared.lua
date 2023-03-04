@@ -22,6 +22,10 @@ SWEP.Primary = {
 
 SWEP.Secondary = SWEP.Primary
 
+SWEP.Hull  = Vector( 14, 14, 14 ) * 1.75
+SWEP.Range = 175
+
+
 SWEP.SuperSlapSounds = {
     -- all the really strong slap sounds
     Slap = {
@@ -32,11 +36,15 @@ SWEP.SuperSlapSounds = {
 }
 
 function SWEP:ForceMul()
-    return 10
+    return 12
 end
 
 function SWEP:WeaponKnockWeight()
     return 8
+end
+
+function SWEP:DamageMul()
+    return 45
 end
 
 function SWEP:Pitch( pitch )
