@@ -77,6 +77,8 @@ SWEP.NPCFilter = {
 
 SWEP.Hull  = Vector( 14, 14, 14 )
 SWEP.Range = 100
+SWEP.DamageMul = 1
+SWEP.ReactionVelToKeep = 0.6
 
 --[[
 	Weapon Config
@@ -140,15 +142,6 @@ function SWEP:MissEffect()
 
 end
 
-function SWEP:DamageMul()
-    return 1
-end
-
-function SWEP:GetHull()
-    return -self.Hull, self.Hull
-
-end
-
 function SWEP:playRandomSound( ent, sounds, level, pitch, channel )
     if not channel then
         channel = CHAN_STATIC
@@ -159,6 +152,7 @@ function SWEP:playRandomSound( ent, sounds, level, pitch, channel )
 
 end
 
+
 function SWEP:ReactionForce( owner, tr, scale )
 
     -- Apply force to self
@@ -167,7 +161,7 @@ function SWEP:ReactionForce( owner, tr, scale )
     local mul = GetConVar( "slappers_base_force" ):GetInt() * self:ForceMul() * scale
 
     local slapVel = -vec * mul
-    local vel = slapVel * 0.7 + origVel
+    local vel = slapVel * self.ReactionVelToKeep + origVel
 
     owner:SetLocalVelocity( vel )
 
@@ -374,7 +368,7 @@ function SWEP:SlapPlayer( ply, tr, owner )
 
     ply:SetLocalVelocity( vel )
 
-    local damage = math.random( 2, 4 ) * self:DamageMul() --weak vs players
+    local damage = math.random( 2, 4 ) * self.DamageMul --weak vs players
 
     local dmginfo = DamageInfo()
     dmginfo:SetDamageType( DMG_CLUB )
@@ -424,7 +418,7 @@ function SWEP:SlapNPC( ent, tr, owner )
 
     end
 
-    local damage = math.random( 4, 6 ) * self:DamageMul()
+    local damage = math.random( 4, 6 ) * self.DamageMul
 
     local dmginfo = DamageInfo()
     dmginfo:SetDamagePosition( tr.HitPos )
@@ -449,7 +443,7 @@ function SWEP:SlapWorld( _, _, owner )
     self:playRandomSound( owner, self.Sounds.HitWorld, self:Level( 80 ), self:Pitch( math.random( 92, 108 ) ) )
     self:SlapSound()
 
-    local damage = math.Rand( 0.5, 1.5 ) * self:DamageMul()
+    local damage = math.Rand( 0.5, 1.5 ) * self.DamageMul
     local dmginfo = DamageInfo()
     dmginfo:SetDamageType( DMG_CLUB )
     dmginfo:SetAttacker( owner )
@@ -475,7 +469,7 @@ local weightToStartScaling = 100
 function SWEP:SlapProp( ent, tr, owner )
     local hitPos = tr.HitPos
     local vec = ( hitPos - tr.StartPos ):GetNormal()
-    local damage = math.random( 4, 6 ) * self:DamageMul()
+    local damage = math.random( 4, 6 ) * self.DamageMul
 
     if interactables[ent:GetClass()] then
         ent:Use( owner, owner ) -- Press button
@@ -595,7 +589,8 @@ function SWEP:Slap()
     local tr = util.TraceLine( traceDat )
 
     if not IsValid( tr.Entity ) and world ~= tr.Entity then
-        local mins, maxs = self:GetHull()
+        local mins = -self.Hull
+        local maxs = self.Hull
         local hullTraceDat = {
             start = start,
             endpos = endpos,
