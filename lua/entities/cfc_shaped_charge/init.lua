@@ -60,6 +60,8 @@ function ENT:Initialize()
 end
 
 function ENT:OnTakeDamage( dmg )
+    if dmg:IsDamageType( DMG_BURN ) then return end -- Prevents burning props strat
+
     self.bombHealth = self.bombHealth - dmg:GetDamage()
     if self.bombHealth <= 0 then
         if not IsValid( self ) then return end
