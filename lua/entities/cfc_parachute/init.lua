@@ -5,7 +5,7 @@ include( "shared.lua" )
 local COLOR_SHOW = Color( 255, 255, 255, 255 )
 local COLOR_HIDE = Color( 255, 255, 255, 0 )
 
-local isValid = IsValid
+local IsValid = IsValid
 
 
 function ENT:Open()
@@ -27,9 +27,9 @@ end
 function ENT:Initialize()
     local owner = self.chuteOwner
 
-    if not isValid( owner ) then
+    if not IsValid( owner ) then
         timer.Simple( 0.02, function()
-            if isValid( self.chuteOwner ) then
+            if IsValid( self.chuteOwner ) then
                 self:Initialize()
 
                 return
@@ -47,14 +47,12 @@ function ENT:Initialize()
     self:DrawShadow( false )
     self:SetCollisionGroup( COLLISION_GROUP_IN_VEHICLE )
     self:SetRenderMode( RENDERMODE_TRANSCOLOR )
-
     self:PhysWake()
 end
 
 function ENT:Think()
     local wep = self.chutePack
-
-    if not isValid( wep ) then return end
+    if not IsValid( wep ) then return end
 
     wep:CloseIfOnGround()
     wep:CloseIfInWater()
