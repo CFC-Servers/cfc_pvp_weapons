@@ -64,26 +64,6 @@ local function changeOwner( wep, ply )
     end )
 end
 
---[[
-    - Increases the magnitude of velAdd if it opposes vel.
-    - Ultimately makes it faster to brake and change directions.
-    - To reduce the number of square-root calls, velAdd should be given as a unit vector.
---]]
-local function improveHandling( vel, velAdd )
-    local velLength = vel:Length()
-
-    if velLength == 0 then return velAdd end
-
-    local dot = vel:Dot( velAdd )
-    dot = dot / velLength -- Get dot product on 0-1 scale
-
-    if dot >= 0 then return velAdd end
-
-    local mult = math.max( -dot * HANDLING:GetFloat(), 1 )
-
-    return velAdd * mult
-end
-
 -- uses a TraceLine to see if a velocity does NOT clip into a wall when we don't know the wall's position or normal
 local function velLeavesCloseWall( ply, startPos, velHorizEff )
     -- Small inwards velocities pass due to being short, so we need to extend the length
@@ -134,57 +114,84 @@ local function verifyVel( moveData, ply, vel, timeMult )
     return vel
 end
 
-local function getHorizontalSpeed( moveData, isUnstableControl, ignoreSprint )
-    local hSpeed = isUnstableControl and HORIZONTAL_SPEED_UNSTABLE:GetFloat() or
-                                         HORIZONTAL_SPEED:GetFloat()
+--[[
+    - Returns moveDir, increasing its magnitude if it opposes vel.
+    - Ultimately makes it faster to brake and change directions.
+    - moveDir should be given as a unit vector.
+--]]
+local function improveHandling( vel, moveDir )
+    local velLength = vel:Length()
+    if velLength == 0 then return moveDir end
 
-    if not ignoreSprint and moveData:KeyDown( IN_SPEED ) then
+    local dot = vel:Dot( moveDir )
+    dot = dot / velLength -- Get dot product on 0-1 scale
+    if dot >= 0 then return moveDir end -- moveDir doesn't oppose vel.
+
+    local mult = math.max( -dot * HANDLING:GetFloat(), 1 )
+
+    return moveDir * mult
+end
+
+local function getHorizontalMoveSpeed( moveData, isUnstable )
+    local hSpeed =
+        isUnstable and HORIZONTAL_SPEED_UNSTABLE:GetFloat() or
+                       HORIZONTAL_SPEED:GetFloat()
+
+    if moveData:KeyDown( IN_SPEED ) then
         return hSpeed * SPRINT_BOOST:GetFloat()
     end
 
     return hSpeed
 end
 
-local function getHorizontalMoveVel( moveData )
-    local hVelAdd = Vector( 0, 0, 0 )
+local function getHorizontalMoveDir( moveData )
+    local hDir = Vector( 0, 0, 0 )
     local ang = moveData:GetAngles()
+    local isNonZero = false
     ang = Angle( 0, ang[2], ang[3] ) -- Force angle to be horizontal
 
     -- Forward/Backward
     if moveData:KeyDown( IN_FORWARD ) then
         if not moveData:KeyDown( IN_BACK ) then
-            hVelAdd = hVelAdd + ang:Forward()
+            hDir = hDir + ang:Forward()
+            isNonZero = true
         end
     elseif moveData:KeyDown( IN_BACK ) then
-        hVelAdd = hVelAdd - ang:Forward()
+        hDir = hDir - ang:Forward()
+        isNonZero = true
     end
 
     -- Right/Left
     if moveData:KeyDown( IN_MOVERIGHT ) then
         if not moveData:KeyDown( IN_MOVELEFT ) then
-            hVelAdd = hVelAdd + ang:Right()
+            hDir = hDir + ang:Right()
+            isNonZero = true
         end
     elseif moveData:KeyDown( IN_MOVELEFT ) then
-        hVelAdd = hVelAdd - ang:Right()
+        hDir = hDir - ang:Right()
+        isNonZero = true
     end
 
-    return hVelAdd
+    if isNonZero then
+        hDir:Normalize()
+    end
+
+    return hDir, isNonZero
 end
 
 local function addHorizontalVel( moveData, ply, vel, timeMult, unstableDir )
     -- Acquire direction based on moveData
-    local hVelAdd = getHorizontalMoveVel( moveData )
+    local hDir, hDirIsNonZero = getHorizontalMoveDir( moveData )
 
-    -- Apply the additional velocity
-    local hVelAddLength = hVelAdd:Length()
-
-    if hVelAddLength ~= 0 then
-        hVelAdd = improveHandling( vel, hVelAdd / hVelAddLength )
-        vel = vel + hVelAdd * timeMult * getHorizontalSpeed( moveData, unstableDir, false )
+    -- Add movement velocity (WASD control)
+    if hDirIsNonZero then
+        hDir = improveHandling( vel, hDir )
+        vel = vel + hDir * timeMult * getHorizontalMoveSpeed( moveData, unstableDir )
     end
 
+    -- Add unstable velocity
     if unstableDir then
-        vel = vel + unstableDir * timeMult * getHorizontalSpeed( moveData, false, true )
+        vel = vel + unstableDir * timeMult * HORIZONTAL_SPEED:GetFloat()
     end
 
     -- Limit the horizontal speed
@@ -240,7 +247,6 @@ end
 local function clearStuckViewPunch( ply )
     local now = RealTime()
     local nextCheckTime = ply.cfcParachuteNextViewPunchCheck or now
-
     if nextCheckTime > now then return end
 
     local punchVelOld = ply.cfcParachuteViewPunchVel
@@ -249,7 +255,8 @@ local function clearStuckViewPunch( ply )
     ply.cfcParachuteNextViewPunchCheck = now + VIEW_PUNCH_CHECK_INTERVAL
     ply.cfcParachuteViewPunchVel = punchVelNew
 
-    if punchVelNew == ANG_ZERO or punchVelNew ~= punchVelOld then return end
+    if punchVelNew == ANG_ZERO then return end
+    if punchVelNew ~= punchVelOld then return end
 
     ply:SetViewPunchVelocity( ANG_ZERO )
     ply.cfcParachuteViewPunchVel = nil
@@ -348,8 +355,6 @@ hook.Add( "Move", "CFC_Parachute_SlowFall", function( ply, moveData )
     if not IsValid( wep ) then return end
     if not wep.chuteIsOpen then return end
 
-    local isUnstable = wep.chuteIsUnstable
-    local unstableDir
     local targetFallVel = -FALL_SPEED:GetFloat()
     local vel = moveData:GetVelocity()
     local velZ = vel[3]
@@ -360,6 +365,8 @@ hook.Add( "Move", "CFC_Parachute_SlowFall", function( ply, moveData )
 
     local timeMult = FrameTime()
     local lurch = wep.chuteLurch or 0
+    local isUnstable = wep.chuteIsUnstable
+    local unstableDir = false
 
     -- Ensure we maintain the locked angle for unstable parachutes
     if isUnstable then
@@ -461,8 +468,8 @@ hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, stat
     if not state then return end
 
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-
-    if not IsValid( wep ) or wep == ply:GetActiveWeapon() then return end
+    if not IsValid( wep ) then return end
+    if wep == ply:GetActiveWeapon() then return end
 
     wep:ChangeOpenStatus( false, ply )
 end, HOOK_LOW )
