@@ -5,6 +5,7 @@ CFC_Parachute.DesignMaterialNames = false
 CFC_Parachute.DesignMaterialCount = 21 -- Default value for in case someone changes their design without anyone having spawned a parachute swep yet
 CFC_Parachute.DesignMaterialSub = string.len( "models/cfc/parachute/parachute_" ) + 1
 
+-- Convars
 local UNSTABLE_SHOOT_LURCH_CHANCE
 local UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE
 local UNSTABLE_MAX_FALL_LURCH
@@ -18,11 +19,13 @@ local HORIZONTAL_SPEED_LIMIT
 local SPRINT_BOOST
 local HANDLING
 
+-- Chute designs
 local DESIGN_MATERIALS
 local DESIGN_MATERIAL_COUNT = CFC_Parachute.DesignMaterialCount
 local DESIGN_REQUEST_BURST_LIMIT = 10
 local DESIGN_REQUEST_BURST_DURATION = 3
 
+-- Misc
 local TRACE_HULL_SCALE_SIDEWAYS = Vector( 1.05, 1.05, 1.05 )
 local TRACE_HULL_SCALE_DOWN = Vector( 0.95, 0.95, 0.01 )
 local VEC_REMOVE_Z = Vector( 1, 1, 0 )
@@ -30,33 +33,34 @@ local VEC_ZERO = Vector( 0, 0, 0 )
 local ANG_ZERO = Angle( 0, 0, 0 )
 local VIEW_PUNCH_CHECK_INTERVAL = 0.25
 
-local isValid = IsValid
-local realTime = RealTime
+local IsValid = IsValid
+local RealTime = RealTime
 
 
-local function mSign( x )
+local function mathSign( x )
     if x == 0 then return 0 end
     if x > 0 then return 1 end
+
     return -1
 end
 
 -- Individually scales up the x and y axes so they each have magnitude >= min
--- Doesn't scale the whole vector at once since a tiny x could result in a huge y, etc
+-- Doesn't scale the whole vector at once, otherwise a tiny x could result in a huge y, etc
 local function minBoundVector( vec, xMin, yMin )
     local x = vec[1]
     local y = vec[2]
-    x = mSign( x ) * math.max( math.abs( x ), xMin )
-    y = mSign( y ) * math.max( math.abs( y ), yMin )
+    x = mathSign( x ) * math.max( math.abs( x ), xMin )
+    y = mathSign( y ) * math.max( math.abs( y ), yMin )
 
     return Vector( x, y, vec[3] )
 end
 
 local function changeOwner( wep, ply )
-    if not isValid( wep ) then return end
+    if not IsValid( wep ) then return end
     if wep:GetClass() ~= "cfc_weapon_parachute" then return end
 
     timer.Simple( 0, function()
-        if not isValid( wep ) or not wep.ChangeOwner then return end
+        if not IsValid( wep ) or not wep.ChangeOwner then return end
 
         wep:ChangeOwner( ply )
     end )
@@ -237,7 +241,7 @@ end
 -- Messing with the Move hook causes view punch velocity to sometimes get stuck while in a parachute.
 -- This periodically checks and clears out view punch when it gets stuck.
 local function clearStuckViewPunch( ply )
-    local now = realTime()
+    local now = RealTime()
     local nextCheckTime = ply.cfcParachuteNextViewPunchCheck or now
 
     if nextCheckTime > now then return end
@@ -255,7 +259,7 @@ local function clearStuckViewPunch( ply )
 end
 
 function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
-    if not isValid( ply ) then return end
+    if not IsValid( ply ) then return end
 
     oldDesign = oldDesign or 1
     newDesign = newDesign or 1
@@ -290,14 +294,14 @@ function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
 
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
-    if isValid( wep ) then
+    if IsValid( wep ) then
         wep:ApplyChuteDesign()
     end
 end
 
 
 hook.Add( "PlayerDroppedWeapon", "CFC_Parachute_ChangeOwner", function( ply, wep )
-    if not isValid( wep ) then return end
+    if not IsValid( wep ) then return end
     if wep:GetClass() ~= "cfc_weapon_parachute" then return end
 
     wep:ChangeOpenStatus( false, ply )
@@ -308,37 +312,33 @@ hook.Add( "WeaponEquip", "CFC_Parachute_ChangeOwner", changeOwner )
 
 hook.Add( "KeyPress", "CFC_Parachute_HandleKeyPress", function( ply, key )
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-
-    if not isValid( wep ) then return end
+    if not IsValid( wep ) then return end
 
     wep:KeyPress( ply, key, true )
 end )
 
 hook.Add( "KeyRelease", "CFC_Parachute_HandleKeyRelease", function( ply, key )
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-
-    if not isValid( wep ) then return end
+    if not IsValid( wep ) then return end
 
     wep:KeyPress( ply, key, false )
 end )
 
 hook.Add( "OnPlayerHitGround", "CFC_Parachute_CloseChute", function( ply )
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-
-    if not isValid( wep ) then return end
+    if not IsValid( wep ) then return end
 
     wep:ChangeOpenStatus( false )
 end )
 
 hook.Add( "PlayerEnteredVehicle", "CFC_Parachute_CloseChute", function( ply )
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-
-    if not isValid( wep ) then return end
+    if not IsValid( wep ) then return end
 
     wep:ChangeOpenStatus( false )
 
     timer.Simple( 0.1, function()
-        if not isValid( wep ) then return end
+        if not IsValid( wep ) then return end
 
         wep:ChangeOpenStatus( false )
     end )
@@ -348,8 +348,7 @@ hook.Add( "Move", "CFC_Parachute_SlowFall", function( ply, moveData )
     if ply:GetMoveType() == MOVETYPE_NOCLIP then return end
 
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-
-    if not isValid( wep ) then return end
+    if not IsValid( wep ) then return end
     if not wep.chuteIsOpen then return end
 
     local isUnfurled = wep.chuteIsUnfurled
@@ -400,16 +399,14 @@ end )
 
 hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, data )
     local owner = ent:GetOwner()
+    owner = IsValid( owner ) and owner or data.Attacker
 
-    if not isValid( owner ) then
-        owner = data.Attacker
-    end
-
-    if not isValid( owner ) or not owner:IsPlayer() then return end
+    if not IsValid( owner ) then return end
+    if not owner:IsPlayer() then return end
 
     local chuteSwep = owner:GetWeapon( "cfc_weapon_parachute" )
-
-    if not isValid( chuteSwep ) or not chuteSwep.chuteIsUnstable then return end
+    if not IsValid( chuteSwep ) then return end
+    if not chuteSwep.chuteIsUnstable then return end
 
     if math.Rand( 0, 1 ) <= UNSTABLE_SHOOT_LURCH_CHANCE:GetFloat() then
         chuteSwep:ApplyUnstableLurch()
@@ -422,8 +419,7 @@ end )
 
 hook.Add( "CFC_Parachute_ChuteCreated", "CFC_Parachute_DefineDesigns", function( chute )
     local designMaterials = CFC_Parachute.DesignMaterials
-
-    if designMaterials then return end
+    if designMaterials then return end -- Already defined
 
     designMaterials = chute:GetMaterials()
     designMaterialNames = {}
@@ -472,21 +468,20 @@ hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, stat
 
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
-    if not isValid( wep ) or wep == ply:GetActiveWeapon() then return end
+    if not IsValid( wep ) or wep == ply:GetActiveWeapon() then return end
 
     wep:ChangeOpenStatus( false, ply )
 end, HOOK_LOW )
 
 net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
-    if not isValid( ply ) then return end
+    if not IsValid( ply ) then return end
 
     local requestCount = ( ply.cfcParachuteDesignRequests or 0 ) + 1
-
     if requestCount > DESIGN_REQUEST_BURST_LIMIT then return end
 
     if requestCount == 1 then
         timer.Simple( DESIGN_REQUEST_BURST_DURATION, function()
-            if not isValid( ply ) then return end
+            if not IsValid( ply ) then return end
 
             ply.cfcParachuteDesignRequests = nil
         end )

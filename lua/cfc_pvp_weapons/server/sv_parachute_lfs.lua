@@ -1,5 +1,7 @@
 -- Optional LFS integration.
 
+local IsValid = IsValid
+
 
 local function trySetupLFS()
     -- Server settings.
@@ -15,11 +17,13 @@ local function trySetupLFS()
 
 
     hook.Add( "PlayerLeaveVehicle", "CFC_Parachute_LFSAirEject", function( ply, vehicle )
-        if not isValid( ply ) or not ply:IsPlayer() or not ply:Alive() or not isValid( vehicle ) then return end
+        if not IsValid( ply ) then return end
+        if not ply:IsPlayer() then return end
+        if not ply:Alive() then return end
+        if not IsValid( vehicle ) then return end
 
         local lfsPlane = vehicle.LFSBaseEnt
-
-        if not isValid( lfsPlane ) then return end
+        if not IsValid( lfsPlane ) then return end
 
         local minHeight = LFS_AUTO_CHUTE_HEIGHT:GetFloat()
         local canAutoChute
@@ -58,7 +62,7 @@ local function trySetupLFS()
 
         local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
-        if not isValid( wep ) then
+        if not IsValid( wep ) then
             wep = ents.Create( "cfc_weapon_parachute" )
             wep:SetPos( Vector( 0, 0, 0 ) )
             wep:SetOwner( ply )
@@ -74,15 +78,14 @@ local function trySetupLFS()
         end
 
         timer.Simple( 0.1, function()
-            if not isValid( ply ) then return end
-
+            if not IsValid( ply ) then return end
             if ply:GetActiveWeapon() == wep then return end
 
             ply:SelectWeapon( "cfc_weapon_parachute" )
         end )
 
         timer.Simple( 0.2, function()
-            if not isValid( ply ) or not isValid( wep ) then return end
+            if not IsValid( ply ) or not IsValid( wep ) then return end
 
             if ply:InVehicle() then
                 wep:ChangeOpenStatus( false, ply )
@@ -101,7 +104,6 @@ local function trySetupLFS()
 
         local force = LFS_EJECT_LAUNCH_FORCE:GetFloat()
         local bias = LFS_EJECT_LAUNCH_BIAS:GetFloat()
-
         local dir = lfsPlane:GetUp()
 
         if dir.z >= 0 then -- Biasing the direction if it's tilted down would be pointless
@@ -116,9 +118,9 @@ local function trySetupLFS()
         end
 
         timer.Simple( 0.01, function()
-            if not isValid( ply ) then return end
+            if not IsValid( ply ) then return end
 
-            local lfsVel = isValid( lfsPlane ) and lfsPlane:GetVelocity() * 1.2 or Vector( 0, 0, 0 )
+            local lfsVel = IsValid( lfsPlane ) and lfsPlane:GetVelocity() * 1.2 or Vector( 0, 0, 0 )
 
             ply:SetVelocity( dir * force + lfsVel )
         end )
@@ -126,7 +128,7 @@ local function trySetupLFS()
         ply.cfcParachuteInstabilityImmune = true
 
         timer.Create( "CFC_Parachute_InstabilityImmuneTimeout_" .. ply:SteamID(), LFS_EJECT_STABILITY_TIME:GetFloat(), 1, function()
-            if not isValid( ply ) then return end
+            if not IsValid( ply ) then return end
 
             ply.cfcParachuteInstabilityImmune = false
         end )
@@ -134,10 +136,10 @@ local function trySetupLFS()
 
     hook.Add( "CFC_Parachute_CanLFSAutoChute", "CFC_Parachute_CheckAutoEquipConVar", function( ply )
         local plyVal = ply:GetInfoNum( "cfc_parachute_lfs_auto_equip", 2 )
+        if plyVal == 1 then return end -- Auto-equip is enabled.
+        if plyVal == 0 then return false end -- Auto-equip is disabled, block it.
 
-        if plyVal == 1 then return end
-        if plyVal == 0 then return false end
-
+        -- Use server default.
         local serverDefault = LFS_AUTO_CHUTE_SV:GetString()
 
         if serverDefault == "0" then return false end
@@ -145,30 +147,36 @@ local function trySetupLFS()
 
     hook.Add( "CFC_Parachute_CanLFSEjectLaunch", "CFC_Parachute_CheckEjectLaunchConVar", function( ply )
         local plyVal = ply:GetInfoNum( "cfc_parachute_lfs_eject_launch", 2 )
+        if plyVal == 1 then return end -- Launch is enabled.
+        if plyVal == 0 then return false end -- Launch is disabled, block it.
 
-        if plyVal == 1 then return end
-        if plyVal == 0 then return false end
-
+        -- Use server default.
         local serverDefault = LFS_EJECT_LAUNCH_SV:GetString()
 
         if serverDefault == "0" then return false end
     end )
 
     hook.Add( "FindUseEntity", "CFC_Parachute_LFSEasyEnter", function( ply, ent )
-        if isValid( ent ) or not isValid( ply ) or not ply:IsPlayer() or ply:InVehicle() then return end
+        if IsValid( ent ) then return end -- Don't run if the player is looking directly at something already.
+        if not IsValid( ply ) then return end
+        if not ply:IsPlayer() then return end
+        if ply:InVehicle() then return end -- Already in a vehicle.
 
+        -- Check if the player is in a parachute.
         local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+        if not IsValid( wep ) then return end
+        if not wep.chuteIsOpen then return end
 
-        if not isValid( wep ) or not wep.chuteIsOpen then return end
-
+        -- Check for a nearby LFS plane to use.
         local radiusSqr = LFS_ENTER_RADIUS:GetFloat() ^ 2
         local lfsPlanes = ents.FindByClass( "lunasflightschool_*" )
         local plyPos = ply:GetPos()
 
         for i = 1, #lfsPlanes do
             local plane = lfsPlanes[i]
+            if not plane.GetDriverSeat then continue end -- Not a plane, just some other LFS entity.
 
-            if plane.GetDriverSeat and plane:GetPos():DistToSqr( plyPos ) <= radiusSqr then -- Verify that it's not some other type of LFS entity
+            if plane:GetPos():DistToSqr( plyPos ) <= radiusSqr then
                 return plane
             end
         end

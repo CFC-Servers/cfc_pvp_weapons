@@ -88,6 +88,18 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
 } )
 
 
+local function updateMenuButton( button )
+    if not button then return end
+
+    button:SetText( button.cfcParachuteIntendedText() )
+
+    local tooltip = button.cfcParachuteTooltip
+    if not tooltip then return end
+
+    tooltip:SetText( button.cfcParachuteIntendedHoverText() )
+end
+
+
 function CFC_Parachute.CreateDesignPreview( x, y, ind, panel )
     local icon = vgui.Create( "ContentIcon", panel )
     icon:SetPos( x, y )
@@ -100,13 +112,10 @@ function CFC_Parachute.CreateDesignPreview( x, y, ind, panel )
         LocalPlayer():ConCommand( "cfc_parachute_design " .. ind )
     end
 
-    local oldPaint = icon.Paint
-
+    local _Paint = icon.Paint
     icon.Paint = function( _, w, h )
         render.SuppressEngineLighting( true )
-
-        oldPaint( icon, w, h )
-
+        _Paint( icon, w, h )
         render.SuppressEngineLighting( false )
     end
 
@@ -232,9 +241,9 @@ function CFC_Parachute.CreateToggleButton( x, y, ind, panel, w, h )
     CFC_Parachute.PaintButton( button )
 
     button.DoClick = buttonData.OnClick or function()
-        local newVal = button.cfcParachuteIsOn() and offVal or onVal
-
         if not convarName then return end
+
+        local newVal = button.cfcParachuteIsOn() and offVal or onVal
 
         LocalPlayer():ConCommand( convarName .. " " .. newVal )
     end
@@ -260,17 +269,7 @@ function CFC_Parachute.OpenDesignMenu()
             local serverChoice = data.ConVarServerChoice
 
             if convarName and serverChoice and GetConVar( convarName ):GetString() == serverChoice then
-                local button = data.DButton
-
-                if not button then continue end
-
-                button:SetText( button.cfcParachuteIntendedText() )
-
-                local tooltip = button.cfcParachuteTooltip
-
-                if not tooltip then continue end
-
-                tooltip:SetText( button.cfcParachuteIntendedHoverText() )
+                updateMenuButton( data.DButton )
             end
         end
 
@@ -370,17 +369,7 @@ hook.Add( "InitPostEntity", "CFC_Parachute_FinalMenuPrep", function()
 
         if convarName then
             cvars.AddChangeCallback( convarName, function()
-                local button = data.DButton
-
-                if not button then return end
-
-                button:SetText( button.cfcParachuteIntendedText() )
-
-                local tooltip = button.cfcParachuteTooltip
-
-                if not tooltip then return end
-
-                tooltip:SetText( button.cfcParachuteIntendedHoverText() )
+                updateMenuButton( data.DButton )
             end )
         end
     end

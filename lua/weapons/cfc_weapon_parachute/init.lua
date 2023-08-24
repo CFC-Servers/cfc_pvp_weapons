@@ -53,7 +53,8 @@ local MOVE_KEYS = {
 local MOVE_KEY_COUNT = #MOVE_KEYS
 local MOVETYPE_NOCLIP = MOVETYPE_NOCLIP
 
-local isValid = IsValid
+local IsValid = IsValid
+
 
 function SWEP:Initialize()
     self.chuteCanUnfurl = true
@@ -68,7 +69,7 @@ function SWEP:Initialize()
     self:SetRenderMode( RENDERMODE_TRANSCOLOR )
 
     timer.Simple( 0.1, function()
-        if not isValid( self ) then return end
+        if not IsValid( self ) then return end
 
         self:SetHoldType( "passive" )
     end )
@@ -78,8 +79,7 @@ function SWEP:OnRemove()
     timer.Remove( "CFC_Parachute_UnstableDirectionChange_" .. self:EntIndex() )
 
     local owner = self:GetOwner()
-
-    if not isValid( owner ) then return end
+    if not IsValid( owner ) then return end
 
     net.Start( "CFC_Parachute_GrabChuteStraps" )
     net.WriteEntity( owner )
@@ -89,8 +89,7 @@ end
 
 function SWEP:SpawnChute()
     local chuteEnt = self.chuteEnt
-
-    if isValid( chuteEnt ) then return chuteEnt end
+    if IsValid( chuteEnt ) then return chuteEnt end
 
     local chuteOwner = self:GetOwner()
     local chute = ents.Create( "cfc_parachute" )
@@ -103,12 +102,12 @@ function SWEP:SpawnChute()
     chute.chuteIsUnfurled = false
     chute.chutePack = self
 
-    if isValid( chuteOwner ) then
+    if IsValid( chuteOwner ) then
         chute.chuteOwner = chuteOwner
     else
         timer.Simple( 0.01, function()
             local owner = self:GetOwner()
-            owner = isValid( owner ) and owner
+            owner = IsValid( owner ) and owner
 
             chute.chuteOwner = owner
 
@@ -128,8 +127,8 @@ function SWEP:SpawnChute()
 
     timer.Simple( 0.02, function()
         local owner = self:GetOwner() or chute.chuteOwner
-
-        if not isValid( owner ) or not owner:IsPlayer() then return end
+        if not IsValid( owner ) then return end
+        if not owner:IsPlayer() then return end
 
         local shouldBeUnfurled = owner:GetInfoNum( "cfc_parachute_unfurl_invert", 0 ) ~= 0
         chute.chuteIsUnfurled = shouldBeUnfurled
@@ -162,9 +161,9 @@ function SWEP:SetChuteDirection()
 end
 
 function SWEP:ChangeOwner( ply )
-    local chute = self:SpawnChute()
+    ply = IsValid( ply ) and ply
 
-    ply = isValid( ply ) and ply
+    local chute = self:SpawnChute()
 
     self.chuteOwner = ply
     self:SetOwner( ply )
@@ -187,9 +186,9 @@ end
 
 function SWEP:ChangeOpenStatus( state, ply )
     local owner = ply or self:GetOwner() or self.chuteOwner
-    local prevState = self.chuteIsOpen
+    if not IsValid( owner ) then return end
 
-    if not isValid( owner ) then return end
+    local prevState = self.chuteIsOpen
 
     if state == nil then
         state = not prevState
@@ -228,8 +227,7 @@ function SWEP:CloseIfOnGround()
     if not self.chuteIsOpen then return end
 
     local owner = self.chuteOwner
-
-    if not isValid( owner ) then return end
+    if not IsValid( owner ) then return end
 
     -- Extends the trace length to ensure the player doesn't clip into the floor, even at (reasonably) high velocities
     local extendByVelMult = 0.5
@@ -255,7 +253,7 @@ function SWEP:CloseIfOnGround()
         local ent = tr.Entity
 
         -- Don't close from projectiles like crossbow bolts or RPGs. Annoyingly, all these objects have different collision groups, etc, and aren't standardized at all.
-        if isValid( ent ) and GROUND_CLASS_IGNORE[ent:GetClass()] then return end
+        if IsValid( ent ) and GROUND_CLASS_IGNORE[ent:GetClass()] then return end
 
         self:ChangeOpenStatus( false )
     end
@@ -271,8 +269,8 @@ end
 
 function SWEP:ApplyUnstableLurch()
     local owner = self:GetOwner()
-
-    if not isValid( owner ) or owner.cfcParachuteInstabilityImmune then return end
+    if not IsValid( owner ) then return end
+    if owner.cfcParachuteInstabilityImmune then return end
 
     local maxLurch = UNSTABLE_MAX_LURCH:GetFloat()
     local lurchForce = -math.Rand( 0, maxLurch )
@@ -282,8 +280,8 @@ end
 
 function SWEP:ApplyUnstableDirectionChange()
     local owner = self:GetOwner() or self.chuteOwner
-
-    if not isValid( owner ) or owner.cfcParachuteInstabilityImmune then return end
+    if not IsValid( owner ) then return end
+    if owner.cfcParachuteInstabilityImmune then return end
 
     local maxChange = UNSTABLE_MAX_DIR_CHANGE:GetFloat()
     local chuteDir = self.chuteDir
@@ -322,8 +320,7 @@ function SWEP:ChangeInstabilityStatus( state )
 
     if state then
         local owner = self:GetOwner()
-
-        if not isValid( owner ) then return end
+        if not IsValid( owner ) then return end
 
         local eyeAngles = owner:EyeAngles()
         local eyeForward = eyeAngles:Forward()
@@ -348,8 +345,7 @@ end
 
 function SWEP:ApplyChuteDesign()
     local owner = self:GetOwner()
-
-    if not isValid( owner ) then return end
+    if not IsValid( owner ) then return end
 
     local chute = self:SpawnChute()
     local designID = owner.cfcParachuteDesignID or 1
@@ -357,7 +353,6 @@ function SWEP:ApplyChuteDesign()
 
     if not designMaterials then
         timer.Simple( 1, function()
-
             self:ApplyChuteDesign()
         end )
 
@@ -378,19 +373,16 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
-
     self:SetNextSecondaryFire( CurTime() + self.Primary.Delay )
 end
 
 function SWEP:Deploy()
-    local owner = self:GetOwner()
-
     self:ChangeInstabilityStatus( false )
 
-    if not isValid( owner ) then return end
+    local owner = self:GetOwner()
+    if not IsValid( owner ) then return end
 
     local state = self.chuteIsOpen
-
     if not state then return end
 
     net.Start( "CFC_Parachute_GrabChuteStraps" )
@@ -400,18 +392,16 @@ function SWEP:Deploy()
 end
 
 function SWEP:Holster()
-    local owner = self:GetOwner()
-
     self:ChangeInstabilityStatus( true )
 
-    if not isValid( owner ) then return true end
+    local owner = self:GetOwner()
+    if not IsValid( owner ) then return true end
 
     if owner:GetMoveType() == MOVETYPE_NOCLIP then
         self:ChangeOpenStatus( false, owner )
     end
 
     local state = self.chuteIsOpen
-
     if not state then return true end
 
     net.Start( "CFC_Parachute_GrabChuteStraps" )
@@ -423,10 +413,11 @@ function SWEP:Holster()
 end
 
 function SWEP:Equip( ply )
-    if not isValid( ply ) or not ply:IsPlayer() then return end
+    if not IsValid( ply ) then return end
+    if not ply:IsPlayer() then return end
 
     timer.Simple( 0.1, function()
-        if not isValid( ply ) then return end
+        if not IsValid( ply ) then return end
 
         if not ply.cfcParachuteDesignID then
             -- Requests the client to send their design selection since :GetInfoNum() is not behaving correctly even with FCVAR_USERINFO
@@ -445,7 +436,7 @@ function SWEP:Equip( ply )
         if not designMaterials then
             local chute = self.chuteEnt
 
-            if isValid( chute ) then
+            if IsValid( chute ) then
                 hook.Run( "CFC_Parachute_ChuteCreated", chute )
 
                 designMaterials = CFC_Parachute.DesignMaterials
@@ -531,9 +522,10 @@ end
 
 function SWEP:UpdateMoveKeys()
     local owner = self:GetOwner()
-    owner = isValid( owner ) and owner or self.chuteOwner
+    owner = IsValid( owner ) and owner or self.chuteOwner
 
-    if not isValid( owner ) or not owner:IsPlayer() then return end
+    if not IsValid( owner ) then return end
+    if not owner:IsPlayer() then return end
 
     if owner:GetInfoNum( "cfc_parachute_unfurl_toggle", 0 ) == 0 then
         self:KeyPress( owner, IN_JUMP, owner:KeyDown( IN_JUMP ) )
