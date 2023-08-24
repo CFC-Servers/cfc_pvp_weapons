@@ -10,10 +10,8 @@ local UNSTABLE_SHOOT_LURCH_CHANCE
 local UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE
 local UNSTABLE_MAX_FALL_LURCH
 local FALL_SPEED
-local FALL_SPEED_UNFURLED
 local FALL_LERP
 local HORIZONTAL_SPEED
-local HORIZONTAL_SPEED_UNFURLED
 local HORIZONTAL_SPEED_UNSTABLE
 local HORIZONTAL_SPEED_LIMIT
 local SPRINT_BOOST
@@ -136,9 +134,8 @@ local function verifyVel( moveData, ply, vel, timeMult )
     return vel
 end
 
-local function getHorizontalSpeed( moveData, isUnfurled, isUnstableControl, ignoreSprint )
+local function getHorizontalSpeed( moveData, isUnstableControl, ignoreSprint )
     local hSpeed = isUnstableControl and HORIZONTAL_SPEED_UNSTABLE:GetFloat() or
-                   isUnfurled        and HORIZONTAL_SPEED_UNFURLED:GetFloat() or
                                          HORIZONTAL_SPEED:GetFloat()
 
     if not ignoreSprint and moveData:KeyDown( IN_SPEED ) then
@@ -174,7 +171,7 @@ local function getHorizontalMoveVel( moveData )
     return hVelAdd
 end
 
-local function addHorizontalVel( moveData, ply, vel, timeMult, isUnfurled, unstableDir )
+local function addHorizontalVel( moveData, ply, vel, timeMult, unstableDir )
     -- Acquire direction based on moveData
     local hVelAdd = getHorizontalMoveVel( moveData )
 
@@ -183,11 +180,11 @@ local function addHorizontalVel( moveData, ply, vel, timeMult, isUnfurled, unsta
 
     if hVelAddLength ~= 0 then
         hVelAdd = improveHandling( vel, hVelAdd / hVelAddLength )
-        vel = vel + hVelAdd * timeMult * getHorizontalSpeed( moveData, isUnfurled, unstableDir, false )
+        vel = vel + hVelAdd * timeMult * getHorizontalSpeed( moveData, unstableDir, false )
     end
 
     if unstableDir then
-        vel = vel + unstableDir * timeMult * getHorizontalSpeed( moveData, isUnfurled, false, true )
+        vel = vel + unstableDir * timeMult * getHorizontalSpeed( moveData, false, true )
     end
 
     -- Limit the horizontal speed
@@ -351,10 +348,9 @@ hook.Add( "Move", "CFC_Parachute_SlowFall", function( ply, moveData )
     if not IsValid( wep ) then return end
     if not wep.chuteIsOpen then return end
 
-    local isUnfurled = wep.chuteIsUnfurled
     local isUnstable = wep.chuteIsUnstable
     local unstableDir
-    local targetFallVel = -( isUnfurled and FALL_SPEED_UNFURLED:GetFloat() or FALL_SPEED:GetFloat() )
+    local targetFallVel = -FALL_SPEED:GetFloat()
     local vel = moveData:GetVelocity()
     local velZ = vel[3]
 
@@ -380,7 +376,7 @@ hook.Add( "Move", "CFC_Parachute_SlowFall", function( ply, moveData )
     end
 
     -- Modify velocity
-    vel = addHorizontalVel( moveData, ply, vel, timeMult, isUnfurled, unstableDir )
+    vel = addHorizontalVel( moveData, ply, vel, timeMult, unstableDir )
     velZ = velZ + ( targetFallVel - velZ ) * FALL_LERP:GetFloat() * timeMult
 
     if lurch ~= 0 then
@@ -453,10 +449,8 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_change_chance" )
     UNSTABLE_MAX_FALL_LURCH = GetConVar( "cfc_parachute_destabilize_max_fall_lurch" )
     FALL_SPEED = GetConVar( "cfc_parachute_fall_speed" )
-    FALL_SPEED_UNFURLED = GetConVar( "cfc_parachute_fall_speed_unfurled" )
     FALL_LERP = GetConVar( "cfc_parachute_fall_lerp" )
     HORIZONTAL_SPEED = GetConVar( "cfc_parachute_horizontal_speed" )
-    HORIZONTAL_SPEED_UNFURLED = GetConVar( "cfc_parachute_horizontal_speed_unfurled" )
     HORIZONTAL_SPEED_UNSTABLE = GetConVar( "cfc_parachute_horizontal_speed_unstable" )
     HORIZONTAL_SPEED_LIMIT = GetConVar( "cfc_parachute_horizontal_speed_limit" )
     SPRINT_BOOST = GetConVar( "cfc_parachute_sprint_boost" )
@@ -496,7 +490,6 @@ net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
 end )
 
 util.AddNetworkString( "CFC_Parachute_DefineChuteDir" )
-util.AddNetworkString( "CFC_Parachute_DefineChuteUnfurlStatus" )
 util.AddNetworkString( "CFC_Parachute_GrabChuteStraps" )
 util.AddNetworkString( "CFC_Parachute_DefineDesigns" )
 util.AddNetworkString( "CFC_Parachute_SelectDesign" )

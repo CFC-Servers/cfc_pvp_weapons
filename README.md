@@ -10,11 +10,9 @@
 | cfc_shaped_charge_blastdamage | The damage the explosive does to players when it explodes. | 0 |
 | cfc_shaped_charge_blastrange | The damage range the explosion has. | 100 |
 | cfc_shaped_charge_tracerange | The range the prop breaking explosion has. | 100 |
-| cfc_parachute_fall_speed | Target fall speed while in a furled parachute. | 450 |
-| cfc_parachute_fall_speed_unfurled | Target fall speed while in an unfurled parachute. | 200 |
+| cfc_parachute_fall_speed | Target fall speed while in a parachute. | 200 |
 | cfc_parachute_fall_lerp | How quickly a parachute will reach its target fall speed. | 0.8 |
-| cfc_parachute_horizontal_speed | How quickly you move in a furled parachute. | 110 |
-| cfc_parachute_horizontal_speed_unfurled | How quickly you move in an unfurled parachute. | 300 |
+| cfc_parachute_horizontal_speed | How quickly you move in a parachute. | 130 |
 | cfc_parachute_horizontal_speed_unstable | How well you can control a parachute while holding another weapon. | 80 |
 | cfc_parachute_horizontal_speed_limit | Max horizontal speed of a parachute. | 1000 |
 | cfc_parachute_sprint_boost | How much of a horizontal boost you get in a parachute while sprinting. | 1.5 |
@@ -40,8 +38,6 @@
 | cfc_parachute_design | Your selected parachute design. | 1 |
 | cfc_parachute_lfs_auto_equip | Whether or not to auto-equip a parachute when ejecting from an LFS plane in the air. | 1 |
 | cfc_parachute_lfs_eject_launch | Whether or not to launch up high when ejecting from an LFS plane in the air. Useful for pulling off a Rendezook. | 1 |
-| cfc_parachute_unfurl_toggle | When enabled, pressing jump will toggle the unfurl state instead of holding it. Jumps won't toggle unfurl if chute is closed. | 0 |
-| cfc_parachute_unfurl_invert | Whether or not your parachute will be unfurled by default. Don't forget to open it! | 1 |
 
 ## Credits
 

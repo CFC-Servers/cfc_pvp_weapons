@@ -57,7 +57,6 @@ local IsValid = IsValid
 
 
 function SWEP:Initialize()
-    self.chuteCanUnfurl = true
     self.chuteMoveForward = 0
     self.chuteMoveBack = 0
     self.chuteMoveRight = 0
@@ -99,7 +98,6 @@ function SWEP:SpawnChute()
     chute:SetParent( self )
 
     chute.chuteIsOpen = false
-    chute.chuteIsUnfurled = false
     chute.chutePack = self
 
     if IsValid( chuteOwner ) then
@@ -120,7 +118,6 @@ function SWEP:SpawnChute()
 
     self.chuteEnt = chute
     self.chuteIsOpen = false
-    self.chuteIsUnfurled = false
     self.chuteDir = Vector( 0, 0, 0 )
 
     hook.Run( "CFC_Parachute_ChuteCreated", chute )
@@ -129,15 +126,6 @@ function SWEP:SpawnChute()
         local owner = self:GetOwner() or chute.chuteOwner
         if not IsValid( owner ) then return end
         if not owner:IsPlayer() then return end
-
-        local shouldBeUnfurled = owner:GetInfoNum( "cfc_parachute_unfurl_invert", 0 ) ~= 0
-        chute.chuteIsUnfurled = shouldBeUnfurled
-        self.chuteIsUnfurled = shouldBeUnfurled
-
-        net.Start( "CFC_Parachute_DefineChuteUnfurlStatus" )
-        net.WriteEntity( chute )
-        net.WriteBool( shouldBeUnfurled )
-        net.Broadcast()
 
         self:UpdateMoveKeys()
     end )
@@ -170,15 +158,7 @@ function SWEP:ChangeOwner( ply )
 
     chute.chuteOwner = ply
     chute.chuteIsOpen = false
-    chute.chuteIsUnfurled = false
     chute:SetOwner( ply )
-
-    timer.Simple( 0.01, function()
-        net.Start( "CFC_Parachute_DefineChuteUnfurlStatus" )
-        net.WriteEntity( chute )
-        net.WriteBool( false )
-        net.Broadcast()
-    end )
 
     self:SetColor( COLOR_SHOW )
     chute:SetColor( COLOR_HIDE )
@@ -458,42 +438,7 @@ end
 function SWEP:KeyPress( ply, key, state )
     if ply ~= self:GetOwner() or self.chuteIsUnstable then return end
 
-    if key == IN_JUMP then
-        if not self.chuteCanUnfurl then return end
-
-        local isToggle = ply:GetInfoNum( "cfc_parachute_unfurl_toggle", 0 ) ~= 0
-
-        if isToggle then
-            if not state or not self.chuteIsOpen then return end
-            state = not self.chuteIsUnfurled
-        elseif ply:GetInfoNum( "cfc_parachute_unfurl_invert", 0 ) ~= 0 then
-            state = not state
-        end
-
-        self.chuteCanUnfurl = false
-        self.chuteIsUnfurled = state
-
-        if self.chuteIsOpen then
-            if state then
-                self:SpawnChute():Unfurl()
-            else
-                self:SpawnChute():Furl()
-            end
-        else
-            local chute = self:SpawnChute()
-
-            chute.chuteIsUnfurled = state
-
-            net.Start( "CFC_Parachute_DefineChuteUnfurlStatus" )
-            net.WriteEntity( chute )
-            net.WriteBool( state )
-            net.Broadcast()
-        end
-
-        timer.Simple( self.Primary.Delay, function()
-            self.chuteCanUnfurl = true
-        end )
-    elseif key == IN_FORWARD then
+    if key == IN_FORWARD then
         self.chuteMoveForward = state and 1 or 0
 
         if not self.chuteIsOpen then return end
@@ -526,10 +471,6 @@ function SWEP:UpdateMoveKeys()
 
     if not IsValid( owner ) then return end
     if not owner:IsPlayer() then return end
-
-    if owner:GetInfoNum( "cfc_parachute_unfurl_toggle", 0 ) == 0 then
-        self:KeyPress( owner, IN_JUMP, owner:KeyDown( IN_JUMP ) )
-    end
 
     for i = 1, MOVE_KEY_COUNT do
         local moveKey = MOVE_KEYS[i]

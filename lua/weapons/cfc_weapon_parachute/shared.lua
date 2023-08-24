@@ -3,7 +3,6 @@ SWEP.Contact        = "CFC Discord"
 SWEP.Instructions   =
     "Left click to open/close chute\n" ..
     "Right click to open customizer\n" ..
-    "Hold spacebar to unfurl chute\n" ..
     "Movement keys to glide\n" ..
     "Switching weapons will destabilize the chute"
 

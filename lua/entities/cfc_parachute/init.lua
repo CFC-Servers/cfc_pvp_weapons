@@ -7,27 +7,6 @@ local COLOR_HIDE = Color( 255, 255, 255, 0 )
 
 local isValid = IsValid
 
-function ENT:Unfurl()
-    self.chuteIsUnfurled = true
-
-    self:EmitSound( "physics/flesh/flesh_impact_hard1.wav", 85, 100, 1 )
-
-    net.Start( "CFC_Parachute_DefineChuteUnfurlStatus" )
-    net.WriteEntity( self )
-    net.WriteBool( true )
-    net.Broadcast()
-end
-
-function ENT:Furl()
-    self.chuteIsUnfurled = false
-
-    self:EmitSound( "physics/flesh/flesh_impact_hard2.wav", 85, 100, 1 )
-
-    net.Start( "CFC_Parachute_DefineChuteUnfurlStatus" )
-    net.WriteEntity( self )
-    net.WriteBool( false )
-    net.Broadcast()
-end
 
 function ENT:Open()
     self.chuteIsOpen = true

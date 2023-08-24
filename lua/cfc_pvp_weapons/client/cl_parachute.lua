@@ -27,9 +27,6 @@ local DESIGN_MATERIAL_NAMES
 local DESIGN_MATERIAL_COUNT
 
 local DESIGN_CHOICE = CreateConVar( "cfc_parachute_design", 1, { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NEVER_AS_STRING }, "Your selected parachute design.", 1, 50000 )
-local UNFURL_INVERT = CreateClientConVar( "cfc_parachute_unfurl_invert", 1, true, true, "Whether or not your parachute will be unfurled by default. Don't forget to open it!", 0, 1 )
-CreateClientConVar( "cfc_parachute_unfurl_toggle", 0, true, true, "When enabled, pressing jump will toggle the unfurl state instead of holding it. Jumps won't toggle unfurl if chute is closed.", 0, 1 )
-
 
 local MENU_COLOR = Color( 36, 41, 67, 255 )
 local MENU_BAR_COLOR = Color( 42, 47, 74, 255 )
@@ -60,33 +57,12 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
     TextOn = "Help/Info",
     HoverText = "Parachutes slow your descent and allow you to glide through the air faster than you can move on land." .. "\n\n" ..
         "Your chute will start off closed, and can be toggled open with left click." .. "\n" ..
-        "While open, you can hold spacebar to furl the chute and fall a little faster." .. "\n" ..
         "Right clicking with the parachute SWEP will bring up this config menu." .. "\n" ..
         "You can select various chute designs and config options with the buttons below." .. "\n\n" ..
         "With your parachute open, you can switch to a different weapon and shoot from the air." .. "\n" ..
-        "Be careful though, while your hands are occupied, you cannot close/furl/unfurl the chute and" .. "\n" ..
-        "you will lose a lot of horizontal control." .. "\n" ..
+        "Be careful though, while your hands are occupied, you will lose a lot of horizontal control." .. "\n" ..
         "Shooting too much will send you careening in a different direction, or even towards the ground."
 } )
-
-table.insert( CFC_Parachute.MenuToggleButtons, {
-    TextOff = "Set unfurl to toggle mode",
-    TextOn = "Set unfurl to hold mode",
-    ConVar = "cfc_parachute_unfurl_toggle"
-} )
-
-table.insert( CFC_Parachute.MenuToggleButtons, {
-    TextOff = "Start unfurled",
-    TextOn = "Start furled",
-    ConVar = "cfc_parachute_unfurl_invert",
-    HoverText = UNFURL_INVERT:GetHelpText() .. "\n\n" ..
-        "When a parachute is open, it will only slow your descent by a small amount." .. "\n" ..
-        "To slow down all the way, your parachute must be open AND unfurled." .. "\n\n" ..
-        "Leaving this setting ON will make it so chutes are unfurled by default," .. "\n" ..
-        "causing spacebar to instead furl the chute up," .. "\n" ..
-        "useful if you only ever want to fall at maximum slowness and not hold spacebar."
-} )
-
 
 local function updateMenuButton( button )
     if not button then return end
@@ -382,15 +358,6 @@ net.Receive( "CFC_Parachute_DefineChuteDir", function()
     if not chute.SetChuteDirection then return end -- Somehow the function sometimes becomes nil while the parachute is still valid
 
     chute:SetChuteDirection( chuteDir )
-end )
-
-net.Receive( "CFC_Parachute_DefineChuteUnfurlStatus", function()
-    local chute = net.ReadEntity()
-    local unfurlState = net.ReadBool()
-
-    if not chute.SetUnfurlStatus then return end -- Somehow the function sometimes becomes nil while the parachute is still valid
-
-    chute:SetUnfurlStatus( unfurlState )
 end )
 
 net.Receive( "CFC_Parachute_DefineDesigns", function()
