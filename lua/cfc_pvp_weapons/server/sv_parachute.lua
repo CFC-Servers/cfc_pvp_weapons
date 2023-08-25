@@ -269,39 +269,39 @@ local function clearStuckViewPunch( ply )
     ply.cfcParachuteViewPunchVel = nil
 end
 
+local function spaceEquipEnabled( ply )
+    return CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip", SPACE_EQUIP_SV )
+end
+
 local function spaceEquipRequireDoubleTap( ply )
-    local plyVal = ply:GetInfoNum( "cfc_parachute_space_equip_double", 2 )
-    if plyVal == 1 then return true end -- Require double-tap.
-    if plyVal == 0 then return false end -- Don't require double-tap.
-
-    -- Use server default.
-    local serverDefault = SPACE_EQUIP_DOUBLE_SV:GetString()
-
-    return serverDefault ~= "0"
+    return CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip_double", SPACE_EQUIP_DOUBLE_SV )
 end
 
 local function spaceEquipShouldEquipWeapon( ply )
-    local plyVal = ply:GetInfoNum( "cfc_parachute_space_equip_weapon", 2 )
-    if plyVal == 1 then return true end -- Go back to previous weapon.
-    if plyVal == 0 then return false end -- Don't go bacl to previous weapon.
-
-    -- Use server default.
-    local serverDefault = SPACE_EQUIP_WEAPON_SV:GetString()
-
-    return serverDefault ~= "0"
+    return CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip_weapon", SPACE_EQUIP_WEAPON_SV )
 end
 
 local function quickCloseEnabled( ply )
-    local plyVal = ply:GetInfoNum( "cfc_parachute_quick_close", 2 )
-    if plyVal == 1 then return true end -- Quick close is enabled.
-    if plyVal == 0 then return false end -- Quick close is disabled.
+    return CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_quick_close", QUICK_CLOSE_SV )
+end
+
+
+--[[
+    - Get a player's true/false preference for a convar, or the server default if they haven't set it.
+    - Requires a userinfo convar and a server convar sharing the same name with "_sv" at the end.
+    - svConvarObject is optional, and will be retrieved if not provided.
+--]]
+function CFC_Parachute.GetConVarPreference( ply, convarName, svConvarObject )
+    local plyVal = ply:GetInfoNum( convarName, 2 )
+    if plyVal == 1 then return true end
+    if plyVal == 0 then return false end
 
     -- Use server default.
-    local serverDefault = QUICK_CLOSE_SV:GetString()
+    svConvarObject = svConvarObject or GetConVar( convarName .. "_sv" )
+    local serverDefault = svConvarObject:GetString()
 
     return serverDefault ~= "0"
 end
-
 
 function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
     if not IsValid( ply ) then return end
@@ -613,14 +613,7 @@ hook.Add( "Think", "CFC_Parachute_SpaceEquipCheck", function()
 end )
 
 hook.Add( "CFC_Parachute_SpaceEquipCanReady", "CFC_Parachute_CheckPreferences", function( ply )
-    local plyVal = ply:GetInfoNum( "cfc_parachute_space_equip", 2 )
-    if plyVal == 1 then return end -- Space-equip is enabled.
-    if plyVal == 0 then return false end -- Space-equip is disabled, block it.
-
-    -- Use server default.
-    local serverDefault = SPACE_EQUIP_SV:GetString()
-
-    if serverDefault == "0" then return false end
+    if not spaceEquipEnabled( ply ) then return false end
 end )
 
 hook.Add( "KeyPress", "CFC_Parachute_PerformSpaceEquip", function( ply, key )

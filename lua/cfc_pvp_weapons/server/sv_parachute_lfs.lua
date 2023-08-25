@@ -99,25 +99,15 @@ local function trySetupLFS()
     end )
 
     hook.Add( "CFC_Parachute_CanLFSAutoChute", "CFC_Parachute_CheckAutoEquipConVar", function( ply )
-        local plyVal = ply:GetInfoNum( "cfc_parachute_lfs_auto_equip", 2 )
-        if plyVal == 1 then return end -- Auto-equip is enabled.
-        if plyVal == 0 then return false end -- Auto-equip is disabled, block it.
+        local autoEquipEnabled = CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_lfs_auto_equip", LFS_AUTO_CHUTE_SV )
 
-        -- Use server default.
-        local serverDefault = LFS_AUTO_CHUTE_SV:GetString()
-
-        if serverDefault == "0" then return false end
+        if not autoEquipEnabled then return false end
     end )
 
     hook.Add( "CFC_Parachute_CanLFSEjectLaunch", "CFC_Parachute_CheckEjectLaunchConVar", function( ply )
-        local plyVal = ply:GetInfoNum( "cfc_parachute_lfs_eject_launch", 2 )
-        if plyVal == 1 then return end -- Launch is enabled.
-        if plyVal == 0 then return false end -- Launch is disabled, block it.
+        local ejectLaunchEnabled = CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_lfs_eject_launch", LFS_EJECT_LAUNCH_SV )
 
-        -- Use server default.
-        local serverDefault = LFS_EJECT_LAUNCH_SV:GetString()
-
-        if serverDefault == "0" then return false end
+        if not ejectLaunchEnabled then return false end
     end )
 
     hook.Add( "FindUseEntity", "CFC_Parachute_LFSEasyEnter", function( ply, ent )
