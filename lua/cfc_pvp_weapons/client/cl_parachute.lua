@@ -26,6 +26,8 @@ CreateClientConVar( "cfc_parachute_space_equip", 2, true, true, "Press spacebar 
 CreateClientConVar( "cfc_parachute_space_equip_double", 2, true, true, "Double tap spacebar to equip parachutes, instead of a single press.", 0, 2 )
 CreateClientConVar( "cfc_parachute_space_equip_weapon", 2, true, true, "Automatically switch back to your previous weapon when space-equipping a parachute.", 0, 2 )
 
+CreateClientConVar( "cfc_parachute_quick_close", 2, true, true, "Press walk and crouch to quickly close your parachute at any time.", 0, 1 )
+
 local DESIGN_MATERIALS
 local DESIGN_MATERIAL_NAMES
 local DESIGN_MATERIAL_COUNT
@@ -91,6 +93,15 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
     TextOn = "Keep Wep on Space-Equip (Enabled)",
     ConVar = "cfc_parachute_space_equip_weapon",
     ConVarServerChoice = "2"
+} )
+
+table.insert( CFC_Parachute.MenuToggleButtons, {
+    TextOff = "Quick Close (Disabled)",
+    TextOn = "Quick Close (Enabled)",
+    ConVar = "cfc_parachute_quick_close",
+    ConVarServerChoice = "2",
+    HoverText = "Press walk and crouch to quickly close your parachute at any time." .. "\n" ..
+        "(alt and ctrl by default)"
 } )
 
 local function updateMenuButton( button )

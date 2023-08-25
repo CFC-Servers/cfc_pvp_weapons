@@ -31,6 +31,7 @@ local VEC_ZERO = Vector( 0, 0, 0 )
 local ANG_ZERO = Angle( 0, 0, 0 )
 local VIEW_PUNCH_CHECK_INTERVAL = 0.25
 local SPACE_EQUIP_DOUBLE_TAP_WINDOW = 0.35
+local QUICK_CLOSE_WINDOW = 0.35
 
 local IsValid = IsValid
 local RealTime = RealTime
@@ -281,6 +282,17 @@ local function spaceEquipShouldEquipWeapon( ply )
 
     -- Use server default.
     local serverDefault = SPACE_EQUIP_WEAPON_SV:GetString()
+
+    return serverDefault ~= "0"
+end
+
+local function quickCloseEnabled( ply )
+    local plyVal = ply:GetInfoNum( "cfc_parachute_quick_close", 2 )
+    if plyVal == 1 then return true end -- Quick close is enabled.
+    if plyVal == 0 then return false end -- Quick close is disabled.
+
+    -- Use server default.
+    local serverDefault = QUICK_CLOSE_SV:GetString()
 
     return serverDefault ~= "0"
 end
@@ -561,6 +573,7 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     SPACE_EQUIP_SV = GetConVar( "cfc_parachute_space_equip_sv" )
     SPACE_EQUIP_DOUBLE_SV = GetConVar( "cfc_parachute_space_equip_double_sv" )
     SPACE_EQUIP_WEAPON_SV = GetConVar( "cfc_parachute_space_equip_weapon_sv" )
+    QUICK_CLOSE_SV = GetConVar( "cfc_parachute_quick_close_sv" )
 end )
 
 hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, state )
@@ -640,6 +653,40 @@ hook.Add( "KeyPress", "CFC_Parachute_PerformSpaceEquip", function( ply, key )
 
             ply:SelectWeapon( prevWep:GetClass() )
         end )
+    end
+end )
+
+hook.Add( "KeyPress", "CFC_Parachute_QuickClose", function( ply, key )
+    if key ~= IN_WALK and key ~= IN_DUCK then return end
+
+    local now = RealTime()
+    local otherLastPress
+
+    if key == IN_WALK then
+        otherLastPress = ply.cfcParachuteQuickCloseLastCrouched
+        ply.cfcParachuteQuickCloseLastWalked = now
+    else
+        otherLastPress = ply.cfcParachuteQuickCloseLastWalked
+        ply.cfcParachuteQuickCloseLastCrouched = now
+    end
+
+    if not otherLastPress then return end
+    if now - otherLastPress > QUICK_CLOSE_WINDOW then return end
+    if not quickCloseEnabled( ply ) then return end
+
+    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+    if not IsValid( wep ) then return end
+
+    wep:ChangeOpenStatus( false )
+end )
+
+hook.Add( "KeyRelease", "CFC_Parachute_QuickClose", function( ply, key )
+    if key ~= IN_WALK and key ~= IN_DUCK then return end
+
+    if key == IN_WALK then
+        ply.cfcParachuteQuickCloseLastWalked = nil
+    else
+        ply.cfcParachuteQuickCloseLastCrouched = nil
     end
 end )
 
