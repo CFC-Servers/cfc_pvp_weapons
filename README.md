@@ -11,17 +11,17 @@
 | cfc_shaped_charge_blastrange | The damage range the explosion has. | 100 |
 | cfc_shaped_charge_tracerange | The range the prop breaking explosion has. | 100 |
 | cfc_parachute_fall_speed | Target fall speed while in a parachute. | 200 |
-| cfc_parachute_fall_lerp | How quickly a parachute will reach its target fall speed. | 0.8 |
-| cfc_parachute_horizontal_speed | How quickly you move in a parachute. | 130 |
-| cfc_parachute_horizontal_speed_unstable | How well you can control a parachute while holding another weapon. | 80 |
-| cfc_parachute_horizontal_speed_limit | Max horizontal speed of a parachute. | 1000 |
-| cfc_parachute_sprint_boost | How much of a horizontal boost you get in a parachute while sprinting. | 1.5 |
-| cfc_parachute_handling | Improves parachute handling by making it easier to brake or chagne directions. 1 gives no handling boost, 0-1 reduces handling. | 2.5 |
-| cfc_parachute_destabilize_min_gap | Minimum time between direction changes while a parachute destabilizes, in seconds. | 0.1 |
-| cfc_parachute_destabilize_max_gap | Maximum time between direction changes while a parachute destabilizes, in seconds. | 2.5 |
+| cfc_parachute_fall_lerp | How quickly a parachute will reach its target fall speed. | 0.85 |
+| cfc_parachute_horizontal_speed | How quickly you move in a parachute. | 80 |
+| cfc_parachute_horizontal_speed_unstable | How well you can control a parachute while holding another weapon. | 40 |
+| cfc_parachute_horizontal_speed_limit | Max horizontal speed of a parachute. | 700 |
+| cfc_parachute_sprint_boost | How much of a horizontal boost you get in a parachute while sprinting. | 1.25 |
+| cfc_parachute_handling | Improves parachute handling by making it easier to brake or chagne directions. 1 gives no handling boost, 0-1 reduces handling. | 4.5 |
+| cfc_parachute_destabilize_min_gap | Minimum time between direction changes while a parachute destabilizes, in seconds. | 0.3 |
+| cfc_parachute_destabilize_max_gap | Maximum time between direction changes while a parachute destabilizes, in seconds. | 2 |
 | cfc_parachute_destabilize_max_direction_change | Maximum angle change in a parachute's direction while it is destabilized. | 30 |
-| cfc_parachute_destabilize_max_lurch | Maximum downwards force a parachute can receive from random lurches while destabilized. | 150 |
-| cfc_parachute_destabilize_max_fall_lurch | Maximum downwards velocity before a parachute stops being affected by lurch. Puts a soft-cap on how fast you plummet from shooting weapons. | 550 |
+| cfc_parachute_destabilize_max_lurch | Maximum downwards force a parachute can receive from random lurches while destabilized. | 125 |
+| cfc_parachute_destabilize_max_fall_lurch | Maximum downwards velocity before a parachute stops being affected by lurch. Puts a soft-cap on how fast you plummet from shooting weapons. | 400 |
 | cfc_parachute_destabilize_lurch_chance | The chance for an unstable parachute to lurch downwards when a direction change occurs. | 0.2 |
 | cfc_parachute_destabilize_shoot_lurch_chance | The chance for an unstable parachute to lurch downwards when the player shoots a bullet. | 0.1 |
 | cfc_parachute_destabilize_shoot_change_chance | The chance for an unstable parachute's direction to change when the player shoots a bullet. | 0.25 |
