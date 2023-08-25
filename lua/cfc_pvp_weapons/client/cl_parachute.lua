@@ -22,11 +22,16 @@ CFC_Parachute.MenuToggleButtons = CFC_Parachute.MenuToggleButtons or {}
 }
 --]]
 
+CreateClientConVar( "cfc_parachute_space_equip", 2, true, true, "Press spacebar while falling to quickly equip a parachute.", 0, 2 )
+CreateClientConVar( "cfc_parachute_space_equip_double", 2, true, true, "Double tap spacebar to equip parachutes, instead of a single press.", 0, 2 )
+CreateClientConVar( "cfc_parachute_space_equip_weapon", 2, true, true, "Automatically switch back to your previous weapon when space-equipping a parachute.", 0, 2 )
+
 local DESIGN_MATERIALS
 local DESIGN_MATERIAL_NAMES
 local DESIGN_MATERIAL_COUNT
 
 local DESIGN_CHOICE = CreateConVar( "cfc_parachute_design", 1, { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NEVER_AS_STRING }, "Your selected parachute design.", 1, 50000 )
+local SPACE_EQUIP_VOLUME = CreateClientConVar( "cfc_parachute_space_equip_volume", 0.5, true, false, "Volume for the sound that indicates you are ready to space-equip a parachute.", 0, 1 )
 
 local MENU_COLOR = Color( 36, 41, 67, 255 )
 local MENU_BAR_COLOR = Color( 42, 47, 74, 255 )
@@ -62,6 +67,30 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
         "With your parachute open, you can switch to a different weapon and shoot from the air." .. "\n" ..
         "Be careful though, while your hands are occupied, you will lose a lot of horizontal control." .. "\n" ..
         "Shooting too much will send you careening in a different direction, or even towards the ground."
+} )
+
+table.insert( CFC_Parachute.MenuToggleButtons, {
+    TextOff = "Space-Equip (Disabled)",
+    TextOn = "Space-Equip (Enabled)",
+    ConVar = "cfc_parachute_space_equip",
+    ConVarServerChoice = "2",
+    HoverText = "Press spacebar while falling to quickly equip and open a parachute." .. "\n" ..
+        "A small 'whoosh' sound will play when this is ready." .. "\n\n" ..
+        "If you already have a parachute, this doubles as a shortcut to open it at any time."
+} )
+
+table.insert( CFC_Parachute.MenuToggleButtons, {
+    TextOff = "Double Tap for Space-Equip (Disabled)",
+    TextOn = "Double Tap for Space-Equip (Enabled)",
+    ConVar = "cfc_parachute_space_equip_double",
+    ConVarServerChoice = "2"
+} )
+
+table.insert( CFC_Parachute.MenuToggleButtons, {
+    TextOff = "Keep Wep on Space-Equip (Disabled)",
+    TextOn = "Keep Wep on Space-Equip (Enabled)",
+    ConVar = "cfc_parachute_space_equip_weapon",
+    ConVarServerChoice = "2"
 } )
 
 local function updateMenuButton( button )
@@ -330,12 +359,21 @@ function CFC_Parachute.OpenDesignMenu()
     end
 end
 
+
 cvars.AddChangeCallback( "cfc_parachute_design", function( _, old, new )
     net.Start( "CFC_Parachute_SelectDesign" )
     net.WriteInt( math.floor( old ), 17 )
     net.WriteInt( math.floor( new ), 17 )
     net.SendToServer()
 end )
+
+cvars.AddChangeCallback( "cfc_parachute_space_equip", function()
+    timer.Simple( 1, function() -- Timer to (mostly) guarantee the server has the new value of our :GetInfoNum() before we tell it to update.
+        net.Start( "CFC_Parachute_SpaceEquipUpdatePreferences" )
+        net.SendToServer()
+    end )
+end )
+
 
 hook.Add( "InitPostEntity", "CFC_Parachute_FinalMenuPrep", function()
     hook.Run( "CFC_Parachute_CheckOptionalDependencies" )
@@ -350,6 +388,7 @@ hook.Add( "InitPostEntity", "CFC_Parachute_FinalMenuPrep", function()
         end
     end
 end )
+
 
 net.Receive( "CFC_Parachute_DefineChuteDir", function()
     local chute = net.ReadEntity()
@@ -417,4 +456,11 @@ net.Receive( "CFC_Parachute_GrabChuteStraps", function()
         ply:ManipulateBoneAngles( leftForearm, ANG_ZERO )
         ply:ManipulateBoneAngles( leftHand, ANG_ZERO )
     end
+end )
+
+net.Receive( "CFC_Parachute_SpaceEquipReady", function()
+    local volume = SPACE_EQUIP_VOLUME:GetFloat()
+    if volume <= 0 then return end
+
+    LocalPlayer():EmitSound( "player/suit_sprint.wav", nil, nil, volume )
 end )

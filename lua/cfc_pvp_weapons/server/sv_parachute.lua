@@ -30,6 +30,7 @@ local VEC_REMOVE_Z = Vector( 1, 1, 0 )
 local VEC_ZERO = Vector( 0, 0, 0 )
 local ANG_ZERO = Angle( 0, 0, 0 )
 local VIEW_PUNCH_CHECK_INTERVAL = 0.25
+local SPACE_EQUIP_DOUBLE_TAP_WINDOW = 0.35
 
 local IsValid = IsValid
 local RealTime = RealTime
@@ -262,6 +263,29 @@ local function clearStuckViewPunch( ply )
     ply.cfcParachuteViewPunchVel = nil
 end
 
+local function spaceEquipRequireDoubleTap( ply )
+    local plyVal = ply:GetInfoNum( "cfc_parachute_space_equip_double", 2 )
+    if plyVal == 1 then return true end -- Require double-tap.
+    if plyVal == 0 then return false end -- Don't require double-tap.
+
+    -- Use server default.
+    local serverDefault = SPACE_EQUIP_DOUBLE_SV:GetString()
+
+    return serverDefault ~= "0"
+end
+
+local function spaceEquipShouldEquipWeapon( ply )
+    local plyVal = ply:GetInfoNum( "cfc_parachute_space_equip_weapon", 2 )
+    if plyVal == 1 then return true end -- Go back to previous weapon.
+    if plyVal == 0 then return false end -- Don't go bacl to previous weapon.
+
+    -- Use server default.
+    local serverDefault = SPACE_EQUIP_WEAPON_SV:GetString()
+
+    return serverDefault ~= "0"
+end
+
+
 function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
     if not IsValid( ply ) then return end
 
@@ -300,6 +324,77 @@ function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
 
     if IsValid( wep ) then
         wep:ApplyChuteDesign()
+    end
+end
+
+function CFC_Parachute.EquipAndOpenParachute( ply )
+    if not IsValid( ply ) then return end
+
+    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+
+    if not IsValid( wep ) then
+        wep = ents.Create( "cfc_weapon_parachute" )
+        wep:SetPos( Vector( 0, 0, 0 ) )
+        wep:SetOwner( ply )
+        wep:Spawn()
+
+        if hook.Run( "PlayerCanPickupWeapon", ply, wep ) == false then
+            wep:Remove()
+
+            return
+        end
+
+        ply:PickupWeapon( wep )
+    end
+
+    timer.Simple( 0.05, function()
+        if not IsValid( ply ) then return end
+        if ply:GetActiveWeapon() == wep then return end
+
+        ply:SelectWeapon( "cfc_weapon_parachute" )
+    end )
+
+    timer.Simple( 0.1, function()
+        if not IsValid( ply ) or not IsValid( wep ) then return end
+
+        if ply:InVehicle() then
+            wep:ChangeOpenStatus( false, ply )
+
+            return
+        end
+
+        if wep.chuteIsOpen then return end
+
+        wep:PrimaryAttack()
+    end )
+end
+
+--[[
+    - Sets whether or not a player is ready to use space-equip.
+    - You can block the player from becoming ready by returning false in the CFC_Parachute_SpaceEquipCanReady hook.
+        - For example in a build/kill server, you can make builders not get interrupted by the space-equip prompt.
+        - It's recommended to not block if IsValid( ply:GetWeapon( "cfc_weapon_parachute" ) ) is true, however.
+            - Otherwise, a player who manually equipped the SWEP won't be able to use spacebar as a shortcut to open the chute.
+--]]
+function CFC_Parachute.SetSpaceEquipReadySilent( ply, state )
+    if not IsValid( ply ) then return end
+    if ply.cfcParachuteSpaceEquipReady == state then return end
+    if state and hook.Run( "CFC_Parachute_SpaceEquipCanReady", ply ) == false then return end
+
+    ply.cfcParachuteSpaceEquipReady = state
+    ply.cfcParachuteSpaceEquipLastPress = nil
+end
+
+-- Same as CFC_Parachute.SetSpaceEquipReady() but also tells the client to play the ready sound, if applicable.
+function CFC_Parachute.SetSpaceEquipReady( ply, state )
+    if not IsValid( ply ) then return end
+    if ply.cfcParachuteSpaceEquipReady == state then return end
+
+    CFC_Parachute.SetSpaceEquipReadySilent( ply, state )
+
+    if ply.cfcParachuteSpaceEquipReady then
+        net.Start( "CFC_Parachute_SpaceEquipReady" )
+        net.Send( ply )
     end
 end
 
@@ -462,6 +557,10 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     HORIZONTAL_SPEED_LIMIT = GetConVar( "cfc_parachute_horizontal_speed_limit" )
     SPRINT_BOOST = GetConVar( "cfc_parachute_sprint_boost" )
     HANDLING = GetConVar( "cfc_parachute_handling" )
+    SPACE_EQUIP_SPEED = GetConVar( "cfc_parachute_space_equip_speed" )
+    SPACE_EQUIP_SV = GetConVar( "cfc_parachute_space_equip_sv" )
+    SPACE_EQUIP_DOUBLE_SV = GetConVar( "cfc_parachute_space_equip_double_sv" )
+    SPACE_EQUIP_WEAPON_SV = GetConVar( "cfc_parachute_space_equip_weapon_sv" )
 end )
 
 hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, state )
@@ -473,6 +572,77 @@ hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, stat
 
     wep:ChangeOpenStatus( false, ply )
 end, HOOK_LOW )
+
+hook.Add( "Think", "CFC_Parachute_SpaceEquipCheck", function()
+    local zVelThreshold = -SPACE_EQUIP_SPEED:GetFloat()
+
+    for _, ply in ipairs( player.GetAll() ) do
+        local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+        if IsValid( wep ) then continue end -- Already have a parachute, no need to check.
+
+        local zVel = ply:GetVelocity()[3]
+
+        if ply.cfcParachuteSpaceEquipReady then
+            if ply:GetMoveType() == MOVETYPE_NOCLIP or zVel > zVelThreshold then
+                CFC_Parachute.SetSpaceEquipReady( ply, false )
+            end
+        else
+            if ply:GetMoveType() ~= MOVETYPE_NOCLIP and zVel <= zVelThreshold then
+                CFC_Parachute.SetSpaceEquipReady( ply, true )
+            end
+        end
+    end
+end )
+
+hook.Add( "CFC_Parachute_SpaceEquipCanReady", "CFC_Parachute_CheckPreferences", function( ply )
+    local plyVal = ply:GetInfoNum( "cfc_parachute_space_equip", 2 )
+    if plyVal == 1 then return end -- Space-equip is enabled.
+    if plyVal == 0 then return false end -- Space-equip is disabled, block it.
+
+    -- Use server default.
+    local serverDefault = SPACE_EQUIP_SV:GetString()
+
+    if serverDefault == "0" then return false end
+end )
+
+hook.Add( "KeyPress", "CFC_Parachute_PerformSpaceEquip", function( ply, key )
+    if not ply.cfcParachuteSpaceEquipReady then return end
+    if ply:GetMoveType() == MOVETYPE_NOCLIP then return end -- Always ignore if the player is in noclip, regardless of ready status.
+    if key ~= IN_JUMP then return end
+
+    if spaceEquipRequireDoubleTap( ply ) then
+        local lastPress = ply.cfcParachuteSpaceEquipLastPress
+        local now = RealTime()
+
+        ply.cfcParachuteSpaceEquipLastPress = now
+
+        if not lastPress then return end
+        if now - lastPress > SPACE_EQUIP_DOUBLE_TAP_WINDOW then return end
+    end
+
+    local chuteWep = ply:GetWeapon( "cfc_weapon_parachute" )
+
+    -- If the player is holding a parachute, space-equip is just a shortcut to opening it.
+    if IsValid( chuteWep ) then
+        chuteWep:ChangeOpenStatus( true )
+
+        return
+    end
+
+    local prevWep = ply:GetActiveWeapon()
+
+    CFC_Parachute.EquipAndOpenParachute( ply )
+
+    if spaceEquipShouldEquipWeapon( ply ) then
+        timer.Simple( 0.15, function()
+            if not IsValid( ply ) then return end
+            if not IsValid( prevWep ) then return end
+
+            ply:SelectWeapon( prevWep:GetClass() )
+        end )
+    end
+end )
+
 
 net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
     if not IsValid( ply ) then return end
@@ -496,7 +666,20 @@ net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
     CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
 end )
 
+net.Receive( "CFC_Parachute_SpaceEquipUpdatePreferences", function( _, ply )
+    if not IsValid( ply ) then return end
+    if not IsValid( ply:GetWeapon( "cfc_weapon_parachute" ) ) then return end -- Think hook will auto-update for us if they don't have a parachute.
+
+    -- When a player has a parachute equipped, it should always have SE ready if player/server preferences allow.
+    -- So, silently set to false and then true, the latter of which will get blocked if preferences don't allow it.
+    CFC_Parachute.SetSpaceEquipReadySilent( ply, false )
+    CFC_Parachute.SetSpaceEquipReadySilent( ply, true )
+end )
+
+
 util.AddNetworkString( "CFC_Parachute_DefineChuteDir" )
 util.AddNetworkString( "CFC_Parachute_GrabChuteStraps" )
 util.AddNetworkString( "CFC_Parachute_DefineDesigns" )
 util.AddNetworkString( "CFC_Parachute_SelectDesign" )
+util.AddNetworkString( "CFC_Parachute_SpaceEquipReady" )
+util.AddNetworkString( "CFC_Parachute_SpaceEquipUpdatePreferences" )

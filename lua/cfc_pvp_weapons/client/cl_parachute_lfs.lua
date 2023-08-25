@@ -19,15 +19,15 @@ local function trySetupLFS()
 
 
     table.insert( CFC_Parachute.MenuToggleButtons, {
-        TextOff = "Enable LFS Auto-Parachute",
-        TextOn = "Disable LFS Auto-Parachute",
+        TextOff = "LFS Auto-Parachute (Disabled)",
+        TextOn = "LFS Auto-Parachute (Enabled)",
         ConVar = "cfc_parachute_lfs_auto_equip",
         ConVarServerChoice = "2"
     } )
 
     table.insert( CFC_Parachute.MenuToggleButtons, {
-        TextOff = "Enable LFS Eject-Launch",
-        TextOn = "Disable LFS Eject-Launch",
+        TextOff = "LFS Eject-Launch (Disabled)",
+        TextOn = "LFS Eject-Launch (Enabled)",
         ConVar = "cfc_parachute_lfs_eject_launch",
         ConVarServerChoice = "2"
     } )

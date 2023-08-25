@@ -14,3 +14,8 @@ CreateConVar( "cfc_parachute_destabilize_max_fall_lurch", 550, { FCVAR_REPLICATE
 CreateConVar( "cfc_parachute_destabilize_lurch_chance", 0.2, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The chance for an unstable parachute to lurch downwards when a direction change occurs.", 0, 1 )
 CreateConVar( "cfc_parachute_destabilize_shoot_lurch_chance", 0.1, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The chance for an unstable parachute to lurch downwards when the player shoots a bullet.", 0, 1 )
 CreateConVar( "cfc_parachute_destabilize_shoot_change_chance", 0.25, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The chance for an unstable parachute's direction to change when the player shoots a bullet.", 0, 1 )
+
+CreateConVar( "cfc_parachute_space_equip_speed", 450, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "The minimum falling speed required for a player to space-equip a parachute.", 0, 50000 )
+CreateConVar( "cfc_parachute_space_equip_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Press spacebar while falling to quickly equip a parachute. Defines the default value for players.", 0, 1 )
+CreateConVar( "cfc_parachute_space_equip_double_sv", 0, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Double tap spacebar to equip parachutes, instead of a single press. Defines the default value for players.", 0, 1 )
+CreateConVar( "cfc_parachute_space_equip_weapon_sv", 0, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Instantly switch back to your previous weapon when space-equipping a parachute. Defines the default value for players.", 0, 1 )

@@ -60,43 +60,7 @@ local function trySetupLFS()
     hook.Add( "CFC_Parachute_LFSAirEject", "CFC_Parachute_LFSAutoChute", function( ply, vehicle, lfsPlane )
         if hook.Run( "CFC_Parachute_CanLFSAutoChute", ply, vehicle, lfsPlane ) == false then return end
 
-        local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-
-        if not IsValid( wep ) then
-            wep = ents.Create( "cfc_weapon_parachute" )
-            wep:SetPos( Vector( 0, 0, 0 ) )
-            wep:SetOwner( ply )
-            wep:Spawn()
-
-            if hook.Run( "PlayerCanPickupWeapon", ply, wep ) == false then
-                wep:Remove()
-
-                return
-            end
-
-            ply:PickupWeapon( wep )
-        end
-
-        timer.Simple( 0.1, function()
-            if not IsValid( ply ) then return end
-            if ply:GetActiveWeapon() == wep then return end
-
-            ply:SelectWeapon( "cfc_weapon_parachute" )
-        end )
-
-        timer.Simple( 0.2, function()
-            if not IsValid( ply ) or not IsValid( wep ) then return end
-
-            if ply:InVehicle() then
-                wep:ChangeOpenStatus( false, ply )
-
-                return
-            end
-
-            if wep.chuteIsOpen then return end
-
-            wep:PrimaryAttack()
-        end )
+        CFC_Parachute.EquipAndOpenParachute( ply )
     end )
 
     hook.Add( "CFC_Parachute_LFSAirEject", "CFC_Parachute_LFSAutoLaunch", function( ply, vehicle, lfsPlane )

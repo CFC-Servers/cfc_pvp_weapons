@@ -30,6 +30,7 @@
 | cfc_parachute_lfs_eject_launch_bias | How many degrees the LFS eject launch should course-correct the player's trajectory to send them straight up, for if their plane is tilted. | 25 |
 | cfc_parachute_lfs_eject_stability_time | How many seconds a player is immune to parachute instability when they launch out of an LFS plane. | 5 |
 | cfc_parachute_lfs_enter_radius | How close a player must be to enter an LFS if they are in a parachute and regular use detection fails. Makes it easier to get inside of an LFS for performing a Rendezook. | 800 |
+| cfc_parachute_space_equip_speed | The minimum falling speed required for a player to space-equip a parachute. | 450 |
 
 ## Client Convars
 
@@ -38,6 +39,9 @@
 | cfc_parachute_design | Your selected parachute design. | 1 |
 | cfc_parachute_lfs_auto_equip | Whether or not to auto-equip a parachute when ejecting from an LFS plane in the air. | 1 |
 | cfc_parachute_lfs_eject_launch | Whether or not to launch up high when ejecting from an LFS plane in the air. Useful for pulling off a Rendezook. | 1 |
+| cfc_parachute_space_equip | Press spacebar while falling to quickly equip a parachute. | 1 |
+| cfc_parachute_space_equip_double | Double tap spacebar to equip parachutes, instead of a single press. | 0 |
+| cfc_parachute_space_equip_weapon | Automatically switch back to your previous weapon when space-equipping a parachute. | 0 |
 
 ## Credits
 
