@@ -378,13 +378,6 @@ cvars.AddChangeCallback( "cfc_parachute_design", function( _, old, new )
     net.SendToServer()
 end )
 
-cvars.AddChangeCallback( "cfc_parachute_space_equip", function()
-    timer.Simple( 1, function() -- Timer to (mostly) guarantee the server has the new value of our :GetInfoNum() before we tell it to update.
-        net.Start( "CFC_Parachute_SpaceEquipUpdatePreferences" )
-        net.SendToServer()
-    end )
-end )
-
 
 hook.Add( "InitPostEntity", "CFC_Parachute_FinalMenuPrep", function()
     hook.Run( "CFC_Parachute_CheckOptionalDependencies" )

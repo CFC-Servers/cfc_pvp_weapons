@@ -269,10 +269,6 @@ local function clearStuckViewPunch( ply )
     ply.cfcParachuteViewPunchVel = nil
 end
 
-local function spaceEquipEnabled( ply )
-    return CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip", SPACE_EQUIP_SV )
-end
-
 local function spaceEquipRequireDoubleTap( ply )
     return CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip_double", SPACE_EQUIP_DOUBLE_SV )
 end
@@ -388,18 +384,13 @@ end
 
 --[[
     - Sets whether or not a player is ready to use space-equip.
-    - You can block the player from becoming ready by returning false in the CFC_Parachute_SpaceEquipCanReady hook.
-        - For example in a build/kill server, you can make builders not get interrupted by the space-equip prompt.
-        - It's recommended to not block if IsValid( ply:GetWeapon( "cfc_weapon_parachute" ) ) is true, however.
-            - Otherwise, a player who manually equipped the SWEP won't be able to use spacebar as a shortcut to open the chute.
+    - In effect, this should be whenever the player already has a parachute or is falling past a certain speed.
+    - A player must also have space-equip enabled. See CFC_Parachute.IsSpaceEquipEnabled() for more.
 --]]
 function CFC_Parachute.SetSpaceEquipReadySilent( ply, state )
     if not IsValid( ply ) then return end
-    if ply.cfcParachuteSpaceEquipReady == state then return end
-    if state and hook.Run( "CFC_Parachute_SpaceEquipCanReady", ply ) == false then return end
 
     ply.cfcParachuteSpaceEquipReady = state
-    ply.cfcParachuteSpaceEquipLastPress = nil
 end
 
 -- Same as CFC_Parachute.SetSpaceEquipReady() but also tells the client to play the ready sound, if applicable.
@@ -408,11 +399,35 @@ function CFC_Parachute.SetSpaceEquipReady( ply, state )
     if ply.cfcParachuteSpaceEquipReady == state then return end
 
     CFC_Parachute.SetSpaceEquipReadySilent( ply, state )
+    ply.cfcParachuteSpaceEquipLastPress = nil
 
-    if ply.cfcParachuteSpaceEquipReady then
+    if CFC_Parachute.CanSpaceEquip( ply ) then
         net.Start( "CFC_Parachute_SpaceEquipReady" )
         net.Send( ply )
     end
+end
+
+--[[
+    - Whether or not the player is able and willing to use space-equip.
+    - return false in the CFC_Parachute_IsSpaceEquipEnabled hook to block this.
+        - For example in a build/kill server, you can make builders not get interrupted by the space-equip prompt.
+        - It's recommended to not block if IsValid( ply:GetWeapon( "cfc_weapon_parachute" ) ) is true, however.
+            - Otherwise, a player who manually equipped the SWEP won't be able to use spacebar as a shortcut to open the chute.
+    - Use CFC_Parachute.CanSpaceEquip() for the combined ready-and-enabled check.
+--]]
+function CFC_Parachute.IsSpaceEquipEnabled( ply )
+    if not IsValid( ply ) then return false end
+    if hook.Run( "CFC_Parachute_IsSpaceEquipEnabled", ply ) == false then return false end
+
+    return true
+end
+
+-- Combines space-equip being ready and the player being able and willing to use it.
+function CFC_Parachute.CanSpaceEquip( ply )
+    if not IsValid( ply ) then return false end
+    if not ply.cfcParachuteSpaceEquipReady then return false end
+
+    return CFC_Parachute.IsSpaceEquipEnabled( ply )
 end
 
 
@@ -612,14 +627,16 @@ hook.Add( "Think", "CFC_Parachute_SpaceEquipCheck", function()
     end
 end )
 
-hook.Add( "CFC_Parachute_SpaceEquipCanReady", "CFC_Parachute_CheckPreferences", function( ply )
-    if not spaceEquipEnabled( ply ) then return false end
+hook.Add( "CFC_Parachute_IsSpaceEquipEnabled", "CFC_Parachute_CheckPreferences", function( ply )
+    local spaceEquipEnabled = CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip", SPACE_EQUIP_SV )
+
+    if not spaceEquipEnabled then return false end
 end )
 
 hook.Add( "KeyPress", "CFC_Parachute_PerformSpaceEquip", function( ply, key )
-    if not ply.cfcParachuteSpaceEquipReady then return end
-    if ply:GetMoveType() == MOVETYPE_NOCLIP then return end -- Always ignore if the player is in noclip, regardless of ready status.
     if key ~= IN_JUMP then return end
+    if ply:GetMoveType() == MOVETYPE_NOCLIP then return end -- Always ignore if the player is in noclip, regardless of ready status.
+    if not CFC_Parachute.CanSpaceEquip( ply ) then return end
 
     if spaceEquipRequireDoubleTap( ply ) then
         local lastPress = ply.cfcParachuteSpaceEquipLastPress
@@ -711,20 +728,9 @@ net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
     CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
 end )
 
-net.Receive( "CFC_Parachute_SpaceEquipUpdatePreferences", function( _, ply )
-    if not IsValid( ply ) then return end
-    if not IsValid( ply:GetWeapon( "cfc_weapon_parachute" ) ) then return end -- Think hook will auto-update for us if they don't have a parachute.
-
-    -- When a player has a parachute equipped, it should always have SE ready if player/server preferences allow.
-    -- So, silently set to false and then true, the latter of which will get blocked if preferences don't allow it.
-    CFC_Parachute.SetSpaceEquipReadySilent( ply, false )
-    CFC_Parachute.SetSpaceEquipReadySilent( ply, true )
-end )
-
 
 util.AddNetworkString( "CFC_Parachute_DefineChuteDir" )
 util.AddNetworkString( "CFC_Parachute_GrabChuteStraps" )
 util.AddNetworkString( "CFC_Parachute_DefineDesigns" )
 util.AddNetworkString( "CFC_Parachute_SelectDesign" )
 util.AddNetworkString( "CFC_Parachute_SpaceEquipReady" )
-util.AddNetworkString( "CFC_Parachute_SpaceEquipUpdatePreferences" )
