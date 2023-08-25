@@ -60,9 +60,9 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
     HideState = true,
     TextOff = "Help/Info",
     TextOn = "Help/Info",
-    HoverText = "Parachutes slow your descent and allow you to glide through the air faster than you can move on land." .. "\n\n" ..
+    HoverText = "Parachutes slow your descent and improve your aerial mobility." .. "\n\n" ..
         "Your chute will start off closed, and can be toggled open with left click." .. "\n" ..
-        "Right clicking with the parachute SWEP will bring up this config menu." .. "\n" ..
+        "Right clicking will bring up this config menu." .. "\n" ..
         "You can select various chute designs and config options with the buttons below." .. "\n\n" ..
         "With your parachute open, you can switch to a different weapon and shoot from the air." .. "\n" ..
         "Be careful though, while your hands are occupied, you will lose a lot of horizontal control." .. "\n" ..
