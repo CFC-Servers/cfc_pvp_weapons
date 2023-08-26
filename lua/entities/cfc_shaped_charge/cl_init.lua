@@ -1,7 +1,5 @@
 include( "shared.lua" )
 
-language.Add( "cfc_shaped_charge" )
-
 function ENT:Initialize()
     self.explodeTime = CurTime() + GetConVar( "cfc_shaped_charge_timer" ):GetInt()
 end
