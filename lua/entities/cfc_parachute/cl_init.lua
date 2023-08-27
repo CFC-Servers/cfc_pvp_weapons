@@ -1,7 +1,5 @@
 include( "shared.lua" )
 
-language.Add( "cfc_parachute" )
-
 local tiltMult = 0.2
 
 
