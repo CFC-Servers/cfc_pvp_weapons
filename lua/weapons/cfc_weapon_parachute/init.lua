@@ -166,6 +166,15 @@ function SWEP:ChangeOwner( ply )
     CFC_Parachute.SetSpaceEquipReadySilent( ply, true )
 end
 
+function SWEP:CanOpen()
+    local owner = ply or self:GetOwner() or self.chuteOwner
+    if not IsValid( owner ) then return false end
+    if owner:IsOnGround() then return false end
+    if owner:WaterLevel() > 0 then return false end
+
+    return true
+end
+
 function SWEP:ChangeOpenStatus( state, ply )
     local owner = ply or self:GetOwner() or self.chuteOwner
     if not IsValid( owner ) then return end
@@ -176,7 +185,7 @@ function SWEP:ChangeOpenStatus( state, ply )
         state = not prevState
     elseif state == prevState then return end
 
-    if state and ( owner:IsOnGround() or owner:WaterLevel() > 0 ) then return end
+    if state and not self:CanOpen() then return end
 
     local chute = self:SpawnChute()
 
