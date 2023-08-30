@@ -172,6 +172,15 @@ function SWEP:CanOpen()
     if owner:IsOnGround() then return false end
     if owner:WaterLevel() > 0 then return false end
 
+    local startPos = owner:GetPos()
+    local endPos = startPos + Vector( 0, 0, -70 )
+    local tr = util.TraceLine( {
+        start = startPos,
+        endpos = endPos,
+    } )
+
+    if tr.Hit then return false end
+
     return true
 end
 
