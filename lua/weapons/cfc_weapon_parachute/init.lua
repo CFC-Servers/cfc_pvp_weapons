@@ -167,7 +167,7 @@ function SWEP:ChangeOwner( ply )
 end
 
 function SWEP:CanOpen()
-    local owner = ply or self:GetOwner() or self.chuteOwner
+    local owner = self:GetOwner() or self.chuteOwner
     if not IsValid( owner ) then return false end
     if owner:IsOnGround() then return false end
     if owner:WaterLevel() > 0 then return false end
