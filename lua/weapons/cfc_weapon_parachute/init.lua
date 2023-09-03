@@ -219,7 +219,7 @@ function SWEP:ChangeOpenStatus( state, ply )
         chute:Close()
     end
 
-    self:_UpdateGrabChuteStraps( ply )
+    self:_UpdateGrabChuteStraps( owner )
 end
 
 --[[
