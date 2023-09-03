@@ -228,6 +228,8 @@ end
         - An exception is using left click on the parachute SWEP, as having it select off the chute would be annoying and confuing.
 --]]
 function SWEP:CloseAndSelectPrevWeapon( ply )
+    if not self.chuteIsOpen then return end
+
     local owner = ply or self:GetOwner() or self.chuteOwner
     if not IsValid( owner ) then return end
 
