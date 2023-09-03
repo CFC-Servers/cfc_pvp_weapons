@@ -206,30 +206,37 @@ function CFC_Parachute.EquipAndOpenParachute( ply )
 
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
-    if not IsValid( wep ) then
-        wep = ents.Create( "cfc_weapon_parachute" )
-        wep:SetPos( Vector( 0, 0, 0 ) )
-        wep:SetOwner( ply )
-        wep:Spawn()
-
-        if hook.Run( "PlayerCanPickupWeapon", ply, wep ) == false then
-            wep:Remove()
-
-            return
+    -- Weapon is valid, select and open it.
+    if IsValid( wep ) then
+        if ply:GetActiveWeapon() ~= wep then
+            ply:SelectWeapon( "cfc_weapon_parachute" )
         end
 
-        ply:PickupWeapon( wep )
+        wep:ChangeOpenStatus( true )
+
+        return
     end
 
+    -- Spawn parachute SWEP
+    wep = ents.Create( "cfc_weapon_parachute" )
+    wep:SetPos( Vector( 0, 0, 0 ) )
+    wep:SetOwner( ply )
+    wep:Spawn()
+
+    if hook.Run( "PlayerCanPickupWeapon", ply, wep ) == false then
+        wep:Remove()
+
+        return
+    end
+
+    ply:PickupWeapon( wep )
+
+    -- Select parachute
     timer.Simple( 0.05, function()
         if not IsValid( ply ) then return end
         if ply:GetActiveWeapon() == wep then return end
 
         ply:SelectWeapon( "cfc_weapon_parachute" )
-    end )
-
-    timer.Simple( 0.1, function()
-        if not IsValid( ply ) or not IsValid( wep ) then return end
 
         if ply:InVehicle() then
             wep:ChangeOpenStatus( false, ply )
@@ -237,9 +244,7 @@ function CFC_Parachute.EquipAndOpenParachute( ply )
             return
         end
 
-        if wep.chuteIsOpen then return end
-
-        wep:PrimaryAttack()
+        wep:ChangeOpenStatus( true )
     end )
 end
 
@@ -490,16 +495,22 @@ hook.Add( "KeyPress", "CFC_Parachute_PerformSpaceEquip", function( ply, key )
     end
 
     local chuteWep = ply:GetWeapon( "cfc_weapon_parachute" )
+    local prevWep = ply:GetActiveWeapon()
 
-    -- If the player is holding a parachute, space-equip is just a shortcut to opening it.
+    -- Player already has a parachute, bypass EquipAndOpenParachute() to avoid double-selecting the SWEP.
     if IsValid( chuteWep ) then
         chuteWep:ChangeOpenStatus( true )
+
+        local chuteNotSelected = prevWep ~= chuteWep
+
+        if chuteNotSelected and not spaceEquipShouldEquipWeapon( ply ) then
+            ply:SelectWeapon( "cfc_weapon_parachute" )
+        end
 
         return
     end
 
-    local prevWep = ply:GetActiveWeapon()
-
+    -- Player doesn't have a parachute, equip one.
     CFC_Parachute.EquipAndOpenParachute( ply )
 
     if spaceEquipShouldEquipWeapon( ply ) then
