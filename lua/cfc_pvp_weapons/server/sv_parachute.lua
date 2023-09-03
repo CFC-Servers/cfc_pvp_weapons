@@ -499,6 +499,8 @@ hook.Add( "KeyPress", "CFC_Parachute_PerformSpaceEquip", function( ply, key )
 
     -- Player already has a parachute, bypass EquipAndOpenParachute() to avoid double-selecting the SWEP.
     if IsValid( chuteWep ) then
+        if not chuteWep:CanOpen() then return end
+
         chuteWep:ChangeOpenStatus( true )
 
         local chuteNotSelected = prevWep ~= chuteWep
