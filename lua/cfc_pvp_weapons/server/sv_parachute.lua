@@ -333,7 +333,7 @@ hook.Add( "PlayerDroppedWeapon", "CFC_Parachute_ChangeOwner", function( ply, wep
     if not IsValid( wep ) then return end
     if wep:GetClass() ~= "cfc_weapon_parachute" then return end
 
-    wep:ChangeOpenStatus( false, ply )
+    wep:CloseAndSelectPrevWeapon( ply )
     changeOwner( wep, ply )
 end )
 
@@ -357,7 +357,7 @@ hook.Add( "OnPlayerHitGround", "CFC_Parachute_CloseChute", function( ply )
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
     if not IsValid( wep ) then return end
 
-    wep:ChangeOpenStatus( false )
+    wep:CloseAndSelectPrevWeapon()
 end )
 
 hook.Add( "PlayerEnteredVehicle", "CFC_Parachute_CloseChute", function( ply )
@@ -544,7 +544,7 @@ hook.Add( "KeyPress", "CFC_Parachute_QuickClose", function( ply, key )
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
     if not IsValid( wep ) then return end
 
-    wep:ChangeOpenStatus( false )
+    wep:CloseAndSelectPrevWeapon()
 end )
 
 hook.Add( "KeyRelease", "CFC_Parachute_QuickClose", function( ply, key )
@@ -555,6 +555,19 @@ hook.Add( "KeyRelease", "CFC_Parachute_QuickClose", function( ply, key )
     else
         ply.cfcParachuteQuickCloseLastCrouched = nil
     end
+end )
+
+hook.Add( "PlayerSwitchWeapon", "CFC_Parachute_TrackPrevWep", function( ply, _, new )
+    if not IsValid( new ) then
+        ply.cfcParachutePrevWep = nil
+
+        return
+    end
+
+    local class = new:GetClass()
+    if class == "cfc_weapon_parachute" then return end
+
+    ply.cfcParachutePrevWep = class
 end )
 
 

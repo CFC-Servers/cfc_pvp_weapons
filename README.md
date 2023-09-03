@@ -42,6 +42,7 @@
 | cfc_parachute_space_equip | Press spacebar while falling to quickly equip a parachute. | 1 |
 | cfc_parachute_space_equip_double | Double tap spacebar to equip parachutes, instead of a single press. | 0 |
 | cfc_parachute_space_equip_weapon | Automatically switch back to your previous weapon when space-equipping a parachute. | 1 |
+| cfc_parachute_prev_weapon_on_close | Auto-select your previous weapon when you close your parachute. | 1 |
 | cfc_parachute_quick_close | Press walk and crouch to quickly close your parachute at any time. | 1 |
 
 ## Credits

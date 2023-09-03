@@ -27,6 +27,7 @@ CreateClientConVar( "cfc_parachute_space_equip_double", 2, true, true, "Double t
 CreateClientConVar( "cfc_parachute_space_equip_weapon", 2, true, true, "Automatically switch back to your previous weapon when space-equipping a parachute.", 0, 2 )
 
 CreateClientConVar( "cfc_parachute_quick_close", 2, true, true, "Press walk and crouch to quickly close your parachute at any time.", 0, 1 )
+CreateClientConVar( "cfc_parachute_prev_weapon_on_close", 2, true, true, "Auto-select your previous weapon when you close your parachute.", 0, 1 )
 
 local DESIGN_MATERIALS
 local DESIGN_MATERIAL_NAMES
@@ -96,6 +97,13 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
 } )
 
 table.insert( CFC_Parachute.MenuToggleButtons, {
+    TextOff = "Prev Wep on Close (Disabled)",
+    TextOn = "Prev Wep on Close (Enabled)",
+    ConVar = "cfc_parachute_prev_weapon_on_close",
+    ConVarServerChoice = "2"
+} )
+
+table.insert( CFC_Parachute.MenuToggleButtons, {
     TextOff = "Quick Close (Disabled)",
     TextOn = "Quick Close (Enabled)",
     ConVar = "cfc_parachute_quick_close",
@@ -103,6 +111,7 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
     HoverText = "Press walk and crouch to quickly close your parachute at any time." .. "\n" ..
         "(alt and ctrl by default)"
 } )
+
 
 local function updateMenuButton( button )
     if not button then return end

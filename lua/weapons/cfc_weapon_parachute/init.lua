@@ -62,6 +62,11 @@ local MOVETYPE_NOCLIP = MOVETYPE_NOCLIP
 local IsValid = IsValid
 
 
+local function selectPrevWeaponOnClose( ply )
+    return CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_prev_weapon_on_close" )
+end
+
+
 function SWEP:Initialize()
     self.chuteMoveForward = 0
     self.chuteMoveBack = 0
@@ -217,6 +222,24 @@ function SWEP:ChangeOpenStatus( state, ply )
     self:_UpdateGrabChuteStraps( ply )
 end
 
+--[[
+    - Same as :ChangeOpenStatus( false, ply ), but also selects the previous weapon if the player has the preference enabled.
+    - Should only be used when the chute closes for a reason the player expects/anticipates, such as hitting the ground or using quick-close.
+        - An exception is using left click on the parachute SWEP, as having it select off the chute would be annoying and confuing.
+--]]
+function SWEP:CloseAndSelectPrevWeapon( ply )
+    local owner = ply or self:GetOwner() or self.chuteOwner
+    if not IsValid( owner ) then return end
+
+    self:ChangeOpenStatus( false, owner )
+
+    local prevWepClass = owner.cfcParachutePrevWep
+    if not prevWepClass then return end
+    if not selectPrevWeaponOnClose( owner ) then return end
+
+    owner:SelectWeapon( prevWepClass )
+end
+
 function SWEP:CloseIfOnGround()
     if not self.chuteIsOpen then return end
 
@@ -249,7 +272,7 @@ function SWEP:CloseIfOnGround()
         -- Don't close from projectiles like crossbow bolts or RPGs. Annoyingly, all these objects have different collision groups, etc, and aren't standardized at all.
         if IsValid( ent ) and GROUND_CLASS_IGNORE[ent:GetClass()] then return end
 
-        self:ChangeOpenStatus( false )
+        self:CloseAndSelectPrevWeapon()
     end
 end
 
@@ -258,7 +281,7 @@ function SWEP:CloseIfInWater()
     if self:WaterLevel() == 0 then return end
     -- Water level updates seem to get suppressed on the player while using the Move hook, but we can conveniently check the swep instead
 
-    self:ChangeOpenStatus( false )
+    self:CloseAndSelectPrevWeapon()
 end
 
 function SWEP:ApplyUnstableLurch()
