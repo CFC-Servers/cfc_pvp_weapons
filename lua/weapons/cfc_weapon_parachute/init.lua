@@ -208,22 +208,13 @@ function SWEP:ChangeOpenStatus( state, ply )
         self:_UpdateChuteDirection()
 
         chute:Open()
-
-        owner:AnimRestartGesture( GESTURE_SLOT_CUSTOM, ACT_GMOD_NOCLIP_LAYER, false )
-        owner:AnimRestartGesture( GESTURE_SLOT_JUMP, ACT_HL2MP_IDLE_PASSIVE, false )
     else
         self:SetColor( COLOR_SHOW )
 
         chute:Close()
-
-        owner:AnimResetGestureSlot( GESTURE_SLOT_CUSTOM )
-        owner:AnimResetGestureSlot( GESTURE_SLOT_JUMP )
     end
 
-    net.Start( "CFC_Parachute_GrabChuteStraps" )
-    net.WriteEntity( owner )
-    net.WriteBool( state )
-    net.Broadcast()
+    self:_UpdateGrabChuteStraps( ply )
 end
 
 function SWEP:CloseIfOnGround()
@@ -340,6 +331,7 @@ function SWEP:ChangeInstabilityStatus( state )
     end
 
     self:_UpdateChuteDirection()
+    self:_UpdateGrabChuteStraps()
 end
 
 function SWEP:ApplyChuteDesign()
@@ -496,4 +488,24 @@ function SWEP:_ApplyChuteForces()
     if not IsValid( owner ) then return end
 
     CFC_Parachute._ApplyChuteForces( owner, self )
+end
+
+function SWEP:_UpdateGrabChuteStraps( ply )
+    local owner = ply or self:GetOwner() or self.chuteOwner
+    if not IsValid( owner ) then return end
+
+    local shouldGrab = self.chuteIsOpen and not self.chuteIsUnstable
+
+    if shouldGrab then
+        owner:AnimRestartGesture( GESTURE_SLOT_CUSTOM, ACT_GMOD_NOCLIP_LAYER, false )
+        owner:AnimRestartGesture( GESTURE_SLOT_JUMP, ACT_HL2MP_IDLE_PASSIVE, false )
+    else
+        owner:AnimResetGestureSlot( GESTURE_SLOT_CUSTOM )
+        owner:AnimResetGestureSlot( GESTURE_SLOT_JUMP )
+    end
+
+    net.Start( "CFC_Parachute_GrabChuteStraps" )
+    net.WriteEntity( owner )
+    net.WriteBool( shouldGrab )
+    net.Broadcast()
 end
