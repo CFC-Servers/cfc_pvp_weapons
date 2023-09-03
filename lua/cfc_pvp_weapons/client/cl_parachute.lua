@@ -396,11 +396,11 @@ end )
 
 net.Receive( "CFC_Parachute_DefineChuteDir", function()
     local chute = net.ReadEntity()
-    local chuteDir = net.ReadVector()
+    local chuteDirRel = net.ReadVector()
 
     if not chute.SetChuteDirection then return end -- Somehow the function sometimes becomes nil while the parachute is still valid
 
-    chute:SetChuteDirection( chuteDir )
+    chute:SetChuteDirection( chuteDirRel )
 end )
 
 net.Receive( "CFC_Parachute_DefineDesigns", function()

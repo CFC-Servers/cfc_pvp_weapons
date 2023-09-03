@@ -50,6 +50,12 @@ local MOVE_KEYS = {
     IN_MOVERIGHT,
     IN_MOVELEFT
 }
+local MOVE_KEY_LOOKUP = {
+    [IN_FORWARD] = true,
+    [IN_BACK] = true,
+    [IN_MOVERIGHT] = true,
+    [IN_MOVELEFT] = true,
+}
 local MOVE_KEY_COUNT = #MOVE_KEYS
 local MOVETYPE_NOCLIP = MOVETYPE_NOCLIP
 
@@ -63,7 +69,7 @@ function SWEP:Initialize()
     self.chuteMoveLeft = 0
     self.chuteLurch = 0
     self.chuteIsUnstable = false
-    self.chuteDir = Vector( 0, 0, 0 )
+    self.chuteDirRel = Vector( 0, 0, 0 )
 
     self:SetRenderMode( RENDERMODE_TRANSCOLOR )
 
@@ -118,7 +124,7 @@ function SWEP:SpawnChute()
 
     self.chuteEnt = chute
     self.chuteIsOpen = false
-    self.chuteDir = Vector( 0, 0, 0 )
+    self.chuteDirRel = Vector( 0, 0, 0 )
 
     hook.Run( "CFC_Parachute_ChuteCreated", chute )
 
@@ -127,25 +133,22 @@ function SWEP:SpawnChute()
         if not IsValid( owner ) then return end
         if not owner:IsPlayer() then return end
 
-        self:UpdateMoveKeys()
+        self:_UpdateMoveKeys()
     end )
 
     return chute
 end
 
-function SWEP:SetChuteDirection()
-    local chuteDir = Vector( self.chuteMoveForward - self.chuteMoveBack, self.chuteMoveRight - self.chuteMoveLeft, 0 )
+function SWEP:_UpdateChuteDirection()
+    local chuteDirRel = Vector( self.chuteMoveForward - self.chuteMoveBack, self.chuteMoveRight - self.chuteMoveLeft, 0 )
+    local animationDir = self.chuteIsUnstable and Vector() or chuteDirRel
 
-    -- Client does not receive the normalized version to make its math simpler
     net.Start( "CFC_Parachute_DefineChuteDir" )
     net.WriteEntity( self:SpawnChute() )
-    net.WriteVector( chuteDir )
+    net.WriteVector( animationDir )
     net.Broadcast()
 
-    chuteDir:Normalize()
-
-    self.chuteDir = chuteDir
-    self.chuteDirAng = chuteDir:Angle()
+    self.chuteDirRel = chuteDirRel
 end
 
 function SWEP:ChangeOwner( ply )
@@ -202,7 +205,7 @@ function SWEP:ChangeOpenStatus( state, ply )
 
     if state then
         self:SetColor( COLOR_HIDE )
-        self:SetChuteDirection()
+        self:_UpdateChuteDirection()
 
         chute:Open()
 
@@ -284,15 +287,9 @@ function SWEP:ApplyUnstableDirectionChange()
     if owner.cfcParachuteInstabilityImmune then return end
 
     local maxChange = UNSTABLE_MAX_DIR_CHANGE:GetFloat()
-    local chuteDir = self.chuteDir
+    local chuteDirUnstable = self.chuteDirUnstable
 
-    chuteDir:Rotate( Angle( 0, math.Rand( maxChange, maxChange ), 0 ) )
-    self.chuteDirAng = chuteDir:Angle()
-
-    net.Start( "CFC_Parachute_DefineChuteDir" )
-    net.WriteEntity( self:SpawnChute() )
-    net.WriteVector( chuteDir )
-    net.Broadcast()
+    chuteDirUnstable:Rotate( Angle( 0, math.Rand( maxChange, maxChange ), 0 ) )
 end
 
 function SWEP:CreateUnstableDirectionTimer()
@@ -325,22 +322,24 @@ function SWEP:ChangeInstabilityStatus( state )
         local eyeAngles = owner:EyeAngles()
         local eyeForward = eyeAngles:Forward()
         local eyeRight = eyeAngles:Right()
-        local chuteDir = self.chuteDir
+        local chuteDirRel = self.chuteDirRel
 
-        if not chuteDir or chuteDir == Vector( 0, 0, 0 ) then
-            chuteDir = Angle( 0, math.Rand( 0, 360 ), 0 ):Forward()
+        if not chuteDirRel or chuteDirRel == Vector( 0, 0, 0 ) then
+            chuteDirRel = Angle( 0, math.Rand( 0, 360 ), 0 ):Forward()
         end
 
-        self.chuteDir = ( eyeForward * chuteDir.x + eyeRight * chuteDir.y ) * Vector( 1, 1, 0 )
-        self.chuteDirAng = chuteDir:Angle()
+        local chuteDirUnstable = ( eyeForward * chuteDirRel.x + eyeRight * chuteDirRel.y ) * Vector( 1, 1, 0 )
+        chuteDirUnstable:Normalize()
 
+        self.chuteDirUnstable = chuteDirUnstable
         self:CreateUnstableDirectionTimer()
     else
-        self:SetChuteDirection()
         self.chuteLurch = 0
 
         timer.Remove( "CFC_Parachute_UnstableDirectionChange_" .. self:EntIndex() )
     end
+
+    self:_UpdateChuteDirection()
 end
 
 function SWEP:ApplyChuteDesign()
@@ -455,37 +454,28 @@ function SWEP:Equip( ply )
     end )
 end
 
-function SWEP:KeyPress( ply, key, state )
+
+function SWEP:_KeyPress( ply, key, state )
     if ply ~= self:GetOwner() or self.chuteIsUnstable then return end
 
-    if key == IN_FORWARD then
-        self.chuteMoveForward = state and 1 or 0
+    if MOVE_KEY_LOOKUP[key] then
+        if key == IN_FORWARD then
+            self.chuteMoveForward = state and 1 or 0
+        elseif key == IN_BACK then
+            self.chuteMoveBack = state and 1 or 0
+        elseif key == IN_MOVERIGHT then
+            self.chuteMoveRight = state and 1 or 0
+        elseif key == IN_MOVELEFT then
+            self.chuteMoveLeft = state and 1 or 0
+        end
 
         if not self.chuteIsOpen then return end
 
-        self:SetChuteDirection()
-    elseif key == IN_BACK then
-        self.chuteMoveBack = state and 1 or 0
-
-        if not self.chuteIsOpen then return end
-
-        self:SetChuteDirection()
-    elseif key == IN_MOVERIGHT then
-        self.chuteMoveRight = state and 1 or 0
-
-        if not self.chuteIsOpen then return end
-
-        self:SetChuteDirection()
-    elseif key == IN_MOVELEFT then
-        self.chuteMoveLeft = state and 1 or 0
-
-        if not self.chuteIsOpen then return end
-
-        self:SetChuteDirection()
+        self:_UpdateChuteDirection()
     end
 end
 
-function SWEP:UpdateMoveKeys()
+function SWEP:_UpdateMoveKeys()
     local owner = self:GetOwner()
     owner = IsValid( owner ) and owner or self.chuteOwner
 
@@ -495,6 +485,15 @@ function SWEP:UpdateMoveKeys()
     for i = 1, MOVE_KEY_COUNT do
         local moveKey = MOVE_KEYS[i]
 
-        self:KeyPress( owner, moveKey, owner:KeyDown( moveKey ) )
+        self:_KeyPress( owner, moveKey, owner:KeyDown( moveKey ) )
     end
+end
+
+function SWEP:_ApplyChuteForces()
+    if not self.chuteIsOpen then return end
+
+    local owner = self:GetOwner() or self.chuteOwner
+    if not IsValid( owner ) then return end
+
+    CFC_Parachute._ApplyChuteForces( owner, self )
 end

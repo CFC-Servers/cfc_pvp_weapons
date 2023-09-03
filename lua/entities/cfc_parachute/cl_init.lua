@@ -4,15 +4,16 @@ local tiltMult = 0.2
 
 
 function ENT:Initialize()
-    self.chuteDir = Vector( 0, 0, 0 )
+    self.chuteDirRel = Vector( 0, 0, 0 )
 end
 
-function ENT:SetChuteDirection( chuteDir )
-    chuteDir = chuteDir or self.chuteDir
-    self.chuteDir = chuteDir
+-- Direction is relative to the player's eyes, and should have x and y each in the range [-1, 1]
+function ENT:SetChuteDirection( chuteDirRel )
+    chuteDirRel = chuteDirRel or self.chuteDirRel
+    self.chuteDirRel = chuteDirRel
 
-    local forward = chuteDir.x
-    local right = chuteDir.y
+    local forward = chuteDirRel.x
+    local right = chuteDirRel.y
 
     local frontRight = ( forward + right ) / 2
     local frontLeft = ( forward - right ) / 2

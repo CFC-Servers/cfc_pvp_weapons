@@ -56,6 +56,7 @@ function ENT:Think()
 
     wep:CloseIfOnGround()
     wep:CloseIfInWater()
+    wep:_ApplyChuteForces()
     self:NextThink( CurTime() )
 
     return true
