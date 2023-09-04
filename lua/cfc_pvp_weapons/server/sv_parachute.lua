@@ -232,7 +232,7 @@ function CFC_Parachute.EquipAndOpenParachute( ply )
     ply:PickupWeapon( wep )
 
     -- Select parachute
-    timer.Simple( 0.05, function()
+    timer.Simple( 0.15, function()
         if not IsValid( ply ) then return end
         if ply:GetActiveWeapon() == wep then return end
 
