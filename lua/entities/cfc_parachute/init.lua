@@ -54,8 +54,6 @@ function ENT:Think()
     local wep = self.chutePack
     if not IsValid( wep ) then return end
 
-    wep:CloseIfOnGround()
-    wep:CloseIfInWater()
     wep:_ApplyChuteForces()
     self:NextThink( CurTime() )
 
