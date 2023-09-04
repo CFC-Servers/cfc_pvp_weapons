@@ -157,7 +157,7 @@ function SWEP:_UpdateChuteDirection()
 end
 
 function SWEP:ChangeOwner( ply )
-    ply = IsValid( ply ) and ply
+    ply = IsValid( ply ) and ply or nil
 
     local chute = self:SpawnChute()
 

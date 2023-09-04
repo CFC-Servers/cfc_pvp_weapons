@@ -337,7 +337,7 @@ hook.Add( "PlayerDroppedWeapon", "CFC_Parachute_ChangeOwner", function( ply, wep
     if wep:GetClass() ~= "cfc_weapon_parachute" then return end
 
     wep:CloseAndSelectPrevWeapon( ply )
-    changeOwner( wep, ply )
+    changeOwner( wep, nil )
 end )
 
 hook.Add( "WeaponEquip", "CFC_Parachute_ChangeOwner", changeOwner )
