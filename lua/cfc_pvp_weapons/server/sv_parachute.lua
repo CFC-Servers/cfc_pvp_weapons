@@ -322,7 +322,10 @@ function CFC_Parachute._ApplyChuteForces( ply, chuteWep )
     vel[3] = velZ
 
     -- Counteract gravity.
-    local gravity = physenv.GetGravity() * ply:GetGravity()
+    local gravity = ply:GetGravity()
+    gravity = gravity == 0 and 1 or gravity -- GMod/HL2 makes SetGravity( 0 ) and SetGravity( 1 ) behave exactly the same for some reason.
+    gravity = physenv.GetGravity() * gravity
+
     vel = vel - gravity * timeMult
 
     ply:SetVelocity( vel - ply:GetVelocity() ) -- SetVelocity() on Players actually adds.
