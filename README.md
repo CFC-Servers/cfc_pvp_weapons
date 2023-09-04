@@ -13,7 +13,7 @@
 | cfc_parachute_fall_speed | Target fall speed while in a parachute. | 200 |
 | cfc_parachute_fall_lerp | How quickly a parachute will reach its target fall speed. | 0.97 |
 | cfc_parachute_horizontal_speed | How quickly you move in a parachute. | 80 |
-| cfc_parachute_horizontal_speed_unstable | How well you can control a parachute while holding another weapon. | 40 |
+| cfc_parachute_horizontal_speed_unstable | How well you can control a parachute while holding another weapon. | 50 |
 | cfc_parachute_horizontal_speed_limit | Max horizontal speed of a parachute. | 700 |
 | cfc_parachute_sprint_boost | How much of a horizontal boost you get in a parachute while sprinting. | 1.25 |
 | cfc_parachute_handling | Improves parachute handling by making it easier to brake or chagne directions. 1 gives no handling boost, 0-1 reduces handling. | 4 |
