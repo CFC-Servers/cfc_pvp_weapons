@@ -1,5 +1,5 @@
 CreateConVar( "cfc_parachute_fall_speed", 200, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Target fall speed while in a parachute.", 0, 50000 )
-CreateConVar( "cfc_parachute_fall_lerp", 0.85, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How quickly a parachute will reach its target fall speed.", 0, 10 )
+CreateConVar( "cfc_parachute_fall_lerp", 0.95, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How quickly a parachute will reach its target fall speed.", 0, 10 )
 CreateConVar( "cfc_parachute_horizontal_speed", 80, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How quickly you move in a parachute.", 0, 50000 )
 CreateConVar( "cfc_parachute_horizontal_speed_unstable", 40, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How well you can control a parachute while holding another weapon.", 0, 50000 )
 CreateConVar( "cfc_parachute_horizontal_speed_limit", 700, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Max horizontal speed of a parachute.", 0, 50000 )
@@ -15,7 +15,7 @@ CreateConVar( "cfc_parachute_destabilize_lurch_chance", 0.2, { FCVAR_REPLICATED,
 CreateConVar( "cfc_parachute_destabilize_shoot_lurch_chance", 0.1, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The chance for an unstable parachute to lurch downwards when the player shoots a bullet.", 0, 1 )
 CreateConVar( "cfc_parachute_destabilize_shoot_change_chance", 0.25, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The chance for an unstable parachute's direction to change when the player shoots a bullet.", 0, 1 )
 
-CreateConVar( "cfc_parachute_space_equip_speed", 450, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "The minimum falling speed required for a player to space-equip a parachute.", 0, 50000 )
+CreateConVar( "cfc_parachute_space_equip_speed", 350, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "The minimum falling speed required for a player to space-equip a parachute.", 0, 50000 )
 CreateConVar( "cfc_parachute_space_equip_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Press spacebar while falling to quickly equip a parachute. Defines the default value for players.", 0, 1 )
 CreateConVar( "cfc_parachute_space_equip_double_sv", 0, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Double tap spacebar to equip parachutes, instead of a single press. Defines the default value for players.", 0, 1 )
 CreateConVar( "cfc_parachute_space_equip_weapon_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Instantly switch back to your previous weapon when space-equipping a parachute. Defines the default value for players.", 0, 1 )
