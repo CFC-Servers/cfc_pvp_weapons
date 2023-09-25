@@ -8,6 +8,7 @@ CFC_Parachute.DesignMaterialSub = string.len( "models/cfc/parachute/parachute_" 
 -- Convars
 local SPACE_EQUIP_SV
 local SPACE_EQUIP_DOUBLE_SV
+local SPACE_EQUIP_REDUNDANCY_SV
 local SPACE_EQUIP_WEAPON_SV
 local QUICK_CLOSE_SV
 
@@ -443,6 +444,7 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     local SPACE_EQUIP_SPEED = GetConVar( "cfc_parachute_space_equip_speed" )
     SPACE_EQUIP_SV = GetConVar( "cfc_parachute_space_equip_sv" )
     SPACE_EQUIP_DOUBLE_SV = GetConVar( "cfc_parachute_space_equip_double_sv" )
+    SPACE_EQUIP_REDUNDANCY_SV = GetConVar( "cfc_parachute_space_equip_redundancy_sv" )
     SPACE_EQUIP_WEAPON_SV = GetConVar( "cfc_parachute_space_equip_weapon_sv" )
     QUICK_CLOSE_SV = GetConVar( "cfc_parachute_quick_close_sv" )
 
@@ -515,7 +517,10 @@ end, HOOK_LOW )
 hook.Add( "Think", "CFC_Parachute_SpaceEquipCheck", function()
     for _, ply in ipairs( player.GetHumans() ) do
         local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-        if IsValid( wep ) then continue end -- Already have a parachute, no need to check.
+        if IsValid( wep ) then
+            if wep.chuteIsOpen then continue end
+            if not CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip_redundancy", SPACE_EQUIP_REDUNDANCY_SV ) then continue end
+        end
 
         local zVel = ply:GetVelocity()[3]
 
@@ -658,9 +663,14 @@ net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
     CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
 end )
 
+net.Receive( "CFC_Parachute_SpaceEquipRequestUnready", function( _, ply )
+    CFC_Parachute.SetSpaceEquipReady( ply, false )
+end )
+
 
 util.AddNetworkString( "CFC_Parachute_DefineChuteDir" )
 util.AddNetworkString( "CFC_Parachute_GrabChuteStraps" )
 util.AddNetworkString( "CFC_Parachute_DefineDesigns" )
 util.AddNetworkString( "CFC_Parachute_SelectDesign" )
 util.AddNetworkString( "CFC_Parachute_SpaceEquipReady" )
+util.AddNetworkString( "CFC_Parachute_SpaceEquipRequestUnready" )

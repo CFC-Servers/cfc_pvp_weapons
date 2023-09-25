@@ -141,7 +141,9 @@ function SWEP:ChangeOwner( ply )
     self:SetColor( COLOR_SHOW )
     chute:SetColor( COLOR_HIDE )
 
-    CFC_Parachute.SetSpaceEquipReadySilent( ply, true )
+    if not CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip_redundancy" ) then
+        CFC_Parachute.SetSpaceEquipReadySilent( ply, true )
+    end
 end
 
 function SWEP:CanOpen()

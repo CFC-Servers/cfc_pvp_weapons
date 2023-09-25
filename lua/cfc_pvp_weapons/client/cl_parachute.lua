@@ -24,6 +24,7 @@ CFC_Parachute.MenuToggleButtons = CFC_Parachute.MenuToggleButtons or {}
 
 CreateClientConVar( "cfc_parachute_space_equip", 2, true, true, "Press spacebar while falling to quickly equip a parachute.", 0, 2 )
 CreateClientConVar( "cfc_parachute_space_equip_double", 2, true, true, "Double tap spacebar to equip parachutes, instead of a single press.", 0, 2 )
+CreateClientConVar( "cfc_parachute_space_equip_redundancy", 2, true, true, "Makes space-equip still play the ready sound and require fast falling speed to activate when you already have a parachute SWEP equipped.", 0, 2 )
 CreateClientConVar( "cfc_parachute_space_equip_weapon", 2, true, true, "Automatically switch back to your previous weapon when space-equipping a parachute.", 0, 2 )
 
 CreateClientConVar( "cfc_parachute_quick_close", 2, true, true, "Press walk and crouch to quickly close your parachute at any time.", 0, 1 )
@@ -86,6 +87,13 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
     TextOff = "Double Tap for Space-Equip (Disabled)",
     TextOn = "Double Tap for Space-Equip (Enabled)",
     ConVar = "cfc_parachute_space_equip_double",
+    ConVarServerChoice = "2"
+} )
+
+table.insert( CFC_Parachute.MenuToggleButtons, {
+    TextOff = "Space-Equip Redundancy (Disabled)",
+    TextOn = "Space-Equip Redundancy (Enabled)",
+    ConVar = "cfc_parachute_space_equip_redundancy",
     ConVarServerChoice = "2"
 } )
 
@@ -384,6 +392,11 @@ cvars.AddChangeCallback( "cfc_parachute_design", function( _, old, new )
     net.Start( "CFC_Parachute_SelectDesign" )
     net.WriteInt( math.floor( old ), 17 )
     net.WriteInt( math.floor( new ), 17 )
+    net.SendToServer()
+end )
+
+cvars.AddChangeCallback( "cfc_parachute_space_equip_redundancy", function()
+    net.Start( "CFC_Parachute_SpaceEquipRequestUnready" )
     net.SendToServer()
 end )
 

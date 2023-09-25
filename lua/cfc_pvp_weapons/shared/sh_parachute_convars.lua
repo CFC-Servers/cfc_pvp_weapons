@@ -18,6 +18,7 @@ CreateConVar( "cfc_parachute_destabilize_shoot_change_chance", 0.25, { FCVAR_REP
 CreateConVar( "cfc_parachute_space_equip_speed", 370, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "The minimum falling speed required for a player to space-equip a parachute.", 0, 50000 )
 CreateConVar( "cfc_parachute_space_equip_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Press spacebar while falling to quickly equip a parachute. Defines the default value for players.", 0, 1 )
 CreateConVar( "cfc_parachute_space_equip_double_sv", 0, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Double tap spacebar to equip parachutes, instead of a single press. Defines the default value for players.", 0, 1 )
+CreateConVar( "cfc_parachute_space_equip_redundancy_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Makes space-equip still play the ready sound and require fast falling speed to activate when a player already has a parachute SWEP equipped. Defines the default value for players.", 0, 1 )
 CreateConVar( "cfc_parachute_space_equip_weapon_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Instantly switch back to your previous weapon when space-equipping a parachute. Defines the default value for players.", 0, 1 )
 
 CreateConVar( "cfc_parachute_prev_weapon_on_close_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Auto-selects the previous weapon upon closing the parachute. Defines the default value for players.", 0, 1 )
