@@ -6,21 +6,23 @@ CFC_Parachute.DesignMaterialCount = 21 -- Default value for in case someone chan
 CFC_Parachute.DesignMaterialSub = string.len( "models/cfc/parachute/parachute_" ) + 1
 
 -- Convars
-local UNSTABLE_SHOOT_LURCH_CHANCE
-local UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE
-local UNSTABLE_MAX_FALL_LURCH
-local FALL_SPEED
-local FALL_LERP
-local HORIZONTAL_SPEED
-local HORIZONTAL_SPEED_UNSTABLE
-local HORIZONTAL_SPEED_LIMIT
-local SPRINT_BOOST
-local HANDLING
-local SPACE_EQUIP_SPEED
 local SPACE_EQUIP_SV
 local SPACE_EQUIP_DOUBLE_SV
 local SPACE_EQUIP_WEAPON_SV
 local QUICK_CLOSE_SV
+
+-- Convar value localizations
+local cvUnstableShootLurchChance
+local cvUnstableShootDirectionChangeChance
+local cvUnstableMaxFallLurch
+local cvFallZVel
+local cvFallLerp
+local cvHorizontalSpeed
+local cvHorizontalSpeedUnstable
+local cvHorizontalSpeedLimit
+local cvSprintBoost
+local cvHandling
+local cvSpaceEquipZVelThreshold
 
 -- Chute designs
 local DESIGN_MATERIALS
@@ -61,18 +63,18 @@ local function improveHandling( vel, moveDir )
     dot = dot / velLength -- Get dot product on 0-1 scale
     if dot >= 0 then return moveDir end -- moveDir doesn't oppose vel.
 
-    local mult = math.max( -dot * HANDLING:GetFloat(), 1 )
+    local mult = math.max( -dot * cvHandling, 1 )
 
     return moveDir * mult
 end
 
 local function getHorizontalMoveSpeed( ply, isUnstable )
-    if isUnstable then return HORIZONTAL_SPEED_UNSTABLE:GetFloat() end
+    if isUnstable then return cvHorizontalSpeedUnstable end
 
-    local hSpeed = HORIZONTAL_SPEED:GetFloat()
+    local hSpeed = cvHorizontalSpeed
 
     if ply:KeyDown( IN_SPEED ) then
-        return hSpeed * SPRINT_BOOST:GetFloat()
+        return hSpeed * cvSprintBoost
     end
 
     return hSpeed
@@ -105,12 +107,12 @@ local function addHorizontalVel( ply, chuteWep, vel, timeMult, unstableDir )
 
     -- Add unstable velocity
     if unstableDir then
-        vel = vel + unstableDir * timeMult * HORIZONTAL_SPEED:GetFloat()
+        vel = vel + unstableDir * timeMult * cvHorizontalSpeed
     end
 
     -- Limit the horizontal speed
     local hSpeedCur = vel:Length2D()
-    local hSpeedLimit = HORIZONTAL_SPEED_LIMIT:GetFloat()
+    local hSpeedLimit = cvHorizontalSpeedLimit
 
     if hSpeedCur > hSpeedLimit then
         local mult = hSpeedLimit / hSpeedCur
@@ -125,7 +127,7 @@ end
 -- Enforces lurch limits according to convars.
 local function verifyLurch( velZ, lurch )
     if lurch >= 0 then return lurch end
-    if math.abs( velZ ) >= UNSTABLE_MAX_FALL_LURCH:GetFloat() then return 0 end
+    if math.abs( velZ ) >= cvUnstableMaxFallLurch then return 0 end
 
     return lurch
 end
@@ -301,11 +303,10 @@ end
 
 -- Not meant to be called manually.
 function CFC_Parachute._ApplyChuteForces( ply, chuteWep )
-    local targetFallVelZ = -FALL_SPEED:GetFloat()
     local vel = ply:GetVelocity()
     local velZ = vel[3]
 
-    if velZ > targetFallVelZ then return end
+    if velZ > cvFallZVel then return end
 
     local timeMult = FrameTime()
     local lurch = chuteWep.chuteLurch or 0
@@ -314,7 +315,7 @@ function CFC_Parachute._ApplyChuteForces( ply, chuteWep )
 
     -- Modify velocity.
     vel = addHorizontalVel( ply, chuteWep, vel, timeMult, unstableDir )
-    velZ = velZ + ( targetFallVelZ - velZ ) * FALL_LERP:GetFloat() * timeMult
+    velZ = velZ + ( cvFallZVel - velZ ) * cvFallLerp * timeMult
 
     if lurch ~= 0 then
         velZ = velZ + verifyLurch( velZ, lurch )
@@ -389,11 +390,11 @@ hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, dat
     if not IsValid( chuteSwep ) then return end
     if not chuteSwep.chuteIsUnstable then return end
 
-    if math.Rand( 0, 1 ) <= UNSTABLE_SHOOT_LURCH_CHANCE:GetFloat() then
+    if math.Rand( 0, 1 ) <= cvUnstableShootLurchChance then
         chuteSwep:ApplyUnstableLurch()
     end
 
-    if math.Rand( 0, 1 ) <= UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE:GetFloat() then
+    if math.Rand( 0, 1 ) <= cvUnstableShootDirectionChangeChance then
         chuteSwep:ApplyUnstableDirectionChange()
     end
 end )
@@ -430,21 +431,76 @@ hook.Add( "CFC_Parachute_ChuteCreated", "CFC_Parachute_DefineDesigns", function(
 end )
 
 hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
-    UNSTABLE_SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_lurch_chance" )
-    UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_change_chance" )
-    UNSTABLE_MAX_FALL_LURCH = GetConVar( "cfc_parachute_destabilize_max_fall_lurch" )
-    FALL_SPEED = GetConVar( "cfc_parachute_fall_speed" )
-    FALL_LERP = GetConVar( "cfc_parachute_fall_lerp" )
-    HORIZONTAL_SPEED = GetConVar( "cfc_parachute_horizontal_speed" )
-    HORIZONTAL_SPEED_UNSTABLE = GetConVar( "cfc_parachute_horizontal_speed_unstable" )
-    HORIZONTAL_SPEED_LIMIT = GetConVar( "cfc_parachute_horizontal_speed_limit" )
-    SPRINT_BOOST = GetConVar( "cfc_parachute_sprint_boost" )
-    HANDLING = GetConVar( "cfc_parachute_handling" )
-    SPACE_EQUIP_SPEED = GetConVar( "cfc_parachute_space_equip_speed" )
+    local UNSTABLE_SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_lurch_chance" )
+    local UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_change_chance" )
+    local UNSTABLE_MAX_FALL_LURCH = GetConVar( "cfc_parachute_destabilize_max_fall_lurch" )
+    local FALL_SPEED = GetConVar( "cfc_parachute_fall_speed" )
+    local FALL_LERP = GetConVar( "cfc_parachute_fall_lerp" )
+    local HORIZONTAL_SPEED = GetConVar( "cfc_parachute_horizontal_speed" )
+    local HORIZONTAL_SPEED_UNSTABLE = GetConVar( "cfc_parachute_horizontal_speed_unstable" )
+    local HORIZONTAL_SPEED_LIMIT = GetConVar( "cfc_parachute_horizontal_speed_limit" )
+    local SPRINT_BOOST = GetConVar( "cfc_parachute_sprint_boost" )
+    local HANDLING = GetConVar( "cfc_parachute_handling" )
+    local SPACE_EQUIP_SPEED = GetConVar( "cfc_parachute_space_equip_speed" )
     SPACE_EQUIP_SV = GetConVar( "cfc_parachute_space_equip_sv" )
     SPACE_EQUIP_DOUBLE_SV = GetConVar( "cfc_parachute_space_equip_double_sv" )
     SPACE_EQUIP_WEAPON_SV = GetConVar( "cfc_parachute_space_equip_weapon_sv" )
     QUICK_CLOSE_SV = GetConVar( "cfc_parachute_quick_close_sv" )
+
+    cvUnstableShootLurchChance = UNSTABLE_SHOOT_LURCH_CHANCE:GetFloat() or 0
+    cvars.AddChangeCallback( "cfc_parachute_destabilize_shoot_lurch_chance", function( _, _, new )
+        cvUnstableShootLurchChance = tonumber( new ) or 0
+    end, "CFC_Parachute_CacheValue" )
+
+    cvUnstableShootDirectionChangeChance = UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE:GetFloat() or 0
+    cvars.AddChangeCallback( "cfc_parachute_destabilize_shoot_change_chance", function( _, _, new )
+        cvUnstableShootDirectionChangeChance = tonumber( new ) or 0
+    end, "CFC_Parachute_CacheValue" )
+
+    cvUnstableMaxFallLurch = UNSTABLE_MAX_FALL_LURCH:GetFloat() or 0
+    cvars.AddChangeCallback( "cfc_parachute_destabilize_max_fall_lurch", function( _, _, new )
+        cvUnstableMaxFallLurch = tonumber( new ) or 0
+    end, "CFC_Parachute_CacheValue" )
+
+    cvFallZVel = -( FALL_SPEED:GetFloat() or 0 )
+    cvars.AddChangeCallback( "cfc_parachute_fall_speed", function( _, _, new )
+        cvFallZVel = -( tonumber( new ) or 0 )
+    end, "CFC_Parachute_CacheValue" )
+
+    cvFallLerp = FALL_LERP:GetFloat() or 0
+    cvars.AddChangeCallback( "cfc_parachute_fall_lerp", function( _, _, new )
+        cvFallLerp = tonumber( new ) or 0
+    end, "CFC_Parachute_CacheValue" )
+
+    cvHorizontalSpeed = HORIZONTAL_SPEED:GetFloat() or 0
+    cvars.AddChangeCallback( "cfc_parachute_horizontal_speed", function( _, _, new )
+        cvHorizontalSpeed = tonumber( new ) or 0
+    end, "CFC_Parachute_CacheValue" )
+
+    cvHorizontalSpeedUnstable = HORIZONTAL_SPEED_UNSTABLE:GetFloat() or 0
+    cvars.AddChangeCallback( "cfc_parachute_horizontal_speed_unstable", function( _, _, new )
+        cvHorizontalSpeedUnstable = tonumber( new ) or 0
+    end, "CFC_Parachute_CacheValue" )
+
+    cvHorizontalSpeedLimit = HORIZONTAL_SPEED_LIMIT:GetFloat() or 0
+    cvars.AddChangeCallback( "cfc_parachute_horizontal_speed_limit", function( _, _, new )
+        cvHorizontalSpeedLimit = tonumber( new ) or 0
+    end, "CFC_Parachute_CacheValue" )
+
+    cvSprintBoost = SPRINT_BOOST:GetFloat() or 0
+    cvars.AddChangeCallback( "cfc_parachute_sprint_boost", function( _, _, new )
+        cvSprintBoost = tonumber( new ) or 0
+    end, "CFC_Parachute_CacheValue" )
+
+    cvHandling = HANDLING:GetFloat() or 0
+    cvars.AddChangeCallback( "cfc_parachute_handling", function( _, _, new )
+        cvHandling = tonumber( new ) or 0
+    end, "CFC_Parachute_CacheValue" )
+
+    cvSpaceEquipZVelThreshold = -( SPACE_EQUIP_SPEED:GetFloat() or 0 )
+    cvars.AddChangeCallback( "cfc_parachute_space_equip_speed", function( _, _, new )
+        cvSpaceEquipZVelThreshold = -( tonumber( new ) or 0 )
+    end, "CFC_Parachute_CacheValue" )
 end )
 
 hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, state )
@@ -458,8 +514,6 @@ hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, stat
 end, HOOK_LOW )
 
 hook.Add( "Think", "CFC_Parachute_SpaceEquipCheck", function()
-    local zVelThreshold = -SPACE_EQUIP_SPEED:GetFloat()
-
     for _, ply in ipairs( player.GetAll() ) do
         local wep = ply:GetWeapon( "cfc_weapon_parachute" )
         if IsValid( wep ) then continue end -- Already have a parachute, no need to check.
@@ -467,11 +521,11 @@ hook.Add( "Think", "CFC_Parachute_SpaceEquipCheck", function()
         local zVel = ply:GetVelocity()[3]
 
         if ply.cfcParachuteSpaceEquipReady then
-            if ply:GetMoveType() == MOVETYPE_NOCLIP or zVel > zVelThreshold then
+            if ply:GetMoveType() == MOVETYPE_NOCLIP or zVel > cvSpaceEquipZVelThreshold then
                 CFC_Parachute.SetSpaceEquipReady( ply, false )
             end
         else
-            if ply:GetMoveType() ~= MOVETYPE_NOCLIP and zVel <= zVelThreshold then
+            if ply:GetMoveType() ~= MOVETYPE_NOCLIP and zVel <= cvSpaceEquipZVelThreshold then
                 CFC_Parachute.SetSpaceEquipReady( ply, true )
             end
         end
