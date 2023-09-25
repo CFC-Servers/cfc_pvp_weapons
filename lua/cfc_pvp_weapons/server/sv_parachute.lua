@@ -514,7 +514,7 @@ hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, stat
 end, HOOK_LOW )
 
 hook.Add( "Think", "CFC_Parachute_SpaceEquipCheck", function()
-    for _, ply in ipairs( player.GetAll() ) do
+    for _, ply in ipairs( player.GetHumans() ) do
         local wep = ply:GetWeapon( "cfc_weapon_parachute" )
         if IsValid( wep ) then continue end -- Already have a parachute, no need to check.
 
