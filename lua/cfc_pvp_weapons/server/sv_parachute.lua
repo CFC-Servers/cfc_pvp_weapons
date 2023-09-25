@@ -478,6 +478,10 @@ hook.Add( "Think", "CFC_Parachute_SpaceEquipCheck", function()
     end
 end )
 
+hook.Add( "CFC_Parachute_IsSpaceEquipEnabled", "CFC_Parachute_RequireDownwardsVelocity", function( ply )
+    return ply:GetVelocity()[3] < 0
+end )
+
 hook.Add( "CFC_Parachute_IsSpaceEquipEnabled", "CFC_Parachute_CheckPreferences", function( ply )
     local spaceEquipEnabled = CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip", SPACE_EQUIP_SV )
 
