@@ -400,11 +400,10 @@ hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, dat
 end )
 
 hook.Add( "CFC_Parachute_ChuteCreated", "CFC_Parachute_DefineDesigns", function( chute )
-    local designMaterials = CFC_Parachute.DesignMaterials
-    if designMaterials then return end -- Already defined
+    hook.Remove( "CFC_Parachute_ChuteCreated", "CFC_Parachute_DefineDesigns" )
 
-    designMaterials = chute:GetMaterials()
-    designMaterialNames = {}
+    local designMaterials = chute:GetMaterials()
+    local designMaterialNames = {}
 
     local designMaterialCount = #designMaterials - 1
     local designMaterialSub = CFC_Parachute.DesignMaterialSub
