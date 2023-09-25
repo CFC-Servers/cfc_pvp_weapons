@@ -665,6 +665,18 @@ end )
 
 net.Receive( "CFC_Parachute_SpaceEquipRequestUnready", function( _, ply )
     CFC_Parachute.SetSpaceEquipReady( ply, false )
+
+    -- Apply the silent space-equip ready state if the player has a chute and has redundancy off.
+    -- Uses a timer to ensure the userinfo convar is updated.
+    timer.Create( "CFC_Parachute_SpaceEquipRedundancyUpdate_" .. ply:SteamID(), 0.25, 1, function()
+        if not IsValid( ply ) then return end
+        if CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip_redundancy", SPACE_EQUIP_REDUNDANCY_SV ) then return end
+
+        local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+        if not IsValid( wep ) then return end
+
+        CFC_Parachute.SetSpaceEquipReadySilent( ply, true )
+    end )
 end )
 
 
