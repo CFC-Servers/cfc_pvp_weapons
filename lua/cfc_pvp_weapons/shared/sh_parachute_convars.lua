@@ -22,4 +22,5 @@ CreateConVar( "cfc_parachute_space_equip_redundancy_sv", 1, { FCVAR_ARCHIVE, FCV
 CreateConVar( "cfc_parachute_space_equip_weapon_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Instantly switch back to your previous weapon when space-equipping a parachute. Defines the default value for players.", 0, 1 )
 
 CreateConVar( "cfc_parachute_prev_weapon_on_close_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Auto-selects the previous weapon upon closing the parachute. Defines the default value for players.", 0, 1 )
-CreateConVar( "cfc_parachute_quick_close_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Press walk and crouch to quickly close the parachute. Defines the default value for players.", 0, 1 )
+CreateConVar( "cfc_parachute_quick_close_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Press walk to close the parachute. Defines the default value for players.", 0, 1 )
+CreateConVar( "cfc_parachute_quick_close_advanced_sv", 0, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Makes quick-close require walk and crouch to be pressed together. Defines the default value for players.", 0, 1 )

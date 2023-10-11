@@ -44,7 +44,8 @@
 | cfc_parachute_space_equip_redundancy | Makes space-equip still play the ready sound and require fast falling speed to activate when you already have a parachute SWEP equipped. | 1 |
 | cfc_parachute_space_equip_weapon | Automatically switch back to your previous weapon when space-equipping a parachute. | 1 |
 | cfc_parachute_prev_weapon_on_close | Auto-select your previous weapon when you close your parachute. | 1 |
-| cfc_parachute_quick_close | Press walk and crouch to quickly close your parachute at any time. | 1 |
+| cfc_parachute_quick_close | Press the walk key to quickly close your parachute at any time. | 1 |
+| cfc_parachute_quick_close_advanced | Makes quick-close require you to press walk and crouch together. | 0 |
 
 ## Credits
 

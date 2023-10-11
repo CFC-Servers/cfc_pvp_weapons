@@ -11,6 +11,7 @@ local SPACE_EQUIP_DOUBLE_SV
 local SPACE_EQUIP_REDUNDANCY_SV
 local SPACE_EQUIP_WEAPON_SV
 local QUICK_CLOSE_SV
+local QUICK_CLOSE_ADVANCED_SV
 
 -- Convar value localizations
 local cvUnstableShootLurchChance
@@ -143,6 +144,10 @@ end
 
 local function quickCloseEnabled( ply )
     return CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_quick_close", QUICK_CLOSE_SV )
+end
+
+local function quickCloseAdvancedEnabled( ply )
+    return CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_quick_close_advanced", QUICK_CLOSE_ADVANCED_SV )
 end
 
 
@@ -447,6 +452,7 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     SPACE_EQUIP_REDUNDANCY_SV = GetConVar( "cfc_parachute_space_equip_redundancy_sv" )
     SPACE_EQUIP_WEAPON_SV = GetConVar( "cfc_parachute_space_equip_weapon_sv" )
     QUICK_CLOSE_SV = GetConVar( "cfc_parachute_quick_close_sv" )
+    QUICK_CLOSE_ADVANCED_SV = GetConVar( "cfc_parachute_quick_close_advanced_sv" )
 
     cvUnstableShootLurchChance = UNSTABLE_SHOOT_LURCH_CHANCE:GetFloat() or 0
     cvars.AddChangeCallback( "cfc_parachute_destabilize_shoot_lurch_chance", function( _, _, new )
@@ -596,19 +602,24 @@ end )
 hook.Add( "KeyPress", "CFC_Parachute_QuickClose", function( ply, key )
     if key ~= IN_WALK and key ~= IN_DUCK then return end
 
-    local now = RealTime()
-    local otherLastPress
+    if quickCloseAdvancedEnabled( ply ) then
+        local now = RealTime()
+        local otherLastPress
 
-    if key == IN_WALK then
-        otherLastPress = ply.cfcParachuteQuickCloseLastCrouched
-        ply.cfcParachuteQuickCloseLastWalked = now
+        if key == IN_WALK then
+            otherLastPress = ply.cfcParachuteQuickCloseLastCrouched
+            ply.cfcParachuteQuickCloseLastWalked = now
+        else
+            otherLastPress = ply.cfcParachuteQuickCloseLastWalked
+            ply.cfcParachuteQuickCloseLastCrouched = now
+        end
+
+        if not otherLastPress then return end
+        if now - otherLastPress > QUICK_CLOSE_WINDOW then return end
     else
-        otherLastPress = ply.cfcParachuteQuickCloseLastWalked
-        ply.cfcParachuteQuickCloseLastCrouched = now
+        if key == IN_WALK then return end
     end
 
-    if not otherLastPress then return end
-    if now - otherLastPress > QUICK_CLOSE_WINDOW then return end
     if not quickCloseEnabled( ply ) then return end
 
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
