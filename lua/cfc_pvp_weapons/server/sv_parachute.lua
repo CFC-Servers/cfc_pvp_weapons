@@ -617,7 +617,7 @@ hook.Add( "KeyPress", "CFC_Parachute_QuickClose", function( ply, key )
         if not otherLastPress then return end
         if now - otherLastPress > QUICK_CLOSE_WINDOW then return end
     else
-        if key == IN_WALK then return end
+        if key == IN_DUCK then return end
     end
 
     if not quickCloseEnabled( ply ) then return end
