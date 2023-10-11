@@ -27,9 +27,9 @@ CreateClientConVar( "cfc_parachute_space_equip_double", 2, true, true, "Double t
 CreateClientConVar( "cfc_parachute_space_equip_redundancy", 2, true, true, "Makes space-equip still play the ready sound and require fast falling speed to activate when you already have a parachute SWEP equipped.", 0, 2 )
 CreateClientConVar( "cfc_parachute_space_equip_weapon", 2, true, true, "Automatically switch back to your previous weapon when space-equipping a parachute.", 0, 2 )
 
-CreateClientConVar( "cfc_parachute_quick_close", 2, true, true, "Press the walk key to quickly close your parachute at any time.", 0, 1 )
-CreateClientConVar( "cfc_parachute_quick_close_advanced", 2, true, true, "Makes quick-close require you to press walk and crouch together.", 0, 1 )
-CreateClientConVar( "cfc_parachute_prev_weapon_on_close", 2, true, true, "Auto-select your previous weapon when you close your parachute.", 0, 1 )
+CreateClientConVar( "cfc_parachute_quick_close", 2, true, true, "Press the walk key to quickly close your parachute at any time.", 0, 2 )
+CreateClientConVar( "cfc_parachute_quick_close_advanced", 2, true, true, "Makes quick-close require you to press walk and crouch together.", 0, 2 )
+CreateClientConVar( "cfc_parachute_prev_weapon_on_close", 2, true, true, "Auto-select your previous weapon when you close your parachute.", 0, 2 )
 
 local DESIGN_MATERIALS
 local DESIGN_MATERIAL_NAMES
