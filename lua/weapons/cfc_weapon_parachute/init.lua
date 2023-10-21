@@ -213,10 +213,6 @@ function SWEP:CloseAndSelectPrevWeapon( ply )
 end
 
 function SWEP:ApplyUnstableLurch()
-    local owner = self:GetOwner()
-    if not IsValid( owner ) then return end
-    if owner.cfcParachuteInstabilityImmune then return end
-
     local maxLurch = UNSTABLE_MAX_LURCH:GetFloat()
     local lurchForce = -math.Rand( 0, maxLurch )
 
@@ -224,10 +220,6 @@ function SWEP:ApplyUnstableLurch()
 end
 
 function SWEP:ApplyUnstableDirectionChange()
-    local owner = self:GetOwner() or self.chuteOwner
-    if not IsValid( owner ) then return end
-    if owner.cfcParachuteInstabilityImmune then return end
-
     local maxChange = UNSTABLE_MAX_DIR_CHANGE:GetFloat()
     local chuteDirUnstable = self.chuteDirUnstable
 
@@ -239,8 +231,15 @@ function SWEP:CreateUnstableDirectionTimer()
     local delay = math.Rand( UNSTABLE_MIN_GAP:GetFloat(), UNSTABLE_MAX_GAP:GetFloat() )
 
     timer.Create( timerName, delay, 1, function()
-        self:ApplyUnstableDirectionChange()
+        local owner = self.chuteOwner
+        if not IsValid( owner ) then return end
+
         self:CreateUnstableDirectionTimer()
+
+        if owner.cfcParachuteInstabilityImmune then return end
+        if owner:IsOnGround() then return end
+
+        self:ApplyUnstableDirectionChange()
 
         if math.Rand( 0, 1 ) <= UNSTABLE_LURCH_CHANCE:GetFloat() then
             self:ApplyUnstableLurch()

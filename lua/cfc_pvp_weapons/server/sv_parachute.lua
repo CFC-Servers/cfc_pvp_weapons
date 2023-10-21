@@ -122,7 +122,7 @@ end
 -- Enforces lurch limits according to convars.
 local function verifyLurch( velZ, lurch )
     if lurch >= 0 then return lurch end
-    if math.abs( velZ ) >= cvUnstableMaxFallLurch then return 0 end
+    if math.abs( velZ ) >= cvUnstableMaxFallLurch then return -cvUnstableMaxFallLurch end
 
     return lurch
 end
