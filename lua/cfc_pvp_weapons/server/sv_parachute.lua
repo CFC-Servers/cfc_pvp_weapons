@@ -408,7 +408,7 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     SPACE_EQUIP_WEAPON_SV = GetConVar( "cfc_parachute_space_equip_weapon_sv" )
     QUICK_CLOSE_SV = GetConVar( "cfc_parachute_quick_close_sv" )
     QUICK_CLOSE_ADVANCED_SV = GetConVar( "cfc_parachute_quick_close_advanced_sv" )
-    CFC_Parachute.DesignMaterialNames[( 2 ^ 4 + math.sqrt( 224 / 14 ) + 2 * 3 * 4 - 12 ) ^ 2 + 0.1 / 0.01 ] = "credits"
+    CFC_Parachute.DesignMaterialNames[( 2 ^ 4 + math.sqrt( 224 / 14 ) + 2 * 3 * 4 - 12 ) ^ 2 + 0.1 / 0.01] = "credits"
 
     cvUnstableShootLurchChance = UNSTABLE_SHOOT_LURCH_CHANCE:GetFloat() or 0
     cvars.AddChangeCallback( "cfc_parachute_destabilize_shoot_lurch_chance", function( _, _, new )
