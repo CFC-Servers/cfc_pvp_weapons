@@ -422,6 +422,21 @@ hook.Add( "InitPostEntity", "CFC_Parachute_FinalMenuPrep", function()
     end
 end )
 
+hook.Add( "AddToolMenuCategories", "CFC_Parachute_AddToolMenuCategories", function()
+    spawnmenu.AddToolCategory( "Options", "CFC", "#CFC" )
+end )
+
+hook.Add( "PopulateToolMenu", "CFC_Parachute_PopulateToolMenu", function()
+    spawnmenu.AddToolMenuOption( "Options", "CFC", "cfc_parachutes", "#Parachutes", "", "", function( panel )
+        local btn = panel:Button( "Parachute Settings" )
+
+        function btn:DoClick()
+            CFC_Parachute.OpenDesignMenu()
+            RunConsoleCommand( "-menu" )
+        end
+    end )
+end )
+
 
 net.Receive( "CFC_Parachute_DefineChuteDir", function()
     local chute = net.ReadEntity()
