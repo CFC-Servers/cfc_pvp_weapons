@@ -101,8 +101,6 @@ function SWEP:SpawnChute()
     self.chuteIsOpen = false
     self.chuteDirRel = Vector( 0, 0, 0 )
 
-    hook.Run( "CFC_Parachute_ChuteCreated", chute )
-
     timer.Simple( 0.02, function()
         local owner = self:GetOwner() or chute.chuteOwner
         if not IsValid( owner ) then return end
@@ -293,19 +291,12 @@ function SWEP:ApplyChuteDesign()
 
     local chute = self:SpawnChute()
     local designID = owner.cfcParachuteDesignID or 1
-    local designMaterials = CFC_Parachute.DesignMaterials
+    local materialName =
+        CFC_Parachute.DesignMaterialNames[designID] or
+        CFC_Parachute.DesignMaterialNames[1]
+    local fullMaterial = CFC_Parachute.DesignMaterialPrefix .. materialName
 
-    if not designMaterials then
-        timer.Simple( 1, function()
-            self:ApplyChuteDesign()
-        end )
-
-        return
-    end
-
-    local skinID = ( designID == 1034 and chute:SkinCount() or designID ) - 1
-
-    chute:SetSkin( skinID )
+    chute:SetSubMaterial( 0, fullMaterial )
 end
 
 function SWEP:PrimaryAttack()
@@ -372,30 +363,6 @@ function SWEP:Equip( ply )
         else
             self:ApplyChuteDesign()
         end
-
-        if ply.cfcParachuteKnowsDesigns then return end
-
-        local designMaterials = CFC_Parachute.DesignMaterials
-
-        if not designMaterials then
-            local chute = self.chuteEnt
-
-            if IsValid( chute ) then
-                hook.Run( "CFC_Parachute_ChuteCreated", chute )
-
-                designMaterials = CFC_Parachute.DesignMaterials
-            else
-                self:SpawnChute()
-            end
-        end
-
-        net.Start( "CFC_Parachute_DefineDesigns" )
-        net.WriteTable( designMaterials )
-        net.WriteTable( CFC_Parachute.DesignMaterialNames )
-        net.WriteInt( CFC_Parachute.DesignMaterialCount, 17 )
-        net.Send( ply )
-
-        ply.cfcParachuteKnowsDesigns = true
     end )
 end
 

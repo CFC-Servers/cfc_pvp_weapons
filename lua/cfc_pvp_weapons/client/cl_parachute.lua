@@ -1,8 +1,5 @@
 CFC_Parachute = CFC_Parachute or {}
 
-CFC_Parachute.DesignMaterials = false
-CFC_Parachute.DesignMaterialNames = false
-CFC_Parachute.DesignMaterialCount = false
 CFC_Parachute.DesignWindow = false
 
 CFC_Parachute.MenuToggleButtons = CFC_Parachute.MenuToggleButtons or {}
@@ -31,9 +28,6 @@ CreateClientConVar( "cfc_parachute_quick_close", 2, true, true, "Press the walk 
 CreateClientConVar( "cfc_parachute_quick_close_advanced", 2, true, true, "Makes quick-close require you to press walk and crouch together.", 0, 2 )
 CreateClientConVar( "cfc_parachute_prev_weapon_on_close", 2, true, true, "Auto-select your previous weapon when you close your parachute.", 0, 2 )
 
-local DESIGN_MATERIALS
-local DESIGN_MATERIAL_NAMES
-local DESIGN_MATERIAL_COUNT
 
 local DESIGN_CHOICE = CreateConVar( "cfc_parachute_design", 1, { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NEVER_AS_STRING }, "Your selected parachute design.", 1, 50000 )
 local SPACE_EQUIP_VOLUME = CreateClientConVar( "cfc_parachute_space_equip_volume", 0.5, true, false, "Volume for the sound that indicates you are ready to space-equip a parachute.", 0, 1 )
@@ -145,9 +139,12 @@ end
 
 function CFC_Parachute.CreateDesignPreview( x, y, ind, panel )
     local icon = vgui.Create( "ContentIcon", panel )
+    local materialName = CFC_Parachute.DesignMaterialNames[ind]
+    local fullMaterial = CFC_Parachute.DesignMaterialPrefix .. materialName
+
     icon:SetPos( x, y )
-    icon:SetName( DESIGN_MATERIAL_NAMES[ind] )
-    icon:SetMaterial( DESIGN_MATERIALS[ind] )
+    icon:SetName( materialName )
+    icon:SetMaterial( fullMaterial )
 
     icon.designInd = ind
 
@@ -433,16 +430,6 @@ net.Receive( "CFC_Parachute_DefineChuteDir", function()
     if not chute.SetChuteDirection then return end -- Somehow the function sometimes becomes nil while the parachute is still valid
 
     chute:SetChuteDirection( chuteDirRel )
-end )
-
-net.Receive( "CFC_Parachute_DefineDesigns", function()
-    DESIGN_MATERIALS = net.ReadTable()
-    DESIGN_MATERIAL_NAMES = net.ReadTable()
-    DESIGN_MATERIAL_COUNT = net.ReadInt( 17 )
-
-    CFC_Parachute.DesignMaterials = DESIGN_MATERIALS
-    CFC_Parachute.DesignMaterialNames = DESIGN_MATERIAL_NAMES
-    CFC_Parachute.DesignMaterialCount = DESIGN_MATERIAL_COUNT
 end )
 
 net.Receive( "CFC_Parachute_SelectDesign", function()

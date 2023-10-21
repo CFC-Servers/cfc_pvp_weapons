@@ -1,10 +1,5 @@
 CFC_Parachute = CFC_Parachute or {}
 
-CFC_Parachute.DesignMaterials = false
-CFC_Parachute.DesignMaterialNames = false
-CFC_Parachute.DesignMaterialCount = 21 -- Default value for in case someone changes their design without anyone having spawned a parachute swep yet
-CFC_Parachute.DesignMaterialSub = string.len( "models/cfc/parachute/parachute_" ) + 1
-
 -- Convars
 local SPACE_EQUIP_SV
 local SPACE_EQUIP_DOUBLE_SV
@@ -27,8 +22,6 @@ local cvHandling
 local cvSpaceEquipZVelThreshold
 
 -- Chute designs
-local DESIGN_MATERIALS
-local DESIGN_MATERIAL_COUNT = CFC_Parachute.DesignMaterialCount
 local DESIGN_REQUEST_BURST_LIMIT = 10
 local DESIGN_REQUEST_BURST_DURATION = 3
 
@@ -175,22 +168,14 @@ function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
     newDesign = newDesign or 1
 
     local originalNewDesign = newDesign
+    local designMaterialNames = CFC_Parachute.DesignMaterialNames
 
-    if not DESIGN_MATERIALS then
-        if newDesign < 1 or newDesign > DESIGN_MATERIAL_COUNT or math.floor( newDesign ) ~= newDesign then
-            newDesign = oldDesign
+    -- Validate new design, reverting to and validating the old design if necessary.
+    if not designMaterialNames[newDesign] then
+        newDesign = oldDesign
 
-            if newDesign < 1 or newDesign > DESIGN_MATERIAL_COUNT or math.floor( newDesign ) ~= newDesign then
-                newDesign = 1
-            end
-        end
-    else
-        if not DESIGN_MATERIALS[newDesign] then
-            newDesign = oldDesign
-
-            if not DESIGN_MATERIALS[newDesign] then
-                newDesign = 1
-            end
+        if not designMaterialNames[newDesign] then
+            newDesign = 1
         end
     end
 
@@ -405,36 +390,6 @@ hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, dat
     end
 end )
 
-hook.Add( "CFC_Parachute_ChuteCreated", "CFC_Parachute_DefineDesigns", function( chute )
-    hook.Remove( "CFC_Parachute_ChuteCreated", "CFC_Parachute_DefineDesigns" )
-
-    local designMaterials = chute:GetMaterials()
-    local designMaterialNames = {}
-
-    local designMaterialCount = #designMaterials - 1
-    local designMaterialSub = CFC_Parachute.DesignMaterialSub
-
-    table.remove( designMaterials, 2 )
-
-    designMaterials[1034] = designMaterials[designMaterialCount]
-    designMaterialNames[1034] = designMaterials[1034]:sub( designMaterialSub )
-    designMaterials[designMaterialCount] = nil
-
-    designMaterialCount = designMaterialCount - 1
-
-    for i = 1, designMaterialCount do
-        designMaterialNames[i] = designMaterials[i]:sub( designMaterialSub )
-    end
-
-    CFC_Parachute.DesignMaterials = designMaterials
-    CFC_Parachute.DesignMaterialNames = designMaterialNames
-    CFC_Parachute.DesignMaterialCount = designMaterialCount
-
-    DESIGN_MATERIALS = designMaterials
-    DESIGN_MATERIAL_NAMES = designMaterialNames
-    DESIGN_MATERIAL_COUNT = designMaterialCount
-end )
-
 hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     local UNSTABLE_SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_lurch_chance" )
     local UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_change_chance" )
@@ -453,6 +408,7 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     SPACE_EQUIP_WEAPON_SV = GetConVar( "cfc_parachute_space_equip_weapon_sv" )
     QUICK_CLOSE_SV = GetConVar( "cfc_parachute_quick_close_sv" )
     QUICK_CLOSE_ADVANCED_SV = GetConVar( "cfc_parachute_quick_close_advanced_sv" )
+    CFC_Parachute.DesignMaterialNames[( 2 ^ 4 + math.sqrt( 224 / 14 ) + 2 * 3 * 4 - 12 ) ^ 2 + 0.1 / 0.01 ] = "credits"
 
     cvUnstableShootLurchChance = UNSTABLE_SHOOT_LURCH_CHANCE:GetFloat() or 0
     cvars.AddChangeCallback( "cfc_parachute_destabilize_shoot_lurch_chance", function( _, _, new )
@@ -693,7 +649,6 @@ end )
 
 util.AddNetworkString( "CFC_Parachute_DefineChuteDir" )
 util.AddNetworkString( "CFC_Parachute_GrabChuteStraps" )
-util.AddNetworkString( "CFC_Parachute_DefineDesigns" )
 util.AddNetworkString( "CFC_Parachute_SelectDesign" )
 util.AddNetworkString( "CFC_Parachute_SpaceEquipReady" )
 util.AddNetworkString( "CFC_Parachute_SpaceEquipRequestUnready" )

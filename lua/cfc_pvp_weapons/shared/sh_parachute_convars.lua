@@ -1,3 +1,38 @@
+CFC_Parachute = CFC_Parachute or {}
+
+CFC_Parachute.DesignMaterialPrefix = "models/cfc/parachute/parachute_"
+CFC_Parachute.DesignMaterialNames = {
+    "base",
+    "red",
+    "orange",
+    "yellow",
+    "green",
+    "teal",
+    "blue",
+    "purple",
+    "magenta",
+    "white",
+    "black",
+    "brown",
+    "rainbow",
+    "camo",
+    "camo_tan",
+    "camo_brown",
+    "camo_blue",
+    "camo_white",
+    "cfc",
+    "phatso",
+    "missing",
+    "troll",
+    "troll_gross",
+    "saul_goodman",
+    "the_click",
+    "biter",
+    "no_kills",
+}
+CFC_Parachute.DesignMaterialCount = #CFC_Parachute.DesignMaterialNames
+
+
 CreateConVar( "cfc_parachute_fall_speed", 200, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Target fall speed while in a parachute.", 0, 50000 )
 CreateConVar( "cfc_parachute_fall_lerp", 0.97, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How quickly a parachute will reach its target fall speed.", 0, 10 )
 CreateConVar( "cfc_parachute_horizontal_speed", 80, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How quickly you move in a parachute.", 0, 50000 )
