@@ -652,3 +652,19 @@ util.AddNetworkString( "CFC_Parachute_GrabChuteStraps" )
 util.AddNetworkString( "CFC_Parachute_SelectDesign" )
 util.AddNetworkString( "CFC_Parachute_SpaceEquipReady" )
 util.AddNetworkString( "CFC_Parachute_SpaceEquipRequestUnready" )
+
+resource.AddFile( "models/cfc/parachute/chute.mdl" )
+resource.AddFile( "models/cfc/parachute/pack.mdl" )
+
+resource.AddFile( "materials/entities/cfc_weapon_parachute.png" )
+
+do
+    local materialPrefix = "materials/" .. CFC_Parachute.DesignMaterialPrefix
+
+    for _, matName in pairs( CFC_Parachute.DesignMaterialNames ) do
+        resource.AddFile( materialPrefix .. matName .. ".vmt" )
+    end
+
+    resource.AddFile( materialPrefix .. "pack" .. ".vmt" )
+    resource.AddFile( materialPrefix .. "credits" .. ".vmt" )
+end
