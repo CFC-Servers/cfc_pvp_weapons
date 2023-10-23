@@ -11,7 +11,7 @@
 | cfc_shaped_charge_blastrange | The damage range the explosion has. | 100 |
 | cfc_shaped_charge_tracerange | The range the prop breaking explosion has. | 100 |
 | cfc_parachute_fall_speed | Target fall speed while in a parachute. | 200 |
-| cfc_parachute_fall_lerp | How quickly a parachute will reach its target fall speed. | 0.97 |
+| cfc_parachute_fall_lerp | How quickly a parachute will reach its target fall speed. Higher values are faster. | 2 |
 | cfc_parachute_horizontal_speed | How quickly you move in a parachute. | 80 |
 | cfc_parachute_horizontal_speed_unstable | How well you can control a parachute while holding another weapon. | 50 |
 | cfc_parachute_horizontal_speed_limit | Max horizontal speed of a parachute. | 700 |
