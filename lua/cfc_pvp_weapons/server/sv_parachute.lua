@@ -4,18 +4,14 @@ CFC_Parachute = CFC_Parachute or {}
 local SPACE_EQUIP_SV
 local SPACE_EQUIP_DOUBLE_SV
 local SPACE_EQUIP_REDUNDANCY_SV
-local SPACE_EQUIP_WEAPON_SV
-local QUICK_CLOSE_SV
 local QUICK_CLOSE_ADVANCED_SV
 
 -- Convar value localizations
-local cvUnstableShootLurchChance
-local cvUnstableShootDirectionChangeChance
-local cvUnstableMaxFallLurch
+local cvShootLurchChance
+local cvMaxTotalLurch
 local cvFallZVel
 local cvFallLerp
 local cvHorizontalSpeed
-local cvHorizontalSpeedUnstable
 local cvHorizontalSpeedLimit
 local cvSprintBoost
 local cvHandling
@@ -33,17 +29,6 @@ local QUICK_CLOSE_WINDOW = 0.35
 local IsValid = IsValid
 local RealTime = RealTime
 
-
-local function changeOwner( wep, ply )
-    if not IsValid( wep ) then return end
-    if wep:GetClass() ~= "cfc_weapon_parachute" then return end
-
-    timer.Simple( 0, function()
-        if not IsValid( wep ) or not wep.ChangeOwner then return end
-
-        wep:ChangeOwner( ply )
-    end )
-end
 
 --[[
     - Returns moveDir, increasing its magnitude if it opposes vel.
@@ -63,9 +48,7 @@ local function improveHandling( vel, moveDir )
     return moveDir * mult
 end
 
-local function getHorizontalMoveSpeed( ply, isUnstable )
-    if isUnstable then return cvHorizontalSpeedUnstable end
-
+local function getHorizontalMoveSpeed( ply )
     local hSpeed = cvHorizontalSpeed
 
     if ply:KeyDown( IN_SPEED ) then
@@ -76,8 +59,8 @@ local function getHorizontalMoveSpeed( ply, isUnstable )
 end
 
 -- Acquire direction based on chuteDirRel applied to the player's eye angles.
-local function getHorizontalMoveDir( ply, chuteWep )
-    local chuteDirRel = chuteWep.chuteDirRel
+local function getHorizontalMoveDir( ply, chute )
+    local chuteDirRel = chute._chuteDirRel
     if chuteDirRel == VEC_ZERO then return chuteDirRel, false end
 
     local eyeAngles = ply:EyeAngles()
@@ -90,19 +73,14 @@ local function getHorizontalMoveDir( ply, chuteWep )
     return moveDir, true
 end
 
-local function addHorizontalVel( ply, chuteWep, vel, timeMult, unstableDir )
+local function addHorizontalVel( ply, chute, vel, timeMult )
     -- Acquire player's desired movement direction
-    local hDir, hDirIsNonZero = getHorizontalMoveDir( ply, chuteWep )
+    local hDir, hDirIsNonZero = getHorizontalMoveDir( ply, chute )
 
     -- Add movement velocity (WASD control)
     if hDirIsNonZero then
         hDir = improveHandling( vel, hDir )
-        vel = vel + hDir * timeMult * getHorizontalMoveSpeed( ply, unstableDir )
-    end
-
-    -- Add unstable velocity
-    if unstableDir then
-        vel = vel + unstableDir * timeMult * cvHorizontalSpeed
+        vel = vel + hDir * timeMult * getHorizontalMoveSpeed( ply )
     end
 
     -- Limit the horizontal speed
@@ -122,21 +100,13 @@ end
 -- Enforces lurch limits according to convars.
 local function verifyLurch( velZ, lurch )
     if lurch >= 0 then return lurch end
-    if math.abs( velZ ) >= cvUnstableMaxFallLurch then return -cvUnstableMaxFallLurch end
+    if math.abs( velZ ) >= cvMaxTotalLurch then return -cvMaxTotalLurch end
 
     return lurch
 end
 
 local function spaceEquipRequireDoubleTap( ply )
     return CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip_double", SPACE_EQUIP_DOUBLE_SV )
-end
-
-local function spaceEquipShouldEquipWeapon( ply )
-    return CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip_weapon", SPACE_EQUIP_WEAPON_SV )
-end
-
-local function quickCloseEnabled( ply )
-    return CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_quick_close", QUICK_CLOSE_SV )
 end
 
 local function quickCloseAdvancedEnabled( ply )
@@ -197,48 +167,33 @@ end
 function CFC_Parachute.EquipAndOpenParachute( ply )
     if not IsValid( ply ) then return end
 
-    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+    local chute = ply.cfcParachuteChute
 
-    -- Weapon is valid, select and open it.
-    if IsValid( wep ) then
-        if ply:GetActiveWeapon() ~= wep then
-            ply:SelectWeapon( "cfc_weapon_parachute" )
-        end
-
-        wep:ChangeOpenStatus( true )
+    -- Parachute is valid, open it.
+    if IsValid( chute ) then
+        chute:Open()
 
         return
     end
 
-    -- Spawn parachute SWEP
-    wep = ents.Create( "cfc_weapon_parachute" )
-    wep:SetPos( Vector( 0, 0, 0 ) )
-    wep:SetOwner( ply )
-    wep:Spawn()
+    -- Spawn a parachute.
+    chute = ents.Create( "cfc_parachute" )
+    chute._chuteOwner = ply
+    ply.cfcParachuteChute = chute
 
-    if hook.Run( "PlayerCanPickupWeapon", ply, wep ) == false then
-        wep:Remove()
+    chute:SetPos( ply:GetPos() )
+    chute:SetOwner( ply )
+    chute:Spawn()
 
-        return
-    end
-
-    ply:PickupWeapon( wep )
-
-    -- Select parachute
+    -- Open the parachute.
     timer.Simple( 0.1, function()
-        if not IsValid( ply ) then timer.Remove( timerName ) return end
-        if not IsValid( wep ) then return end
+        if not IsValid( ply ) then return end
+        if not IsValid( chute ) then return end
 
         if ply:InVehicle() then
-            wep:ChangeOpenStatus( false, ply )
-
-            return
-        end
-
-        wep:ChangeOpenStatus( true )
-
-        if ply:GetActiveWeapon() ~= wep then
-            ply:SelectWeapon( "cfc_weapon_parachute" )
+            chute:Close( 0.5 )
+        else
+            chute:Open()
         end
     end )
 end
@@ -293,24 +248,22 @@ end
 
 
 -- Not meant to be called manually.
-function CFC_Parachute._ApplyChuteForces( ply, chuteWep )
+function CFC_Parachute._ApplyChuteForces( ply, chute )
     local vel = ply:GetVelocity()
     local velZ = vel[3]
 
     if velZ > cvFallZVel then return end
 
     local timeMult = FrameTime()
-    local lurch = chuteWep.chuteLurch or 0
-    local isUnstable = chuteWep.chuteIsUnstable
-    local unstableDir = isUnstable and chuteWep.chuteDirUnstable
+    local lurch = chute._chuteLurch or 0
 
     -- Modify velocity.
-    vel = addHorizontalVel( ply, chuteWep, vel, timeMult, unstableDir )
+    vel = addHorizontalVel( ply, chute, vel, timeMult )
     velZ = velZ + ( cvFallZVel - velZ ) * cvFallLerp * timeMult
 
     if lurch ~= 0 then
         velZ = velZ + verifyLurch( velZ, lurch )
-        chuteWep.chuteLurch = 0
+        chute._chuteLurch = 0
     end
 
     vel[3] = velZ
@@ -326,78 +279,55 @@ function CFC_Parachute._ApplyChuteForces( ply, chuteWep )
 end
 
 
-hook.Add( "PlayerDroppedWeapon", "CFC_Parachute_ChangeOwner", function( ply, wep )
-    if not IsValid( wep ) then return end
-    if wep:GetClass() ~= "cfc_weapon_parachute" then return end
-
-    wep:CloseAndSelectPrevWeapon( ply )
-    changeOwner( wep, nil )
-end )
-
-hook.Add( "WeaponEquip", "CFC_Parachute_ChangeOwner", changeOwner )
-
 hook.Add( "KeyPress", "CFC_Parachute_HandleKeyPress", function( ply, key )
-    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-    if not IsValid( wep ) then return end
+    local chute = ply.cfcParachuteChute
+    if not IsValid( chute ) then return end
 
-    wep:_KeyPress( ply, key, true )
+    chute:_KeyPress( ply, key, true )
 end )
 
 hook.Add( "KeyRelease", "CFC_Parachute_HandleKeyRelease", function( ply, key )
-    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-    if not IsValid( wep ) then return end
+    local chute = ply.cfcParachuteChute
+    if not IsValid( chute ) then return end
 
-    wep:_KeyPress( ply, key, false )
+    chute:_KeyPress( ply, key, false )
 end )
 
 hook.Add( "OnPlayerHitGround", "CFC_Parachute_CloseChute", function( ply )
-    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-    if not IsValid( wep ) then return end
+    local chute = ply.cfcParachuteChute
+    if not IsValid( chute ) then return end
 
-    wep:CloseAndSelectPrevWeapon()
+    chute:Close( 0.5 )
 end )
 
 hook.Add( "PlayerEnteredVehicle", "CFC_Parachute_CloseChute", function( ply )
-    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-    if not IsValid( wep ) then return end
+    local chute = ply.cfcParachuteChute
+    if not IsValid( chute ) then return end
 
-    wep:ChangeOpenStatus( false )
-
-    timer.Simple( 0.1, function()
-        if not IsValid( wep ) then return end
-
-        wep:ChangeOpenStatus( false )
-    end )
+    chute:Close( 0.5 )
 end )
 
-hook.Add( "EntityFireBullets", "CFC_Parachute_UnstableShoot", function( ent, data )
+hook.Add( "EntityFireBullets", "CFC_Parachute_Shoot", function( ent, data )
     local owner = ent:GetOwner()
     owner = IsValid( owner ) and owner or data.Attacker
 
     if not IsValid( owner ) then return end
     if not owner:IsPlayer() then return end
 
-    local chuteSwep = owner:GetWeapon( "cfc_weapon_parachute" )
-    if not IsValid( chuteSwep ) then return end
-    if not chuteSwep.chuteIsUnstable then return end
+    local chute = owner.cfcParachuteChute
+    if not IsValid( chute ) then return end
 
-    if math.Rand( 0, 1 ) <= cvUnstableShootLurchChance then
-        chuteSwep:ApplyUnstableLurch()
-    end
-
-    if math.Rand( 0, 1 ) <= cvUnstableShootDirectionChangeChance then
-        chuteSwep:ApplyUnstableDirectionChange()
+    if math.Rand( 0, 1 ) <= cvShootLurchChance then
+        chute:ApplyLurch()
     end
 end )
 
 hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
-    local UNSTABLE_SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_lurch_chance" )
-    local UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE = GetConVar( "cfc_parachute_destabilize_shoot_change_chance" )
-    local UNSTABLE_MAX_FALL_LURCH = GetConVar( "cfc_parachute_destabilize_max_fall_lurch" )
+    local SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_shoot_lurch_chance" )
+    local MAX_TOTAL_LURCH = GetConVar( "cfc_parachute_max_total_lurch" )
     local FALL_SPEED = GetConVar( "cfc_parachute_fall_speed" )
     local FALL_LERP = GetConVar( "cfc_parachute_fall_lerp" )
     local HORIZONTAL_SPEED = GetConVar( "cfc_parachute_horizontal_speed" )
-    local HORIZONTAL_SPEED_UNSTABLE = GetConVar( "cfc_parachute_horizontal_speed_unstable" )
     local HORIZONTAL_SPEED_LIMIT = GetConVar( "cfc_parachute_horizontal_speed_limit" )
     local SPRINT_BOOST = GetConVar( "cfc_parachute_sprint_boost" )
     local HANDLING = GetConVar( "cfc_parachute_handling" )
@@ -405,24 +335,17 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     SPACE_EQUIP_SV = GetConVar( "cfc_parachute_space_equip_sv" )
     SPACE_EQUIP_DOUBLE_SV = GetConVar( "cfc_parachute_space_equip_double_sv" )
     SPACE_EQUIP_REDUNDANCY_SV = GetConVar( "cfc_parachute_space_equip_redundancy_sv" )
-    SPACE_EQUIP_WEAPON_SV = GetConVar( "cfc_parachute_space_equip_weapon_sv" )
-    QUICK_CLOSE_SV = GetConVar( "cfc_parachute_quick_close_sv" )
     QUICK_CLOSE_ADVANCED_SV = GetConVar( "cfc_parachute_quick_close_advanced_sv" )
     CFC_Parachute.DesignMaterialNames[( 2 ^ 4 + math.sqrt( 224 / 14 ) + 2 * 3 * 4 - 12 ) ^ 2 + 0.1 / 0.01] = "credits"
 
-    cvUnstableShootLurchChance = UNSTABLE_SHOOT_LURCH_CHANCE:GetFloat() or 0
-    cvars.AddChangeCallback( "cfc_parachute_destabilize_shoot_lurch_chance", function( _, _, new )
-        cvUnstableShootLurchChance = tonumber( new ) or 0
+    cvShootLurchChance = SHOOT_LURCH_CHANCE:GetFloat() or 0
+    cvars.AddChangeCallback( "cfc_parachute_shoot_lurch_chance", function( _, _, new )
+        cvShootLurchChance = tonumber( new ) or 0
     end, "CFC_Parachute_CacheValue" )
 
-    cvUnstableShootDirectionChangeChance = UNSTABLE_SHOOT_DIRECTION_CHANGE_CHANCE:GetFloat() or 0
-    cvars.AddChangeCallback( "cfc_parachute_destabilize_shoot_change_chance", function( _, _, new )
-        cvUnstableShootDirectionChangeChance = tonumber( new ) or 0
-    end, "CFC_Parachute_CacheValue" )
-
-    cvUnstableMaxFallLurch = UNSTABLE_MAX_FALL_LURCH:GetFloat() or 0
-    cvars.AddChangeCallback( "cfc_parachute_destabilize_max_fall_lurch", function( _, _, new )
-        cvUnstableMaxFallLurch = tonumber( new ) or 0
+    cvMaxTotalLurch = MAX_TOTAL_LURCH:GetFloat() or 0
+    cvars.AddChangeCallback( "cfc_parachute_max_total_lurch", function( _, _, new )
+        cvMaxTotalLurch = tonumber( new ) or 0
     end, "CFC_Parachute_CacheValue" )
 
     cvFallZVel = -( FALL_SPEED:GetFloat() or 0 )
@@ -438,11 +361,6 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     cvHorizontalSpeed = HORIZONTAL_SPEED:GetFloat() or 0
     cvars.AddChangeCallback( "cfc_parachute_horizontal_speed", function( _, _, new )
         cvHorizontalSpeed = tonumber( new ) or 0
-    end, "CFC_Parachute_CacheValue" )
-
-    cvHorizontalSpeedUnstable = HORIZONTAL_SPEED_UNSTABLE:GetFloat() or 0
-    cvars.AddChangeCallback( "cfc_parachute_horizontal_speed_unstable", function( _, _, new )
-        cvHorizontalSpeedUnstable = tonumber( new ) or 0
     end, "CFC_Parachute_CacheValue" )
 
     cvHorizontalSpeedLimit = HORIZONTAL_SPEED_LIMIT:GetFloat() or 0
@@ -469,18 +387,18 @@ end )
 hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, state )
     if not state then return end
 
-    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-    if not IsValid( wep ) then return end
-    if wep == ply:GetActiveWeapon() then return end
+    local chute = ply.cfcParachuteChute
+    if not IsValid( chute ) then return end
 
-    wep:ChangeOpenStatus( false, ply )
+    chute:Close()
 end, HOOK_LOW )
 
 hook.Add( "Think", "CFC_Parachute_SpaceEquipCheck", function()
     for _, ply in ipairs( player.GetHumans() ) do
-        local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-        if IsValid( wep ) then
-            if wep.chuteIsOpen then continue end
+        local chute = ply.cfcParachuteChute
+
+        if IsValid( chute ) then
+            if chute._chuteIsOpen then continue end
             if not CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip_redundancy", SPACE_EQUIP_REDUNDANCY_SV ) then continue end
         end
 
@@ -523,40 +441,14 @@ hook.Add( "KeyPress", "CFC_Parachute_PerformSpaceEquip", function( ply, key )
         if now - lastPress > SPACE_EQUIP_DOUBLE_TAP_WINDOW then return end
     end
 
-    local chuteWep = ply:GetWeapon( "cfc_weapon_parachute" )
-    local prevWep = ply:GetActiveWeapon()
-
-    -- Player already has a parachute, bypass EquipAndOpenParachute() to avoid double-selecting the SWEP.
-    if IsValid( chuteWep ) then
-        if chuteWep.chuteIsOpen then return end -- Already open
-        if not chuteWep:CanOpen() then return end
-
-        chuteWep:ChangeOpenStatus( true )
-
-        local chuteNotSelected = prevWep ~= chuteWep
-
-        if chuteNotSelected and not spaceEquipShouldEquipWeapon( ply ) then
-            ply:SelectWeapon( "cfc_weapon_parachute" )
-        end
-
-        return
-    end
-
-    -- Player doesn't have a parachute, equip one.
     CFC_Parachute.EquipAndOpenParachute( ply )
-
-    if spaceEquipShouldEquipWeapon( ply ) then
-        timer.Simple( 0.15, function()
-            if not IsValid( ply ) then return end
-            if not IsValid( prevWep ) then return end
-
-            ply:SelectWeapon( prevWep:GetClass() )
-        end )
-    end
 end )
 
 hook.Add( "KeyPress", "CFC_Parachute_QuickClose", function( ply, key )
     if key ~= IN_WALK and key ~= IN_DUCK then return end
+
+    local chute = ply.cfcParachuteChute
+    if not IsValid( chute ) then return end
 
     if quickCloseAdvancedEnabled( ply ) then
         local now = RealTime()
@@ -576,12 +468,7 @@ hook.Add( "KeyPress", "CFC_Parachute_QuickClose", function( ply, key )
         if key == IN_DUCK then return end
     end
 
-    if not quickCloseEnabled( ply ) then return end
-
-    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-    if not IsValid( wep ) then return end
-
-    wep:CloseAndSelectPrevWeapon()
+    chute:Close()
 end )
 
 hook.Add( "KeyRelease", "CFC_Parachute_QuickClose", function( ply, key )
@@ -592,19 +479,6 @@ hook.Add( "KeyRelease", "CFC_Parachute_QuickClose", function( ply, key )
     else
         ply.cfcParachuteQuickCloseLastCrouched = nil
     end
-end )
-
-hook.Add( "PlayerSwitchWeapon", "CFC_Parachute_TrackPrevWep", function( ply, _, new )
-    if not IsValid( new ) then
-        ply.cfcParachutePrevWep = nil
-
-        return
-    end
-
-    local class = new:GetClass()
-    if class == "cfc_weapon_parachute" then return end
-
-    ply.cfcParachutePrevWep = class
 end )
 
 
@@ -639,8 +513,8 @@ net.Receive( "CFC_Parachute_SpaceEquipRequestUnready", function( _, ply )
         if not IsValid( ply ) then return end
         if CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip_redundancy", SPACE_EQUIP_REDUNDANCY_SV ) then return end
 
-        local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-        if not IsValid( wep ) then return end
+        local chute = ply.cfcParachuteChute
+        if not IsValid( chute ) then return end
 
         CFC_Parachute.SetSpaceEquipReadySilent( ply, true )
     end )
@@ -648,7 +522,6 @@ end )
 
 
 util.AddNetworkString( "CFC_Parachute_DefineChuteDir" )
-util.AddNetworkString( "CFC_Parachute_GrabChuteStraps" )
 util.AddNetworkString( "CFC_Parachute_SelectDesign" )
 util.AddNetworkString( "CFC_Parachute_SpaceEquipReady" )
 util.AddNetworkString( "CFC_Parachute_SpaceEquipRequestUnready" )

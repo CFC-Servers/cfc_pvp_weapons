@@ -21,12 +21,9 @@ CFC_Parachute.MenuToggleButtons = CFC_Parachute.MenuToggleButtons or {}
 
 CreateClientConVar( "cfc_parachute_space_equip", 2, true, true, "Press spacebar while falling to quickly equip a parachute.", 0, 2 )
 CreateClientConVar( "cfc_parachute_space_equip_double", 2, true, true, "Double tap spacebar to equip parachutes, instead of a single press.", 0, 2 )
-CreateClientConVar( "cfc_parachute_space_equip_redundancy", 2, true, true, "Makes space-equip still play the ready sound and require fast falling speed to activate when you already have a parachute SWEP equipped.", 0, 2 )
-CreateClientConVar( "cfc_parachute_space_equip_weapon", 2, true, true, "Automatically switch back to your previous weapon when space-equipping a parachute.", 0, 2 )
+CreateClientConVar( "cfc_parachute_space_equip_redundancy", 2, true, true, "Makes space-equip still play the ready sound and require fast falling speed to activate when you recently used a parachute.", 0, 2 )
 
-CreateClientConVar( "cfc_parachute_quick_close", 2, true, true, "Press the walk key to quickly close your parachute at any time.", 0, 2 )
-CreateClientConVar( "cfc_parachute_quick_close_advanced", 2, true, true, "Makes quick-close require you to press walk and crouch together.", 0, 2 )
-CreateClientConVar( "cfc_parachute_prev_weapon_on_close", 2, true, true, "Auto-select your previous weapon when you close your parachute.", 0, 2 )
+CreateClientConVar( "cfc_parachute_quick_close_advanced", 2, true, true, "Changes the key combo for closing parachutes from walk to crouch + walk.", 0, 2 )
 
 
 local DESIGN_CHOICE = CreateConVar( "cfc_parachute_design", 1, { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NEVER_AS_STRING }, "Your selected parachute design.", 1, 50000 )
@@ -46,26 +43,15 @@ local BUTTON_COLOR = Color( 42, 47, 74, 255 )
 local TOOLTIP_COLOR = Color( 24, 29, 59, 255 )
 local TOOLTIP_OUTLINE_COLOR = Color( 50, 58, 75, 255 )
 
-local ANG_ZERO = Angle( 0, 0, 0 )
-local ANG_GRAB_RIGHT_UPPERARM = Angle( 127.3, 331.3, 368.5 )
-local ANG_GRAB_RIGHT_FOREARM = Angle( -6.8, 41.4, 57.5 )
-local ANG_GRAB_RIGHT_HAND = Angle( 0, 26.7, 25.4 )
-local ANG_GRAB_LEFT_UPPERARM = Angle( -72.1, -166, 127.3 )
-local ANG_GRAB_LEFT_FOREARM = Angle( -11, 7.2, 26.5 )
-local ANG_GRAB_LEFT_HAND = Angle( 0, 8.7, 0 )
-
 
 table.insert( CFC_Parachute.MenuToggleButtons, {
     HideState = true,
     TextOff = "Help/Info",
     TextOn = "Help/Info",
     HoverText = "Parachutes slow your descent and improve your aerial mobility." .. "\n\n" ..
-        "Your chute will start off closed, and can be toggled open with left click." .. "\n" ..
-        "Right clicking will bring up this config menu." .. "\n" ..
-        "You can select various chute designs and config options with the buttons below." .. "\n\n" ..
-        "With your parachute open, you can switch to a different weapon and shoot from the air." .. "\n" ..
-        "Be careful though, while your hands are occupied, you will lose a lot of horizontal control." .. "\n" ..
-        "Shooting too much will send you careening in a different direction, or even towards the ground."
+        "While falling, press jump (spacebar) to open a parachute." .. "\n" ..
+        "Pressing walk (alt) will close the parachute." .. "\n\n" ..
+        "You can select various chute designs and config options with the buttons below."
 } )
 
 table.insert( CFC_Parachute.MenuToggleButtons, {
@@ -73,46 +59,28 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
     TextOn = "Space-Equip (Enabled)",
     ConVar = "cfc_parachute_space_equip",
     ConVarServerChoice = "2",
-    HoverText = "Press spacebar while falling to quickly equip and open a parachute." .. "\n" ..
+    HoverText = "Press spacebar while falling to open a parachute." .. "\n" ..
         "A small 'whoosh' sound will play when this is ready." .. "\n\n" ..
-        "If you already have a parachute, this doubles as a shortcut to open it at any time."
+        "To close the parachute, press the walk key (alt by default)."
 } )
 
 table.insert( CFC_Parachute.MenuToggleButtons, {
     TextOff = "Double Tap for Space-Equip (Disabled)",
     TextOn = "Double Tap for Space-Equip (Enabled)",
     ConVar = "cfc_parachute_space_equip_double",
-    ConVarServerChoice = "2"
+    ConVarServerChoice = "2",
+    HoverText = "Changes space-equip activation from a single press to a double tap."
 } )
 
 table.insert( CFC_Parachute.MenuToggleButtons, {
     TextOff = "Space-Equip Redundancy (Disabled)",
     TextOn = "Space-Equip Redundancy (Enabled)",
     ConVar = "cfc_parachute_space_equip_redundancy",
-    ConVarServerChoice = "2"
-} )
-
-table.insert( CFC_Parachute.MenuToggleButtons, {
-    TextOff = "Keep Wep on Space-Equip (Disabled)",
-    TextOn = "Keep Wep on Space-Equip (Enabled)",
-    ConVar = "cfc_parachute_space_equip_weapon",
-    ConVarServerChoice = "2"
-} )
-
-table.insert( CFC_Parachute.MenuToggleButtons, {
-    TextOff = "Prev Wep on Close (Disabled)",
-    TextOn = "Prev Wep on Close (Enabled)",
-    ConVar = "cfc_parachute_prev_weapon_on_close",
-    ConVarServerChoice = "2"
-} )
-
-table.insert( CFC_Parachute.MenuToggleButtons, {
-    TextOff = "Quick Close (Disabled)",
-    TextOn = "Quick Close (Enabled)",
-    ConVar = "cfc_parachute_quick_close",
     ConVarServerChoice = "2",
-    HoverText = "Press the walk key to quickly close your parachute at any time." .. "\n" ..
-        "(alt by default)"
+    HoverText = "If enabled, space-equip will ignore any recent parachute usage." .. "\n" ..
+        "It will always require a fast falling speed to open," .. "\n" ..
+        "  and will always play the 'whoosh' sound when ready." .. "\n\n" ..
+        "If disabled, these will be skipped if you recently opened a parachute."
 } )
 
 table.insert( CFC_Parachute.MenuToggleButtons, {
@@ -120,8 +88,9 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
     TextOn = "Advanced Quick Close (Enabled)",
     ConVar = "cfc_parachute_quick_close_advanced",
     ConVarServerChoice = "2",
-    HoverText = "Makes quick-close require you to press walk and crouch together." .. "\n" ..
-        "(alt and ctrl by default)"
+    HoverText = "Changes the key combo for closing parachutes from walk to crouch + walk." .. "\n" ..
+        "(alt and ctrl by default)" .. "\n\n" ..
+        "The keys must be pressed within quick succession of each other."
 } )
 
 
@@ -452,48 +421,6 @@ net.Receive( "CFC_Parachute_SelectDesign", function()
     net.WriteInt( 1, 17 )
     net.WriteInt( DESIGN_CHOICE:GetInt(), 17 )
     net.SendToServer()
-end )
-
-net.Receive( "CFC_Parachute_GrabChuteStraps", function()
-    local ply = net.ReadEntity()
-    local state = net.ReadBool()
-
-    if not IsValid( ply ) then return end
-
-    ply:SetIK( not state )
-
-    if state then
-        ply:AnimRestartGesture( GESTURE_SLOT_CUSTOM, ACT_GMOD_NOCLIP_LAYER, false )
-        ply:AnimRestartGesture( GESTURE_SLOT_JUMP, ACT_HL2MP_IDLE_PASSIVE, false )
-    else
-        ply:AnimResetGestureSlot( GESTURE_SLOT_CUSTOM )
-        ply:AnimResetGestureSlot( GESTURE_SLOT_JUMP )
-    end
-
-    local rightUpperarm = ply:LookupBone( "ValveBiped.Bip01_R_Upperarm" )
-    local rightForearm = ply:LookupBone( "ValveBiped.Bip01_R_Forearm" )
-    local rightHand = ply:LookupBone( "ValveBiped.Bip01_R_Hand" )
-    local leftUpperarm = ply:LookupBone( "ValveBiped.Bip01_L_Upperarm" )
-    local leftForearm = ply:LookupBone( "ValveBiped.Bip01_L_Forearm" )
-    local leftHand = ply:LookupBone( "ValveBiped.Bip01_L_Hand" )
-
-    if not rightUpperarm or not rightForearm or not rightHand or not leftUpperarm or not leftForearm or not leftHand then return end
-
-    if state then
-        ply:ManipulateBoneAngles( rightUpperarm, ANG_GRAB_RIGHT_UPPERARM )
-        ply:ManipulateBoneAngles( rightForearm, ANG_GRAB_RIGHT_FOREARM )
-        ply:ManipulateBoneAngles( rightHand, ANG_GRAB_RIGHT_HAND )
-        ply:ManipulateBoneAngles( leftUpperarm, ANG_GRAB_LEFT_UPPERARM )
-        ply:ManipulateBoneAngles( leftForearm, ANG_GRAB_LEFT_FOREARM )
-        ply:ManipulateBoneAngles( leftHand, ANG_GRAB_LEFT_HAND )
-    else
-        ply:ManipulateBoneAngles( rightUpperarm, ANG_ZERO )
-        ply:ManipulateBoneAngles( rightForearm, ANG_ZERO )
-        ply:ManipulateBoneAngles( rightHand, ANG_ZERO )
-        ply:ManipulateBoneAngles( leftUpperarm, ANG_ZERO )
-        ply:ManipulateBoneAngles( leftForearm, ANG_ZERO )
-        ply:ManipulateBoneAngles( leftHand, ANG_ZERO )
-    end
 end )
 
 net.Receive( "CFC_Parachute_SpaceEquipReady", function()

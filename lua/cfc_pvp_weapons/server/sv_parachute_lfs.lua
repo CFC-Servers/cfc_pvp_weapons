@@ -8,7 +8,6 @@ local function trySetupLFS()
     local LFS_AUTO_CHUTE_HEIGHT = CreateConVar( "cfc_parachute_lfs_eject_height", 500, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The minimum height above the ground a player must be for LFS eject events to trigger (e.g. auto-parachute and rendezook launch).", 0, 50000 )
     local LFS_EJECT_LAUNCH_FORCE = CreateConVar( "cfc_parachute_lfs_eject_launch_force", 1100, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The upwards force applied to players when they launch out of an LFS plane.", 0, 50000 )
     local LFS_EJECT_LAUNCH_BIAS = CreateConVar( "cfc_parachute_lfs_eject_launch_bias", 25, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How many degrees the LFS eject launch should course-correct the player's trajectory to send them straight up, for if their plane is tilted.", 0, 90 )
-    local LFS_EJECT_STABILITY_TIME = CreateConVar( "cfc_parachute_lfs_eject_stability_time", 5, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How many seconds a player is immune to parachute instability when they launch out of an LFS plane.", 0, 50000 )
     local LFS_ENTER_RADIUS = CreateConVar( "cfc_parachute_lfs_enter_radius", 800, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How close a player must be to enter an LFS if they are in a parachute and regular use detection fails. Makes it easier to get inside of an LFS for performing a Rendezook.", 0, 50000 )
 
     -- Server preferences of client settings.
@@ -88,14 +87,6 @@ local function trySetupLFS()
 
             ply:SetVelocity( dir * force + lfsVel )
         end )
-
-        ply.cfcParachuteInstabilityImmune = true
-
-        timer.Create( "CFC_Parachute_InstabilityImmuneTimeout_" .. ply:SteamID(), LFS_EJECT_STABILITY_TIME:GetFloat(), 1, function()
-            if not IsValid( ply ) then return end
-
-            ply.cfcParachuteInstabilityImmune = false
-        end )
     end )
 
     hook.Add( "CFC_Parachute_CanLFSAutoChute", "CFC_Parachute_CheckAutoEquipConVar", function( ply )
@@ -119,7 +110,7 @@ local function trySetupLFS()
         -- Check if the player is in a parachute.
         local wep = ply:GetWeapon( "cfc_weapon_parachute" )
         if not IsValid( wep ) then return end
-        if not wep.chuteIsOpen then return end
+        if not wep._chuteIsOpen then return end
 
         -- Check for a nearby LFS plane to use.
         local radiusSqr = LFS_ENTER_RADIUS:GetFloat() ^ 2
