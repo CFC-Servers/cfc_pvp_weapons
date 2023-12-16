@@ -5,6 +5,7 @@ include( "shared.lua" )
 
 CFC_Parachute = CFC_Parachute or {}
 
+local MIN_LURCH = GetConVar( "cfc_parachute_min_lurch" )
 local MAX_LURCH = GetConVar( "cfc_parachute_max_lurch" )
 local EXPIRATION_DELAY = GetConVar( "cfc_parachute_expiration_delay" )
 
@@ -155,8 +156,7 @@ function ENT:CanOpen()
 end
 
 function ENT:ApplyLurch()
-    local maxLurch = MAX_LURCH:GetFloat()
-    local lurchForce = -math.Rand( 0, maxLurch )
+    local lurchForce = -math.Rand( MIN_LURCH:GetFloat(), MAX_LURCH:GetFloat() )
 
     self._chuteLurch = self._chuteLurch + lurchForce
 end

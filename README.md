@@ -17,9 +17,10 @@
 | cfc_parachute_sprint_boost | How much of a horizontal boost you get in a parachute while sprinting. | 1.25 |
 | cfc_parachute_handling | Improves parachute handling by making it easier to brake or chagne directions. 1 gives no handling boost, 0-1 reduces handling. | 4 |
 | cfc_parachute_handling | How long until a parachute will delete itself after being closed. | 5 |
-| cfc_parachute_max_lurch | Maximum downwards force a parachute can receive from weapon-induced lurches. | 125 |
+| cfc_parachute_min_lurch | Minimum downwards force a parachute can receive from weapon-induced lurches. | 30 |
+| cfc_parachute_max_lurch | Maximum downwards force a parachute can receive from weapon-induced lurches. | 100 |
 | cfc_parachute_max_total_lurch | Maximum downwards velocity before a parachute stops being affected by lurch. Puts a soft-cap on how fast you plummet from shooting weapons. | 400 |
-| cfc_parachute_shoot_lurch_chance | The chance for a parachute to lurch downwards when the player shoots a bullet. | 0.1 |
+| cfc_parachute_shoot_lurch_chance | The chance for a parachute to lurch downwards when the player shoots a bullet. | 0.2 |
 | cfc_parachute_lfs_eject_height | The minimum height above the ground a player must be for LFS eject events to trigger (e.g. auto-parachute and rendezook launch). | 500 |
 | cfc_parachute_lfs_eject_launch_force | The upwards force applied to players when they launch out of an LFS plane. | 1100 |
 | cfc_parachute_lfs_eject_launch_bias | How many degrees the LFS eject launch should course-correct the player's trajectory to send them straight up, for if their plane is tilted. | 25 |
