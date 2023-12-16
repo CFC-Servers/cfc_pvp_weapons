@@ -23,6 +23,7 @@ local DESIGN_REQUEST_BURST_DURATION = 3
 
 -- Misc
 local VEC_ZERO = Vector( 0, 0, 0 )
+local VEC_GROUND_TRACE_OFFSET = Vector( 0, 0, -72 )
 local SPACE_EQUIP_DOUBLE_TAP_WINDOW = 0.35
 local QUICK_CLOSE_WINDOW = 0.35
 
@@ -246,6 +247,22 @@ function CFC_Parachute.CanSpaceEquip( ply )
     return CFC_Parachute.IsSpaceEquipEnabled( ply )
 end
 
+function CFC_Parachute.IsPlayerCloseToGround( ply )
+    if ply:IsOnGround() then return true end
+    if ply:WaterLevel() > 0 then return true end
+
+    local startPos = ply:GetPos()
+    local endPos = startPos + VEC_GROUND_TRACE_OFFSET
+    local tr = util.TraceLine( {
+        start = startPos,
+        endpos = endPos,
+    } )
+
+    if tr.Hit then return true end
+
+    return false
+end
+
 
 -- Not meant to be called manually.
 function CFC_Parachute._ApplyChuteForces( ply, chute )
@@ -409,7 +426,7 @@ hook.Add( "Think", "CFC_Parachute_SpaceEquipCheck", function()
                 CFC_Parachute.SetSpaceEquipReady( ply, false )
             end
         else
-            if ply:GetMoveType() ~= MOVETYPE_NOCLIP and zVel <= cvSpaceEquipZVelThreshold then
+            if ply:GetMoveType() ~= MOVETYPE_NOCLIP and zVel <= cvSpaceEquipZVelThreshold and not CFC_Parachute.IsPlayerCloseToGround( ply ) then
                 CFC_Parachute.SetSpaceEquipReady( ply, true )
             end
         end

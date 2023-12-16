@@ -149,17 +149,7 @@ function ENT:CanOpen()
 
     local owner = self._chuteOwner
     if not IsValid( owner ) then return false end
-    if owner:IsOnGround() then return false end
-    if owner:WaterLevel() > 0 then return false end
-
-    local startPos = owner:GetPos()
-    local endPos = startPos + Vector( 0, 0, -owner:OBBMaxs().z )
-    local tr = util.TraceLine( {
-        start = startPos,
-        endpos = endPos,
-    } )
-
-    if tr.Hit then return false end
+    if CFC_Parachute.IsPlayerCloseToGround( owner ) then return false end
 
     return true
 end
