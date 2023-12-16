@@ -45,7 +45,7 @@ CreateConVar( "cfc_parachute_max_lurch", 125, { FCVAR_REPLICATED, FCVAR_ARCHIVE 
 CreateConVar( "cfc_parachute_max_total_lurch", 400, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "Maximum downwards velocity before a parachute stops being affected by lurch. Puts a soft-cap on how fast you plummet from shooting weapons.", 0, 50000 )
 CreateConVar( "cfc_parachute_shoot_lurch_chance", 0.1, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The chance for a parachute to lurch downwards when the player shoots a bullet.", 0, 1 )
 
-CreateConVar( "cfc_parachute_space_equip_speed", 370, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "The minimum falling speed required for a player to space-equip a parachute.", 0, 50000 )
+CreateConVar( "cfc_parachute_space_equip_speed", 300, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "The minimum falling speed required for a player to space-equip a parachute.", 0, 50000 )
 CreateConVar( "cfc_parachute_space_equip_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Press spacebar while falling to quickly equip a parachute. Defines the default value for players.", 0, 1 )
 CreateConVar( "cfc_parachute_space_equip_double_sv", 0, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Double tap spacebar to equip parachutes, instead of a single press. Defines the default value for players.", 0, 1 )
 CreateConVar( "cfc_parachute_space_equip_redundancy_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Makes space-equip still play the ready sound and require fast falling speed to activate when a player has recently used a parachute. Defines the default value for players.", 0, 1 )
