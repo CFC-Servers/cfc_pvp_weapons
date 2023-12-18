@@ -7,6 +7,11 @@ include( "shared.lua" )
 --     sent_spawnpoint = true
 -- }
 
+local unbreakableClasses = {
+    gmod_wire_hologram = true,
+    starfall_hologram = true
+}
+
 local IsValid = IsValid
 
 if file.Exists( "includes/modules/mixpanel.lua", "LUA" ) then
@@ -195,6 +200,7 @@ function ENT:CanDestroyProp( prop )
     if not IsValid( prop ) then return false end
     if not IsValid( prop:CPPIGetOwner() ) then return false end
     --if not breakableClasses[prop:GetClass()] then return false end
+    if unbreakableClasses[prop:GetClass()] then return false end
 
     if not IsValid( self:GetOwner() ) then return false end
     local shouldDestroy = hook.Run( "CFC_SWEP_ShapedCharge_CanDestroyQuery", self, prop )
