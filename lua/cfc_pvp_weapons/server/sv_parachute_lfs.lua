@@ -18,7 +18,7 @@ local function trySetupLFS()
         local bias = LFS_EJECT_LAUNCH_BIAS:GetFloat()
         local dir = lfsPlane:GetUp()
 
-        if dir.z >= 0 then -- Biasing the direction if it's tilted down would be pointless
+        if dir.z >= 0 and bias > 0 then -- Biasing the direction if it's tilted down would be pointless
             local forwardAng = lfsPlane:GetAngles()
             local pitchCorrect = math.Clamp( forwardAng.p, -bias, bias )
             local rollCorrect = math.Clamp( -forwardAng.r, -bias, bias )
