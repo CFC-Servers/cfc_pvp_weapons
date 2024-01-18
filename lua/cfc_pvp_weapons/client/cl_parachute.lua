@@ -118,7 +118,7 @@ function CFC_Parachute.CreateDesignPreview( x, y, ind, panel )
     icon.designInd = ind
 
     icon.DoClick = function()
-        LocalPlayer():ConCommand( "cfc_parachute_design " .. ind )
+        RunConsoleCommand( "cfc_parachute_design ", ind )
     end
 
     local _Paint = icon.Paint
@@ -254,7 +254,7 @@ function CFC_Parachute.CreateToggleButton( x, y, ind, panel, w, h )
 
         local newVal = button.cfcParachuteIsOn() and offVal or onVal
 
-        LocalPlayer():ConCommand( convarName .. " " .. newVal )
+        RunConsoleCommand( convarName, newVal )
     end
 
     if hoverText then
