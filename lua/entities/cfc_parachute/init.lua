@@ -72,7 +72,7 @@ function ENT:Initialize()
     -- Loosely follow the owner to stay within the same PVS. Client handles more precise positioning.
     local timerNameFollowOwner = "CFC_Parachute_FollowOwner_" .. self:EntIndex()
 
-    timer.Create( "CFC_Parachute_FollowOwner_" .. self:EntIndex(), 2, 0, function()
+    timer.Create( timerNameFollowOwner, 2, 0, function()
         if not IsValid( self ) then
             timer.Remove( timerNameFollowOwner )
 
