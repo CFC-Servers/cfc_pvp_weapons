@@ -261,6 +261,13 @@ hook.Add( "PlayerEnteredVehicle", "CFC_Parachute_CloseChute", function( ply )
     chute:Close( 0.5 )
 end )
 
+hook.Add( "PostPlayerDeath", "CFC_Parachute_CloseChute", function( ply )
+    local chute = ply.cfcParachuteChute
+    if not IsValid( chute ) then return end
+
+    chute:Remove()
+end )
+
 hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     local FALL_SPEED = GetConVar( "cfc_parachute_fall_speed" )
     local FALL_LERP = GetConVar( "cfc_parachute_fall_lerp" )
@@ -320,6 +327,7 @@ hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, stat
 end, HOOK_LOW )
 
 hook.Add( "CFC_Parachute_CanSpaceEquip", "CFC_Parachute_RequireFalling", function( ply )
+    if not ply:Alive() then return false end
     if ply:GetMoveType() == MOVETYPE_NOCLIP then return false end
     if ply:GetVelocity()[3] > cvSpaceEquipZVelThreshold then return false end
     if CFC_Parachute.IsPlayerCloseToGround( ply ) then return false end
