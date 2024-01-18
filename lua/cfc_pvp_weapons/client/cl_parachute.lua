@@ -26,7 +26,7 @@ CreateClientConVar( "cfc_parachute_space_equip_redundancy", 2, true, true, "Make
 CreateClientConVar( "cfc_parachute_quick_close_advanced", 2, true, true, "Changes the key combo for closing parachutes from walk to crouch + walk.", 0, 2 )
 
 
-local DESIGN_CHOICE = CreateConVar( "cfc_parachute_design", 1, { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_SERVER_CAN_EXECUTE }, "Your selected parachute design.", 1, 50000 )
+CreateConVar( "cfc_parachute_design", 1, { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_SERVER_CAN_EXECUTE }, "Your selected parachute design.", 1, 50000 )
 local SPACE_EQUIP_VOLUME = CreateClientConVar( "cfc_parachute_space_equip_volume", 0.5, true, false, "Volume for the sound that indicates you are ready to space-equip a parachute.", 0, 1 )
 
 local MENU_COLOR = Color( 36, 41, 67, 255 )
