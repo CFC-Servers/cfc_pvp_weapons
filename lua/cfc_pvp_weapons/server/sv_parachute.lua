@@ -158,7 +158,6 @@ function CFC_Parachute.OpenParachute( ply )
 
     -- Spawn a parachute.
     chute = ents.Create( "cfc_parachute" )
-    chute._chuteOwner = ply
     ply.cfcParachuteChute = chute
 
     chute:SetPos( ply:GetPos() )

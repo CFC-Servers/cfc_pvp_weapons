@@ -54,16 +54,7 @@ function ENT:SetChuteDirection( chuteDirRel )
 end
 
 function ENT:Think()
-    local owner = self._chuteOwner
-
-    -- Validate the owner.
-    if not owner then
-        owner = self:GetNWEntity( "cfc_parachute_owner" )
-        if not IsValid( owner ) then return end
-
-        self._chuteOwner = owner
-    end
-
+    local owner = self:GetOwner()
     if not IsValid( owner ) then return end
 
     followPlayer( self, owner )

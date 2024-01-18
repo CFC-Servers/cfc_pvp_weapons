@@ -56,14 +56,6 @@ function ENT:Initialize()
 
     timer.Simple( 0.02, function()
         self:_UpdateMoveKeys()
-
-        -- Set owner for clientside updates.
-        -- Uses :SetNWEntity() since :SetOwner() will impact CPPI, and net messages are not reliable enough in this case.
-        local owner = self._chuteOwner
-
-        if IsValid( owner ) then
-            self:SetNWEntity( "cfc_parachute_owner", owner )
-        end
     end )
 
     -- Loosely follow the owner to stay within the same PVS. Client handles more precise positioning.
@@ -76,7 +68,7 @@ function ENT:Initialize()
             return
         end
 
-        local owner = self._chuteOwner
+        local owner = self:GetOwner()
         if not IsValid( owner ) then return end
 
         self:SetPos( getChutePos( owner ) )
@@ -118,7 +110,7 @@ function ENT:OnRemove()
     timer.Remove( "CFC_Parachute_ExpireChute_" .. self:EntIndex() )
     timer.Remove( "CFC_Parachute_FollowOwner_" .. self:EntIndex() )
 
-    local owner = self._chuteOwner
+    local owner = self:GetOwner()
     if not IsValid( owner ) then return end
 
     owner.cfcParachuteChute = nil
@@ -127,7 +119,7 @@ end
 function ENT:Think()
     if not self._chuteIsOpen then return end
 
-    local owner = self._chuteOwner
+    local owner = self:GetOwner()
 
     if not IsValid( owner ) then
         self:Remove()
@@ -145,7 +137,7 @@ end
 function ENT:CanOpen()
     if self._chuteIsOpen then return false end
 
-    local owner = self._chuteOwner
+    local owner = self:GetOwner()
     if not IsValid( owner ) then return false end
     if CFC_Parachute.IsPlayerCloseToGround( owner ) then return false end
 
@@ -153,7 +145,7 @@ function ENT:CanOpen()
 end
 
 function ENT:ApplyChuteDesign()
-    local owner = self._chuteOwner
+    local owner = self:GetOwner()
     if not IsValid( owner ) then return end
 
     if not owner.cfcParachuteDesignID then
@@ -192,10 +184,10 @@ do
     local IN_MOVERIGHT = IN_MOVERIGHT
 
     function ENT:_KeyPress( ply, key, state )
-        local selfTable = self:GetTable()
-
-        if ply ~= selfTable._chuteOwner then return end
+        if ply ~= self:GetOwner() then return end
         if not MOVE_KEY_LOOKUP[key] then return end
+
+        local selfTable = self:GetTable()
 
         if key == IN_FORWARD then
             selfTable._chuteMoveForward = state and 1 or 0
@@ -207,14 +199,14 @@ do
             selfTable._chuteMoveLeft = state and 1 or 0
         end
 
-        if not selfTable._chuteIsOpen then return end
-
-        self:_UpdateChuteDirection()
+        if selfTable._chuteIsOpen then
+            self:_UpdateChuteDirection()
+        end
     end
 end
 
 function ENT:_UpdateMoveKeys()
-    local owner = self._chuteOwner
+    local owner = self:GetOwner()
     if not IsValid( owner ) then return end
 
     for i = 1, MOVE_KEY_COUNT do
