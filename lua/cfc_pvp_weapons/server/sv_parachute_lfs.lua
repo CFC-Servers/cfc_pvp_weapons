@@ -29,10 +29,10 @@ local function trySetupLFS()
             dir = forwardAng:Up()
         end
 
+        local lfsVel = lfsPlane:GetVelocity() * 1.2
+
         timer.Simple( 0.01, function()
             if not IsValid( ply ) then return end
-
-            local lfsVel = IsValid( lfsPlane ) and lfsPlane:GetVelocity() * 1.2 or Vector( 0, 0, 0 )
 
             ply:SetVelocity( dir * force + lfsVel )
         end )
