@@ -199,6 +199,7 @@ function CFC_Parachute.IsPlayerCloseToGround( ply )
     local tr = util.TraceLine( {
         start = startPos,
         endpos = endPos,
+        filter = ply,
     } )
 
     if tr.Hit then return true end
