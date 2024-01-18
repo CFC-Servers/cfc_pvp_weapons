@@ -346,47 +346,47 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     cvShootLurchChance = SHOOT_LURCH_CHANCE:GetFloat() or 0
     cvars.AddChangeCallback( "cfc_parachute_shoot_lurch_chance", function( _, _, new )
         cvShootLurchChance = tonumber( new ) or 0
-    end, "CFC_Parachute_CacheValue" )
+    end )
 
     cvMaxTotalLurch = MAX_TOTAL_LURCH:GetFloat() or 0
     cvars.AddChangeCallback( "cfc_parachute_max_total_lurch", function( _, _, new )
         cvMaxTotalLurch = tonumber( new ) or 0
-    end, "CFC_Parachute_CacheValue" )
+    end )
 
     cvFallZVel = -( FALL_SPEED:GetFloat() or 0 )
     cvars.AddChangeCallback( "cfc_parachute_fall_speed", function( _, _, new )
         cvFallZVel = -( tonumber( new ) or 0 )
-    end, "CFC_Parachute_CacheValue" )
+    end )
 
     cvFallLerp = FALL_LERP:GetFloat() or 0
     cvars.AddChangeCallback( "cfc_parachute_fall_lerp", function( _, _, new )
         cvFallLerp = tonumber( new ) or 0
-    end, "CFC_Parachute_CacheValue" )
+    end )
 
     cvHorizontalSpeed = HORIZONTAL_SPEED:GetFloat() or 0
     cvars.AddChangeCallback( "cfc_parachute_horizontal_speed", function( _, _, new )
         cvHorizontalSpeed = tonumber( new ) or 0
-    end, "CFC_Parachute_CacheValue" )
+    end )
 
     cvHorizontalSpeedLimit = HORIZONTAL_SPEED_LIMIT:GetFloat() or 0
     cvars.AddChangeCallback( "cfc_parachute_horizontal_speed_limit", function( _, _, new )
         cvHorizontalSpeedLimit = tonumber( new ) or 0
-    end, "CFC_Parachute_CacheValue" )
+    end )
 
     cvSprintBoost = SPRINT_BOOST:GetFloat() or 0
     cvars.AddChangeCallback( "cfc_parachute_sprint_boost", function( _, _, new )
         cvSprintBoost = tonumber( new ) or 0
-    end, "CFC_Parachute_CacheValue" )
+    end )
 
     cvHandling = HANDLING:GetFloat() or 0
     cvars.AddChangeCallback( "cfc_parachute_handling", function( _, _, new )
         cvHandling = tonumber( new ) or 0
-    end, "CFC_Parachute_CacheValue" )
+    end )
 
     cvSpaceEquipZVelThreshold = -( SPACE_EQUIP_SPEED:GetFloat() or 0 )
     cvars.AddChangeCallback( "cfc_parachute_space_equip_speed", function( _, _, new )
         cvSpaceEquipZVelThreshold = -( tonumber( new ) or 0 )
-    end, "CFC_Parachute_CacheValue" )
+    end )
 end )
 
 hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, state )
