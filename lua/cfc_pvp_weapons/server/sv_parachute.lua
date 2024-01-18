@@ -15,10 +15,6 @@ local cvSprintBoost
 local cvHandling
 local cvSpaceEquipZVelThreshold
 
--- Chute designs
-local DESIGN_REQUEST_BURST_LIMIT = 10
-local DESIGN_REQUEST_BURST_DURATION = 3
-
 -- Misc
 local VEC_ZERO = Vector( 0, 0, 0 )
 local VEC_GROUND_TRACE_OFFSET = Vector( 0, 0, -72 )
@@ -27,6 +23,8 @@ local QUICK_CLOSE_WINDOW = 0.35
 
 local IsValid = IsValid
 local RealTime = RealTime
+
+local designRequestNextTimes = {}
 
 
 --[[
@@ -451,18 +449,11 @@ end )
 net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
     if not IsValid( ply ) then return end
 
-    local requestCount = ( ply.cfcParachuteDesignRequests or 0 ) + 1
-    if requestCount > DESIGN_REQUEST_BURST_LIMIT then return end
+    local now = timer.CurTime()
+    local nextAvailableTime = designRequestNextTimes[ply] or now
+    if now < nextAvailableTime then return end
 
-    if requestCount == 1 then
-        timer.Simple( DESIGN_REQUEST_BURST_DURATION, function()
-            if not IsValid( ply ) then return end
-
-            ply.cfcParachuteDesignRequests = nil
-        end )
-    end
-
-    ply.cfcParachuteDesignRequests = requestCount
+    designRequestNextTimes[ply] = now + 0.1
 
     local newDesign = ply:GetInfoNum( "cfc_parachute_design", 1 )
 
