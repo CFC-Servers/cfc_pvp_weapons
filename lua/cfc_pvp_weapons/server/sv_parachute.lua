@@ -210,7 +210,7 @@ end
     - Whether or not the player is able and willing to use space-equip.
     - return false in the CFC_Parachute_IsSpaceEquipEnabled hook to block this.
         - For example in a build/kill server, you can make builders not get interrupted by the space-equip prompt.
-        - It's recommended to not block if IsValid( ply:GetWeapon( "cfc_weapon_parachute" ) ) is true, however.
+        - It's recommended to not block if the player already has an open chute.
             - Otherwise, a player who manually equipped the SWEP won't be able to use spacebar as a shortcut to open the chute.
     - Use CFC_Parachute.CanSpaceEquip() for the combined ready-and-enabled check.
 --]]
@@ -493,8 +493,6 @@ util.AddNetworkString( "CFC_Parachute_SpaceEquipRequestUnready" )
 
 resource.AddFile( "models/cfc/parachute/chute.mdl" )
 resource.AddFile( "models/cfc/parachute/pack.mdl" )
-
-resource.AddFile( "materials/entities/cfc_weapon_parachute.png" )
 
 do
     local materialPrefix = "materials/" .. CFC_Parachute.DesignMaterialPrefix

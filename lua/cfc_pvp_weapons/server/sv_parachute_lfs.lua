@@ -108,9 +108,9 @@ local function trySetupLFS()
         if ply:InVehicle() then return end -- Already in a vehicle.
 
         -- Check if the player is in a parachute.
-        local wep = ply:GetWeapon( "cfc_weapon_parachute" )
-        if not IsValid( wep ) then return end
-        if not wep._chuteIsOpen then return end
+        local chute = ply.cfcParachuteChute
+        if not IsValid( chute ) then return end
+        if not chute._chuteIsOpen then return end
 
         -- Check for a nearby LFS plane to use.
         local radiusSqr = LFS_ENTER_RADIUS:GetFloat() ^ 2
