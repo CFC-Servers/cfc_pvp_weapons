@@ -28,8 +28,7 @@
 | Convar | Description | Default |
 | :---: | :---: | :---: |
 | cfc_parachute_design | Your selected parachute design. | 1 |
-| cfc_parachute_lfs_auto_equip | Whether or not to auto-equip a parachute when ejecting from an LFS plane in the air. | 1 |
-| cfc_parachute_lfs_eject_launch | Whether or not to launch up high when ejecting from an LFS plane in the air. Useful for pulling off a Rendezook. | 1 |
+| cfc_parachute_lfs_eject | Whether or not exiting mid-air LFS planes will eject you with a parachute. | 1 |
 | cfc_parachute_space_equip | Press spacebar while falling to quickly equip a parachute. | 1 |
 | cfc_parachute_space_equip_double | Double tap spacebar to equip parachutes, instead of a single press. | 0 |
 | cfc_parachute_quick_close_advanced | Changes the key combo for closing parachutes from walk to crouch + walk. | 0 |

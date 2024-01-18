@@ -3,12 +3,10 @@
 
 local function trySetupLFS()
     -- Client settings.
-    CreateClientConVar( "cfc_parachute_lfs_auto_equip", 2, true, true, "Whether or not to auto-equip a parachute when ejecting from an LFS plane in the air.", 0, 2 )
-    CreateClientConVar( "cfc_parachute_lfs_eject_launch", 2, true, true, "Whether or not to launch up high when ejecting from an LFS plane in the air. Useful for pulling off a Rendezook.", 0, 2 )
+    CreateClientConVar( "cfc_parachute_lfs_eject", 2, true, true, "Whether or not exiting mid-air LFS planes will eject you with a parachute.", 0, 2 )
 
     -- Replicated server preferences of client settings.
-    CreateConVar( "cfc_parachute_lfs_auto_equip_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Whether or not to auto-equip a parachute when ejecting from an LFS plane in the air. Defines the default value for players.", 0, 1 )
-    CreateConVar( "cfc_parachute_lfs_eject_launch_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Whether or not to launch up high when ejecting from an LFS plane in the air. Useful for pulling off a Rendezook. Defines the default value for players.", 0, 1 )
+    CreateConVar( "cfc_parachute_lfs_eject_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Whether or not exiting mid-air LFS planes will launch the player up with a parachute. Defines the default value for players.", 0, 1 )
 
     -- Replicated server settings.
     CreateConVar( "cfc_parachute_lfs_eject_height", 500, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The minimum height above the ground a player must be to auto-equip a parachute when ejecting from an LFS.", 0, 50000 )
@@ -20,14 +18,7 @@ local function trySetupLFS()
     table.insert( CFC_Parachute.MenuToggleButtons, {
         TextOff = "LFS Auto-Parachute (Disabled)",
         TextOn = "LFS Auto-Parachute (Enabled)",
-        ConVar = "cfc_parachute_lfs_auto_equip",
-        ConVarServerChoice = "2"
-    } )
-
-    table.insert( CFC_Parachute.MenuToggleButtons, {
-        TextOff = "LFS Eject-Launch (Disabled)",
-        TextOn = "LFS Eject-Launch (Enabled)",
-        ConVar = "cfc_parachute_lfs_eject_launch",
+        ConVar = "cfc_parachute_lfs_eject",
         ConVarServerChoice = "2"
     } )
 end

@@ -5,66 +5,16 @@ local IsValid = IsValid
 
 local function trySetupLFS()
     -- Server settings.
-    local LFS_AUTO_CHUTE_HEIGHT = CreateConVar( "cfc_parachute_lfs_eject_height", 500, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The minimum height above the ground a player must be for LFS eject events to trigger (e.g. auto-parachute and rendezook launch).", 0, 50000 )
+    local LFS_EJECT_HEIGHT = CreateConVar( "cfc_parachute_lfs_eject_height", 500, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The minimum height above the ground a player must be for LFS eject events to trigger (e.g. auto-parachute and rendezook launch).", 0, 50000 )
     local LFS_EJECT_LAUNCH_FORCE = CreateConVar( "cfc_parachute_lfs_eject_launch_force", 1100, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "The upwards force applied to players when they launch out of an LFS plane.", 0, 50000 )
     local LFS_EJECT_LAUNCH_BIAS = CreateConVar( "cfc_parachute_lfs_eject_launch_bias", 25, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How many degrees the LFS eject launch should course-correct the player's trajectory to send them straight up, for if their plane is tilted.", 0, 90 )
     local LFS_ENTER_RADIUS = CreateConVar( "cfc_parachute_lfs_enter_radius", 800, { FCVAR_REPLICATED, FCVAR_ARCHIVE }, "How close a player must be to enter an LFS if they are in a parachute and regular use detection fails. Makes it easier to get inside of an LFS for performing a Rendezook.", 0, 50000 )
 
     -- Server preferences of client settings.
-    local LFS_AUTO_CHUTE_SV = CreateConVar( "cfc_parachute_lfs_auto_equip_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Whether or not to auto-equip a parachute when ejecting from an LFS plane in the air. Defines the default value for players.", 0, 1 )
-    local LFS_EJECT_LAUNCH_SV = CreateConVar( "cfc_parachute_lfs_eject_launch_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Whether or not to launch up high when ejecting from an LFS plane in the air. Useful for pulling off a Rendezook. Defines the default value for players.", 0, 1 )
+    local LFS_EJECT_SV = CreateConVar( "cfc_parachute_lfs_eject_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Whether or not exiting mid-air LFS planes will launch the player up with a parachute. Defines the default value for players.", 0, 1 )
 
 
-    hook.Add( "PlayerLeaveVehicle", "CFC_Parachute_LFSAirEject", function( ply, vehicle )
-        if not IsValid( ply ) then return end
-        if not ply:IsPlayer() then return end
-        if not ply:Alive() then return end
-        if not IsValid( vehicle ) then return end
-
-        local lfsPlane = vehicle.LFSBaseEnt
-        if not IsValid( lfsPlane ) then return end
-
-        local minHeight = LFS_AUTO_CHUTE_HEIGHT:GetFloat()
-        local canAutoChute
-
-        if minHeight == 0 then
-            canAutoChute = true
-        else
-            local hull = ply:OBBMaxs() * Vector( 1, 1, 0 ) + Vector( 0, 0, 1 )
-            local plyPos = ply:GetPos()
-
-            local mainEnts = { vehicle, lfsPlane, ply }
-            local filterTable = constraint.GetAllConstrainedEntities( lfsPlane )
-
-            for _, v in ipairs( mainEnts ) do
-                table.insert( filterTable, v )
-            end
-
-            local tr = util.TraceHull( {
-                start = plyPos,
-                endpos = plyPos + Vector( 0, 0, -minHeight ),
-                mins = -hull,
-                maxs = hull,
-                filter = filterTable,
-            } )
-
-            canAutoChute = not tr.Hit
-        end
-
-        if not canAutoChute then return end
-
-        hook.Run( "CFC_Parachute_LFSAirEject", ply, vehicle, lfsPlane )
-    end )
-
-    hook.Add( "CFC_Parachute_LFSAirEject", "CFC_Parachute_LFSAutoChute", function( ply, vehicle, lfsPlane )
-        if hook.Run( "CFC_Parachute_CanLFSAutoChute", ply, vehicle, lfsPlane ) == false then return end
-
-        CFC_Parachute.OpenParachute( ply )
-    end )
-
-    hook.Add( "CFC_Parachute_LFSAirEject", "CFC_Parachute_LFSAutoLaunch", function( ply, vehicle, lfsPlane )
-        if hook.Run( "CFC_Parachute_CanLFSEjectLaunch", ply, vehicle, lfsPlane ) == false then return end
-
+    local function lfsEject( ply, lfsPlane )
         local force = LFS_EJECT_LAUNCH_FORCE:GetFloat()
         local bias = LFS_EJECT_LAUNCH_BIAS:GetFloat()
         local dir = lfsPlane:GetUp()
@@ -87,18 +37,52 @@ local function trySetupLFS()
 
             ply:SetVelocity( dir * force + lfsVel )
         end )
+    end
+
+
+    hook.Add( "PlayerLeaveVehicle", "CFC_Parachute_TryLFSEject", function( ply, vehicle )
+        if not IsValid( ply ) then return end
+        if not ply:IsPlayer() then return end
+        if not ply:Alive() then return end
+        if not IsValid( vehicle ) then return end
+
+        local lfsPlane = vehicle.LFSBaseEnt
+        if not IsValid( lfsPlane ) then return end
+
+        if hook.Run( "CFC_Parachute_CanLFSEject", ply, vehicle, lfsPlane ) == false then return end
+
+        lfsEject( ply, lfsPlane )
     end )
 
-    hook.Add( "CFC_Parachute_CanLFSAutoChute", "CFC_Parachute_CheckAutoEquipConVar", function( ply )
-        local autoEquipEnabled = CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_lfs_auto_equip", LFS_AUTO_CHUTE_SV )
+    hook.Add( "CFC_Parachute_CanLFSEject", "CFC_Parachute_CheckPreferences", function( ply, _vehicle, _lfsPlane )
+        local ejectEnabled = CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_lfs_eject", LFS_EJECT_SV )
 
-        if not autoEquipEnabled then return false end
+        if not ejectEnabled then return false end
     end )
 
-    hook.Add( "CFC_Parachute_CanLFSEjectLaunch", "CFC_Parachute_CheckEjectLaunchConVar", function( ply )
-        local ejectLaunchEnabled = CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_lfs_eject_launch", LFS_EJECT_LAUNCH_SV )
+    hook.Add( "CFC_Parachute_CanLFSEject", "CFC_Parachute_IsInTheAir", function( ply, vehicle, lfsPlane )
+        local minHeight = LFS_EJECT_HEIGHT:GetFloat()
+        if minHeight <= 0 then return end
 
-        if not ejectLaunchEnabled then return false end
+        local hull = ply:OBBMaxs() * Vector( 1, 1, 0 ) + Vector( 0, 0, 1 )
+        local plyPos = ply:GetPos()
+
+        local mainEnts = { vehicle, lfsPlane, ply }
+        local filterTable = constraint.GetAllConstrainedEntities( lfsPlane )
+
+        for _, v in ipairs( mainEnts ) do
+            table.insert( filterTable, v )
+        end
+
+        local tr = util.TraceHull( {
+            start = plyPos,
+            endpos = plyPos + Vector( 0, 0, -minHeight ),
+            mins = -hull,
+            maxs = hull,
+            filter = filterTable,
+        } )
+
+        if tr.Hit then return false end
     end )
 
     hook.Add( "FindUseEntity", "CFC_Parachute_LFSEasyEnter", function( ply, ent )
