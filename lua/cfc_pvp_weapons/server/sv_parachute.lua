@@ -135,9 +135,6 @@ end
 function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
     if not IsValid( ply ) then return end
 
-    oldDesign = oldDesign or 1
-    newDesign = newDesign or 1
-
     local matNames = CFC_Parachute.DesignMaterialNames
     local validatedDesign = matNames[newDesign] or matNames[oldDesign] or 1
 
