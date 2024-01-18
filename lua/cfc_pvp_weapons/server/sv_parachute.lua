@@ -164,6 +164,7 @@ function CFC_Parachute.OpenParachute( ply )
     chute:SetPos( ply:GetPos() )
     chute:SetOwner( ply )
     chute:Spawn()
+    chute:ApplyChuteDesign()
 
     -- Open the parachute.
     timer.Simple( 0.1, function()
