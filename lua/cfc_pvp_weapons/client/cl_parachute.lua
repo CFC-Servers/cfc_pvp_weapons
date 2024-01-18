@@ -367,7 +367,7 @@ end
 
 cvars.AddChangeCallback( "cfc_parachute_design", function()
     -- Use a timer to ensure USERINFO is updated before the server tries to read it, and reduce net messages if someone spams the design buttons
-    timer.Create( "CFC_Parachute_SelectDesign", 0.5, 1, function()
+    timer.Create( "CFC_Parachute_SelectDesign", 0.25, 1, function()
         net.Start( "CFC_Parachute_SelectDesign" )
         net.SendToServer()
     end )
