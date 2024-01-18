@@ -196,21 +196,29 @@ function ENT:_UpdateChuteDirection()
     self._chuteDirRel = chuteDirRel
 end
 
-function ENT:_KeyPress( ply, key, state )
-    if ply ~= self._chuteOwner then return end
+do
+    local IN_BACK = IN_BACK
+    local IN_FORWARD = IN_FORWARD
+    local IN_MOVELEFT  = IN_MOVELEFT
+    local IN_MOVERIGHT = IN_MOVERIGHT
 
-    if MOVE_KEY_LOOKUP[key] then
+    function ENT:_KeyPress( ply, key, state )
+        local selfTable = self:GetTable()
+
+        if ply ~= selfTable._chuteOwner then return end
+        if not MOVE_KEY_LOOKUP[key] then return end
+
         if key == IN_FORWARD then
-            self._chuteMoveForward = state and 1 or 0
+            selfTable._chuteMoveForward = state and 1 or 0
         elseif key == IN_BACK then
-            self._chuteMoveBack = state and 1 or 0
+            selfTable._chuteMoveBack = state and 1 or 0
         elseif key == IN_MOVERIGHT then
-            self._chuteMoveRight = state and 1 or 0
+            selfTable._chuteMoveRight = state and 1 or 0
         elseif key == IN_MOVELEFT then
-            self._chuteMoveLeft = state and 1 or 0
+            selfTable._chuteMoveLeft = state and 1 or 0
         end
 
-        if not self._chuteIsOpen then return end
+        if not selfTable._chuteIsOpen then return end
 
         self:_UpdateChuteDirection()
     end
