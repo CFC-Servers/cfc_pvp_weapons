@@ -59,7 +59,7 @@ local function trySetupLFS()
     hook.Add( "CFC_Parachute_LFSAirEject", "CFC_Parachute_LFSAutoChute", function( ply, vehicle, lfsPlane )
         if hook.Run( "CFC_Parachute_CanLFSAutoChute", ply, vehicle, lfsPlane ) == false then return end
 
-        CFC_Parachute.EquipAndOpenParachute( ply )
+        CFC_Parachute.OpenParachute( ply )
     end )
 
     hook.Add( "CFC_Parachute_LFSAirEject", "CFC_Parachute_LFSAutoLaunch", function( ply, vehicle, lfsPlane )

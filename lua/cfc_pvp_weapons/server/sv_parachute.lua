@@ -165,7 +165,7 @@ function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
     end
 end
 
-function CFC_Parachute.EquipAndOpenParachute( ply )
+function CFC_Parachute.OpenParachute( ply )
     if not IsValid( ply ) then return end
 
     local chute = ply.cfcParachuteChute
@@ -458,7 +458,7 @@ hook.Add( "KeyPress", "CFC_Parachute_PerformSpaceEquip", function( ply, key )
         if now - lastPress > SPACE_EQUIP_DOUBLE_TAP_WINDOW then return end
     end
 
-    CFC_Parachute.EquipAndOpenParachute( ply )
+    CFC_Parachute.OpenParachute( ply )
 end )
 
 hook.Add( "KeyPress", "CFC_Parachute_QuickClose", function( ply, key )
