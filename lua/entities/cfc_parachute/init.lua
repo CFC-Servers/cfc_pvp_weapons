@@ -5,8 +5,6 @@ include( "shared.lua" )
 
 CFC_Parachute = CFC_Parachute or {}
 
-local MIN_LURCH = GetConVar( "cfc_parachute_min_lurch" )
-local MAX_LURCH = GetConVar( "cfc_parachute_max_lurch" )
 local EXPIRATION_DELAY = GetConVar( "cfc_parachute_expiration_delay" )
 
 local COLOR_SHOW = Color( 255, 255, 255, 255 )
@@ -43,7 +41,6 @@ function ENT:Initialize()
     self._chuteMoveBack = 0
     self._chuteMoveRight = 0
     self._chuteMoveLeft = 0
-    self._chuteLurch = 0
     self._chuteDirRel = Vector( 0, 0, 0 )
     self._chuteDirRel = Vector( 0, 0, 0 )
 
@@ -153,12 +150,6 @@ function ENT:CanOpen()
     if CFC_Parachute.IsPlayerCloseToGround( owner ) then return false end
 
     return true
-end
-
-function ENT:ApplyLurch()
-    local lurchForce = -math.Rand( MIN_LURCH:GetFloat(), MAX_LURCH:GetFloat() )
-
-    self._chuteLurch = self._chuteLurch + lurchForce
 end
 
 function ENT:ApplyChuteDesign()

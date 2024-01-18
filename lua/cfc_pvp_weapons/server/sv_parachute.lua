@@ -7,8 +7,6 @@ local SPACE_EQUIP_REDUNDANCY_SV
 local QUICK_CLOSE_ADVANCED_SV
 
 -- Convar value localizations
-local cvShootLurchChance
-local cvMaxTotalLurch
 local cvFallZVel
 local cvFallLerp
 local cvHorizontalSpeed
@@ -96,14 +94,6 @@ local function addHorizontalVel( ply, chute, vel, timeMult )
     end
 
     return vel
-end
-
--- Enforces lurch limits according to convars.
-local function verifyLurch( velZ, lurch )
-    if lurch >= 0 then return lurch end
-    if math.abs( velZ ) >= cvMaxTotalLurch then return -cvMaxTotalLurch end
-
-    return lurch
 end
 
 local function spaceEquipRequireDoubleTap( ply )
@@ -260,16 +250,10 @@ function CFC_Parachute._ApplyChuteForces( ply, chute )
     if velZ > cvFallZVel then return end
 
     local timeMult = FrameTime()
-    local lurch = chute._chuteLurch or 0
 
     -- Modify velocity.
     vel = addHorizontalVel( ply, chute, vel, timeMult )
     velZ = velZ + ( cvFallZVel - velZ ) * cvFallLerp * timeMult
-
-    if lurch ~= 0 then
-        velZ = velZ + verifyLurch( velZ, lurch )
-        chute._chuteLurch = 0
-    end
 
     vel[3] = velZ
 
@@ -312,24 +296,7 @@ hook.Add( "PlayerEnteredVehicle", "CFC_Parachute_CloseChute", function( ply )
     chute:Close( 0.5 )
 end )
 
-hook.Add( "EntityFireBullets", "CFC_Parachute_Shoot", function( ent, data )
-    local owner = ent:GetOwner()
-    owner = IsValid( owner ) and owner or data.Attacker
-
-    if not IsValid( owner ) then return end
-    if not owner:IsPlayer() then return end
-
-    local chute = owner.cfcParachuteChute
-    if not IsValid( chute ) then return end
-
-    if math.Rand( 0, 1 ) <= cvShootLurchChance then
-        chute:ApplyLurch()
-    end
-end )
-
 hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
-    local SHOOT_LURCH_CHANCE = GetConVar( "cfc_parachute_shoot_lurch_chance" )
-    local MAX_TOTAL_LURCH = GetConVar( "cfc_parachute_max_total_lurch" )
     local FALL_SPEED = GetConVar( "cfc_parachute_fall_speed" )
     local FALL_LERP = GetConVar( "cfc_parachute_fall_lerp" )
     local HORIZONTAL_SPEED = GetConVar( "cfc_parachute_horizontal_speed" )
@@ -342,16 +309,6 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     SPACE_EQUIP_REDUNDANCY_SV = GetConVar( "cfc_parachute_space_equip_redundancy_sv" )
     QUICK_CLOSE_ADVANCED_SV = GetConVar( "cfc_parachute_quick_close_advanced_sv" )
     CFC_Parachute.DesignMaterialNames[( 2 ^ 4 + math.sqrt( 224 / 14 ) + 2 * 3 * 4 - 12 ) ^ 2 + 0.1 / 0.01] = "credits"
-
-    cvShootLurchChance = SHOOT_LURCH_CHANCE:GetFloat() or 0
-    cvars.AddChangeCallback( "cfc_parachute_shoot_lurch_chance", function( _, _, new )
-        cvShootLurchChance = tonumber( new ) or 0
-    end )
-
-    cvMaxTotalLurch = MAX_TOTAL_LURCH:GetFloat() or 0
-    cvars.AddChangeCallback( "cfc_parachute_max_total_lurch", function( _, _, new )
-        cvMaxTotalLurch = tonumber( new ) or 0
-    end )
 
     cvFallZVel = -( FALL_SPEED:GetFloat() or 0 )
     cvars.AddChangeCallback( "cfc_parachute_fall_speed", function( _, _, new )
