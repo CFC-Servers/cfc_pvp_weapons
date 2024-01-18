@@ -118,7 +118,7 @@ function CFC_Parachute.CreateDesignPreview( x, y, ind, panel )
     icon.designInd = ind
 
     icon.DoClick = function()
-        RunConsoleCommand( "cfc_parachute_design ", ind )
+        RunConsoleCommand( "cfc_parachute_design", ind )
     end
 
     local _Paint = icon.Paint
