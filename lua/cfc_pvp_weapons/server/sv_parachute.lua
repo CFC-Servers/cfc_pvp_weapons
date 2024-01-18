@@ -138,25 +138,16 @@ function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
     oldDesign = oldDesign or 1
     newDesign = newDesign or 1
 
-    local originalNewDesign = newDesign
-    local designMaterialNames = CFC_Parachute.DesignMaterialNames
+    local matNames = CFC_Parachute.DesignMaterialNames
+    local validatedDesign = matNames[newDesign] or matNames[oldDesign] or 1
 
-    -- Validate new design, reverting to and validating the old design if necessary.
-    if not designMaterialNames[newDesign] then
-        newDesign = oldDesign
-
-        if not designMaterialNames[newDesign] then
-            newDesign = 1
-        end
-    end
-
-    if originalNewDesign ~= newDesign then
-        ply:ConCommand( "cfc_parachute_design " .. newDesign )
+    if newDesign ~= validatedDesign then
+        ply:ConCommand( "cfc_parachute_design " .. validatedDesign )
 
         return
     end
 
-    ply.cfcParachuteDesignID = newDesign
+    ply.cfcParachuteDesignID = validatedDesign
 
     local wep = ply:GetWeapon( "cfc_weapon_parachute" )
 
