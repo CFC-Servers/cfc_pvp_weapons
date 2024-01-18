@@ -35,6 +35,5 @@ CFC_Parachute.DesignMaterialCount = #CFC_Parachute.DesignMaterialNames
 
 CreateConVar( "cfc_parachute_space_equip_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Press spacebar while falling to quickly equip a parachute. Defines the default value for players.", 0, 1 )
 CreateConVar( "cfc_parachute_space_equip_double_sv", 0, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Double tap spacebar to equip parachutes, instead of a single press. Defines the default value for players.", 0, 1 )
-CreateConVar( "cfc_parachute_space_equip_redundancy_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Makes space-equip still play the ready sound and require fast falling speed to activate when a player has recently used a parachute. Defines the default value for players.", 0, 1 )
 
 CreateConVar( "cfc_parachute_quick_close_advanced_sv", 0, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Makes quick-close require walk and crouch to be pressed together. Defines the default value for players.", 0, 1 )

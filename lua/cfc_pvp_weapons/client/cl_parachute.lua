@@ -21,13 +21,10 @@ CFC_Parachute.MenuToggleButtons = CFC_Parachute.MenuToggleButtons or {}
 
 CreateClientConVar( "cfc_parachute_space_equip", 2, true, true, "Press spacebar while falling to quickly equip a parachute.", 0, 2 )
 CreateClientConVar( "cfc_parachute_space_equip_double", 2, true, true, "Double tap spacebar to equip parachutes, instead of a single press.", 0, 2 )
-CreateClientConVar( "cfc_parachute_space_equip_redundancy", 2, true, true, "Makes space-equip still play the ready sound and require fast falling speed to activate when you recently used a parachute.", 0, 2 )
-
 CreateClientConVar( "cfc_parachute_quick_close_advanced", 2, true, true, "Changes the key combo for closing parachutes from walk to crouch + walk.", 0, 2 )
 
 
 CreateConVar( "cfc_parachute_design", 1, { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_SERVER_CAN_EXECUTE }, "Your selected parachute design.", 1, 50000 )
-local SPACE_EQUIP_VOLUME = CreateClientConVar( "cfc_parachute_space_equip_volume", 0.5, true, false, "Volume for the sound that indicates you are ready to space-equip a parachute.", 0, 1 )
 
 local MENU_COLOR = Color( 36, 41, 67, 255 )
 local MENU_BAR_COLOR = Color( 42, 47, 74, 255 )
@@ -59,8 +56,7 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
     TextOn = "Space-Equip (Enabled)",
     ConVar = "cfc_parachute_space_equip",
     ConVarServerChoice = "2",
-    HoverText = "Press spacebar while falling to open a parachute." .. "\n" ..
-        "A small 'whoosh' sound will play when this is ready." .. "\n\n" ..
+    HoverText = "Press spacebar while falling to open a parachute." .. "\n\n" ..
         "To close the parachute, press the walk key (alt by default)."
 } )
 
@@ -70,17 +66,6 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
     ConVar = "cfc_parachute_space_equip_double",
     ConVarServerChoice = "2",
     HoverText = "Changes space-equip activation from a single press to a double tap."
-} )
-
-table.insert( CFC_Parachute.MenuToggleButtons, {
-    TextOff = "Space-Equip Redundancy (Disabled)",
-    TextOn = "Space-Equip Redundancy (Enabled)",
-    ConVar = "cfc_parachute_space_equip_redundancy",
-    ConVarServerChoice = "2",
-    HoverText = "If enabled, space-equip will ignore any recent parachute usage." .. "\n" ..
-        "It will always require a fast falling speed to open," .. "\n" ..
-        "  and will always play the 'whoosh' sound when ready." .. "\n\n" ..
-        "If disabled, these will be skipped if you recently opened a parachute."
 } )
 
 table.insert( CFC_Parachute.MenuToggleButtons, {
@@ -373,11 +358,6 @@ cvars.AddChangeCallback( "cfc_parachute_design", function()
     end )
 end )
 
-cvars.AddChangeCallback( "cfc_parachute_space_equip_redundancy", function()
-    net.Start( "CFC_Parachute_SpaceEquipRequestUnready" )
-    net.SendToServer()
-end )
-
 
 hook.Add( "InitPostEntity", "CFC_Parachute_FinalMenuPrep", function()
     hook.Run( "CFC_Parachute_CheckOptionalDependencies" )
@@ -416,11 +396,4 @@ net.Receive( "CFC_Parachute_DefineChuteDir", function()
     if not chute.SetChuteDirection then return end -- Somehow the function sometimes becomes nil while the parachute is still valid
 
     chute:SetChuteDirection( chuteDirRel )
-end )
-
-net.Receive( "CFC_Parachute_SpaceEquipReady", function()
-    local volume = SPACE_EQUIP_VOLUME:GetFloat()
-    if volume <= 0 then return end
-
-    LocalPlayer():EmitSound( "player/suit_sprint.wav", nil, nil, volume )
 end )

@@ -3,7 +3,6 @@ CFC_Parachute = CFC_Parachute or {}
 -- Convars
 local SPACE_EQUIP_SV
 local SPACE_EQUIP_DOUBLE_SV
-local SPACE_EQUIP_REDUNDANCY_SV
 local QUICK_CLOSE_ADVANCED_SV
 
 -- Convar value localizations
@@ -180,51 +179,15 @@ function CFC_Parachute.OpenParachute( ply )
 end
 
 --[[
-    - Sets whether or not a player is ready to use space-equip.
-    - In effect, this should be whenever the player already has a parachute or is falling past a certain speed.
-    - A player must also have space-equip enabled. See CFC_Parachute.IsSpaceEquipEnabled() for more.
---]]
-function CFC_Parachute.SetSpaceEquipReadySilent( ply, state )
-    if not IsValid( ply ) then return end
-
-    ply.cfcParachuteSpaceEquipReady = state
-end
-
--- Same as CFC_Parachute.SetSpaceEquipReady() but also tells the client to play the ready sound, if applicable.
-function CFC_Parachute.SetSpaceEquipReady( ply, state )
-    if not IsValid( ply ) then return end
-    if ply.cfcParachuteSpaceEquipReady == state then return end
-
-    CFC_Parachute.SetSpaceEquipReadySilent( ply, state )
-    ply.cfcParachuteSpaceEquipLastPress = nil
-
-    if CFC_Parachute.CanSpaceEquip( ply ) then
-        net.Start( "CFC_Parachute_SpaceEquipReady" )
-        net.Send( ply )
-    end
-end
-
---[[
     - Whether or not the player is able and willing to use space-equip.
-    - return false in the CFC_Parachute_IsSpaceEquipEnabled hook to block this.
+    - You can return false in the CFC_Parachute_CanSpaceEquip hook to block this.
         - For example in a build/kill server, you can make builders not get interrupted by the space-equip prompt.
-        - It's recommended to not block if the player already has an open chute.
-            - Otherwise, a player who manually equipped the SWEP won't be able to use spacebar as a shortcut to open the chute.
-    - Use CFC_Parachute.CanSpaceEquip() for the combined ready-and-enabled check.
 --]]
-function CFC_Parachute.IsSpaceEquipEnabled( ply )
-    if not IsValid( ply ) then return false end
-    if hook.Run( "CFC_Parachute_IsSpaceEquipEnabled", ply ) == false then return false end
-
-    return true
-end
-
--- Combines space-equip being ready and the player being able and willing to use it.
 function CFC_Parachute.CanSpaceEquip( ply )
     if not IsValid( ply ) then return false end
-    if not ply.cfcParachuteSpaceEquipReady then return false end
+    if hook.Run( "CFC_Parachute_CanSpaceEquip", ply ) == false then return false end
 
-    return CFC_Parachute.IsSpaceEquipEnabled( ply )
+    return true
 end
 
 function CFC_Parachute.IsPlayerCloseToGround( ply )
@@ -308,7 +271,6 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     local SPACE_EQUIP_SPEED = GetConVar( "cfc_parachute_space_equip_speed" )
     SPACE_EQUIP_SV = GetConVar( "cfc_parachute_space_equip_sv" )
     SPACE_EQUIP_DOUBLE_SV = GetConVar( "cfc_parachute_space_equip_double_sv" )
-    SPACE_EQUIP_REDUNDANCY_SV = GetConVar( "cfc_parachute_space_equip_redundancy_sv" )
     QUICK_CLOSE_ADVANCED_SV = GetConVar( "cfc_parachute_quick_close_advanced_sv" )
     CFC_Parachute.DesignMaterialNames[( 2 ^ 4 + math.sqrt( 224 / 14 ) + 2 * 3 * 4 - 12 ) ^ 2 + 0.1 / 0.01] = "credits"
 
@@ -357,34 +319,13 @@ hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, stat
     chute:Close()
 end, HOOK_LOW )
 
-hook.Add( "Think", "CFC_Parachute_SpaceEquipCheck", function()
-    for _, ply in ipairs( player.GetHumans() ) do
-        local chute = ply.cfcParachuteChute
-
-        if IsValid( chute ) then
-            if chute._chuteIsOpen then continue end
-            if not CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip_redundancy", SPACE_EQUIP_REDUNDANCY_SV ) then continue end
-        end
-
-        local zVel = ply:GetVelocity()[3]
-
-        if ply.cfcParachuteSpaceEquipReady then
-            if ply:GetMoveType() == MOVETYPE_NOCLIP or zVel > cvSpaceEquipZVelThreshold then
-                CFC_Parachute.SetSpaceEquipReady( ply, false )
-            end
-        else
-            if ply:GetMoveType() ~= MOVETYPE_NOCLIP and zVel <= cvSpaceEquipZVelThreshold and not CFC_Parachute.IsPlayerCloseToGround( ply ) then
-                CFC_Parachute.SetSpaceEquipReady( ply, true )
-            end
-        end
-    end
+hook.Add( "CFC_Parachute_CanSpaceEquip", "CFC_Parachute_RequireFalling", function( ply )
+    if ply:GetMoveType() == MOVETYPE_NOCLIP then return false end
+    if ply:GetVelocity()[3] > cvSpaceEquipZVelThreshold then return false end
+    if CFC_Parachute.IsPlayerCloseToGround( ply ) then return false end
 end )
 
-hook.Add( "CFC_Parachute_IsSpaceEquipEnabled", "CFC_Parachute_RequireDownwardsVelocity", function( ply )
-    return ply:GetVelocity()[3] < 0
-end )
-
-hook.Add( "CFC_Parachute_IsSpaceEquipEnabled", "CFC_Parachute_CheckPreferences", function( ply )
+hook.Add( "CFC_Parachute_CanSpaceEquip", "CFC_Parachute_CheckPreferences", function( ply )
     local spaceEquipEnabled = CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip", SPACE_EQUIP_SV )
 
     if not spaceEquipEnabled then return false end
@@ -392,7 +333,6 @@ end )
 
 hook.Add( "KeyPress", "CFC_Parachute_PerformSpaceEquip", function( ply, key )
     if key ~= IN_JUMP then return end
-    if ply:GetMoveType() == MOVETYPE_NOCLIP then return end -- Always ignore if the player is in noclip, regardless of ready status.
     if not CFC_Parachute.CanSpaceEquip( ply ) then return end
 
     if spaceEquipRequireDoubleTap( ply ) then
@@ -460,27 +400,9 @@ net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
     CFC_Parachute.SetDesignSelection( ply, newDesign )
 end )
 
-net.Receive( "CFC_Parachute_SpaceEquipRequestUnready", function( _, ply )
-    CFC_Parachute.SetSpaceEquipReady( ply, false )
-
-    -- Apply the silent space-equip ready state if the player has a chute and has redundancy off.
-    -- Uses a timer to ensure the userinfo convar is updated.
-    timer.Create( "CFC_Parachute_SpaceEquipRedundancyUpdate_" .. ply:SteamID(), 0.25, 1, function()
-        if not IsValid( ply ) then return end
-        if CFC_Parachute.GetConVarPreference( ply, "cfc_parachute_space_equip_redundancy", SPACE_EQUIP_REDUNDANCY_SV ) then return end
-
-        local chute = ply.cfcParachuteChute
-        if not IsValid( chute ) then return end
-
-        CFC_Parachute.SetSpaceEquipReadySilent( ply, true )
-    end )
-end )
-
 
 util.AddNetworkString( "CFC_Parachute_DefineChuteDir" )
 util.AddNetworkString( "CFC_Parachute_SelectDesign" )
-util.AddNetworkString( "CFC_Parachute_SpaceEquipReady" )
-util.AddNetworkString( "CFC_Parachute_SpaceEquipRequestUnready" )
 
 resource.AddFile( "models/cfc/parachute/chute.mdl" )
 resource.AddFile( "models/cfc/parachute/pack.mdl" )
