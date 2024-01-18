@@ -20,7 +20,6 @@
 | cfc_parachute_lfs_eject_height | The minimum height above the ground a player must be for LFS eject events to trigger (e.g. auto-parachute and rendezook launch). | 500 |
 | cfc_parachute_lfs_eject_launch_force | The upwards force applied to players when they launch out of an LFS plane. | 1100 |
 | cfc_parachute_lfs_eject_launch_bias | How many degrees the LFS eject launch should course-correct the player's trajectory to send them straight up, for if their plane is tilted. | 25 |
-| cfc_parachute_lfs_enter_radius | How close a player must be to enter an LFS if they are in a parachute and regular use detection fails. Makes it easier to get inside of an LFS for performing a Rendezook. | 800 |
 | cfc_parachute_space_equip_speed | The minimum falling speed required for a player to space-equip a parachute. | 300 |
 
 ## Client Convars
