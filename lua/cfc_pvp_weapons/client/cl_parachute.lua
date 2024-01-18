@@ -219,6 +219,7 @@ function CFC_Parachute.CreateToggleButton( x, y, ind, panel, w, h )
     local offVal = buttonData.ConVarOff or "0"
     local onVal = buttonData.ConVarOn or "1"
     local svVal = buttonData.ConVarServerChoice
+    local svConvar = convarName and svVal and GetConVar( convarName .. "_sv" )
     local offText = buttonData.TextOff or "Enable [UNDEFINED]"
     local onText = buttonData.TextOn or "Disable [UNDEFINED]"
     local hoverText = buttonData.HoverText or ( convar and convar:GetHelpText() )
@@ -229,7 +230,7 @@ function CFC_Parachute.CreateToggleButton( x, y, ind, panel, w, h )
 
         local curVal = convar:GetString()
 
-        return curVal == onVal or ( curVal == svVal and GetConVar( convarName .. "_sv" ):GetString() == onVal )
+        return curVal == onVal or ( curVal == svVal and svConvar:GetString() == onVal )
     end
 
     button.cfcParachuteIntendedText = function()
