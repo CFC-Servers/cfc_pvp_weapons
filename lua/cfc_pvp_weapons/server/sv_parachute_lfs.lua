@@ -31,6 +31,8 @@ local function trySetupLFS()
 
         local lfsVel = lfsPlane:GetVelocity() * 1.2
 
+        CFC_Parachute.OpenParachute( ply )
+
         timer.Simple( 0.01, function()
             if not IsValid( ply ) then return end
 
