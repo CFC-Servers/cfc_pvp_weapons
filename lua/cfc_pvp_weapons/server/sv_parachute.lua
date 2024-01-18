@@ -122,11 +122,15 @@ function CFC_Parachute.GetConVarPreference( ply, convarName, svConvarObject )
     return serverDefault ~= "0"
 end
 
-function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
+function CFC_Parachute.SetDesignSelection( ply, newDesign )
     if not IsValid( ply ) then return end
 
-    local matNames = CFC_Parachute.DesignMaterialNames
-    local validatedDesign = matNames[newDesign] or matNames[oldDesign] or 1
+    local validatedDesign = newDesign
+
+    -- Validate design ID, falling back to the previous one if necessary.
+    if not CFC_Parachute.DesignMaterialNames[newDesign] then
+        validatedDesign = ply.cfcParachuteDesignID or 1
+    end
 
     if newDesign ~= validatedDesign then
         ply:ConCommand( "cfc_parachute_design " .. validatedDesign )
@@ -136,10 +140,10 @@ function CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
 
     ply.cfcParachuteDesignID = validatedDesign
 
-    local wep = ply:GetWeapon( "cfc_weapon_parachute" )
+    local chute = ply.cfcParachuteChute
 
-    if IsValid( wep ) then
-        wep:ApplyChuteDesign()
+    if IsValid( chute ) then
+        chute:ApplyChuteDesign()
     end
 end
 
@@ -460,10 +464,9 @@ net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
 
     ply.cfcParachuteDesignRequests = requestCount
 
-    local oldDesign = net.ReadInt( 17 ) or 1
-    local newDesign = net.ReadInt( 17 ) or 1
+    local newDesign = ply:GetInfoNum( "cfc_parachute_design", 1 )
 
-    CFC_Parachute.SetDesignSelection( ply, oldDesign, newDesign )
+    CFC_Parachute.SetDesignSelection( ply, newDesign )
 end )
 
 net.Receive( "CFC_Parachute_SpaceEquipRequestUnready", function( _, ply )

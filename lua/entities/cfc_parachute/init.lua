@@ -157,16 +157,14 @@ function ENT:ApplyChuteDesign()
     if not IsValid( owner ) then return end
 
     if not owner.cfcParachuteDesignID then
-        -- Requests the client to send their design selection since :GetInfoNum() is not behaving correctly even with FCVAR_USERINFO
-        -- Could be due to FCVAR_NEVER_AS_STRING if :GetInfoNum() expects a string that it then converts, without caring about the original type
+        local curDesign = owner:GetInfoNum( "cfc_parachute_design", 1 )
 
-        net.Start( "CFC_Parachute_SelectDesign" )
-        net.Send( owner )
+        CFC_Parachute.SetDesignSelection( owner, curDesign )
 
         return
     end
 
-    local designID = owner.cfcParachuteDesignID or 1
+    local designID = owner.cfcParachuteDesignID
     local materialName =
         CFC_Parachute.DesignMaterialNames[designID] or
         CFC_Parachute.DesignMaterialNames[1]

@@ -26,7 +26,7 @@ CreateClientConVar( "cfc_parachute_space_equip_redundancy", 2, true, true, "Make
 CreateClientConVar( "cfc_parachute_quick_close_advanced", 2, true, true, "Changes the key combo for closing parachutes from walk to crouch + walk.", 0, 2 )
 
 
-local DESIGN_CHOICE = CreateConVar( "cfc_parachute_design", 1, { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_SERVER_CAN_EXECUTE, FCVAR_NEVER_AS_STRING }, "Your selected parachute design.", 1, 50000 )
+local DESIGN_CHOICE = CreateConVar( "cfc_parachute_design", 1, { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_SERVER_CAN_EXECUTE }, "Your selected parachute design.", 1, 50000 )
 local SPACE_EQUIP_VOLUME = CreateClientConVar( "cfc_parachute_space_equip_volume", 0.5, true, false, "Volume for the sound that indicates you are ready to space-equip a parachute.", 0, 1 )
 
 local MENU_COLOR = Color( 36, 41, 67, 255 )
@@ -365,11 +365,12 @@ function CFC_Parachute.OpenDesignMenu()
 end
 
 
-cvars.AddChangeCallback( "cfc_parachute_design", function( _, old, new )
-    net.Start( "CFC_Parachute_SelectDesign" )
-    net.WriteInt( math.floor( old ), 17 )
-    net.WriteInt( math.floor( new ), 17 )
-    net.SendToServer()
+cvars.AddChangeCallback( "cfc_parachute_design", function()
+    -- Use a timer to ensure USERINFO is updated before the server tries to read it, and reduce net messages if someone spams the design buttons
+    timer.Create( "CFC_Parachute_SelectDesign", 0.5, 1, function()
+        net.Start( "CFC_Parachute_SelectDesign" )
+        net.SendToServer()
+    end )
 end )
 
 cvars.AddChangeCallback( "cfc_parachute_space_equip_redundancy", function()
@@ -415,13 +416,6 @@ net.Receive( "CFC_Parachute_DefineChuteDir", function()
     if not chute.SetChuteDirection then return end -- Somehow the function sometimes becomes nil while the parachute is still valid
 
     chute:SetChuteDirection( chuteDirRel )
-end )
-
-net.Receive( "CFC_Parachute_SelectDesign", function()
-    net.Start( "CFC_Parachute_SelectDesign" )
-    net.WriteInt( 1, 17 )
-    net.WriteInt( DESIGN_CHOICE:GetInt(), 17 )
-    net.SendToServer()
 end )
 
 net.Receive( "CFC_Parachute_SpaceEquipReady", function()
