@@ -21,7 +21,7 @@ local SPACE_EQUIP_DOUBLE_TAP_WINDOW = 0.35
 local QUICK_CLOSE_WINDOW = 0.35
 
 local IsValid = IsValid
-local RealTime = RealTime
+local CurTime = CurTime
 
 local designRequestNextTimes = {}
 
@@ -347,7 +347,7 @@ hook.Add( "KeyPress", "CFC_Parachute_PerformSpaceEquip", function( ply, key )
 
     if spaceEquipRequireDoubleTap( ply ) then
         local lastPress = ply.cfcParachuteSpaceEquipLastPress
-        local now = RealTime()
+        local now = CurTime()
 
         ply.cfcParachuteSpaceEquipLastPress = now
 
@@ -365,7 +365,7 @@ hook.Add( "KeyPress", "CFC_Parachute_QuickClose", function( ply, key )
     if not chute then return end
 
     if quickCloseAdvancedEnabled( ply ) then
-        local now = RealTime()
+        local now = CurTime()
         local otherLastPress
 
         if key == IN_WALK then
