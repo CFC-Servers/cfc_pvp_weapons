@@ -30,8 +30,12 @@ local IsValid = IsValid
 
 local function getChutePos( owner )
     local plyHeight = owner:OBBMaxs().z -- mins z is always 0 for players.
+    local zOffset = CHUTE_OFFSET_HEIGHT * plyHeight / 72 -- Scale offset by player height.
+    local pos = owner:GetPos()
 
-    return owner:GetPos() + Vector( 0, 0, CHUTE_OFFSET_HEIGHT * plyHeight / 72 ) -- Scale offset by player height.
+    pos[3] = pos[3] + zOffset
+
+    return pos
 end
 
 
