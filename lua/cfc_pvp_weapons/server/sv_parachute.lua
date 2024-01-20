@@ -395,8 +395,6 @@ end )
 
 
 net.Receive( "CFC_Parachute_SelectDesign", function( _, ply )
-    if not IsValid( ply ) then return end
-
     local now = CurTime()
     local nextAvailableTime = designRequestNextTimes[ply] or now
     if now < nextAvailableTime then return end
