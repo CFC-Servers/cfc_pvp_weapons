@@ -277,6 +277,7 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     local SPRINT_BOOST = GetConVar( "cfc_parachute_sprint_boost" )
     local HANDLING = GetConVar( "cfc_parachute_handling" )
     local SPACE_EQUIP_SPEED = GetConVar( "cfc_parachute_space_equip_speed" )
+
     SPACE_EQUIP_SV = GetConVar( "cfc_parachute_space_equip_sv" )
     SPACE_EQUIP_DOUBLE_SV = GetConVar( "cfc_parachute_space_equip_double_sv" )
     QUICK_CLOSE_ADVANCED_SV = GetConVar( "cfc_parachute_quick_close_advanced_sv" )
