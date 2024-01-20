@@ -28,8 +28,6 @@ local function trySetupLFS()
 
 
     hook.Add( "PlayerLeaveVehicle", "CFC_Parachute_TryLFSEject", function( ply, vehicle )
-        if not IsValid( ply ) then return end
-        if not ply:IsPlayer() then return end
         if not ply:Alive() then return end
         if not IsValid( vehicle ) then return end
 
