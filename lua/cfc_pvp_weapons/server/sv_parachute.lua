@@ -283,39 +283,39 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     QUICK_CLOSE_ADVANCED_SV = GetConVar( "cfc_parachute_quick_close_advanced_sv" )
     CFC_Parachute.DesignMaterialNames[( 2 ^ 4 + math.sqrt( 224 / 14 ) + 2 * 3 * 4 - 12 ) ^ 2 + 0.1 / 0.01] = "credits"
 
-    cvFallZVel = -( FALL_SPEED:GetFloat() or 0 )
+    cvFallZVel = -FALL_SPEED:GetFloat()
     cvars.AddChangeCallback( "cfc_parachute_fall_speed", function( _, _, new )
-        cvFallZVel = -( tonumber( new ) or 0 )
+        cvFallZVel = -assert( tonumber( new ) )
     end )
 
-    cvFallLerp = FALL_LERP:GetFloat() or 0
+    cvFallLerp = FALL_LERP:GetFloat()
     cvars.AddChangeCallback( "cfc_parachute_fall_lerp", function( _, _, new )
-        cvFallLerp = tonumber( new ) or 0
+        cvFallLerp = assert( tonumber( new ) )
     end )
 
-    cvHorizontalSpeed = HORIZONTAL_SPEED:GetFloat() or 0
+    cvHorizontalSpeed = HORIZONTAL_SPEED:GetFloat()
     cvars.AddChangeCallback( "cfc_parachute_horizontal_speed", function( _, _, new )
-        cvHorizontalSpeed = tonumber( new ) or 0
+        cvHorizontalSpeed = assert( tonumber( new ) )
     end )
 
-    cvHorizontalSpeedLimit = HORIZONTAL_SPEED_LIMIT:GetFloat() or 0
+    cvHorizontalSpeedLimit = HORIZONTAL_SPEED_LIMIT:GetFloat()
     cvars.AddChangeCallback( "cfc_parachute_horizontal_speed_limit", function( _, _, new )
-        cvHorizontalSpeedLimit = tonumber( new ) or 0
+        cvHorizontalSpeedLimit = assert( tonumber( new ) )
     end )
 
-    cvSprintBoost = SPRINT_BOOST:GetFloat() or 0
+    cvSprintBoost = SPRINT_BOOST:GetFloat()
     cvars.AddChangeCallback( "cfc_parachute_sprint_boost", function( _, _, new )
-        cvSprintBoost = tonumber( new ) or 0
+        cvSprintBoost = assert( tonumber( new ) )
     end )
 
-    cvHandling = HANDLING:GetFloat() or 0
+    cvHandling = HANDLING:GetFloat()
     cvars.AddChangeCallback( "cfc_parachute_handling", function( _, _, new )
-        cvHandling = tonumber( new ) or 0
+        cvHandling = assert( tonumber( new ) )
     end )
 
-    cvSpaceEquipZVelThreshold = -( SPACE_EQUIP_SPEED:GetFloat() or 0 )
+    cvSpaceEquipZVelThreshold = -SPACE_EQUIP_SPEED:GetFloat()
     cvars.AddChangeCallback( "cfc_parachute_space_equip_speed", function( _, _, new )
-        cvSpaceEquipZVelThreshold = -( tonumber( new ) or 0 )
+        cvSpaceEquipZVelThreshold = -assert( tonumber( new ) )
     end )
 end )
 
