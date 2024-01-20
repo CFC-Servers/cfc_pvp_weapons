@@ -27,6 +27,8 @@ local MOVE_KEY_COUNT = #MOVE_KEYS
 
 local IsValid = IsValid
 
+local allParachutes = {}
+
 
 local function getChutePos( owner )
     local plyHeight = owner:OBBMaxs().z -- mins z is always 0 for players.
@@ -48,6 +50,8 @@ function ENT:Initialize()
     self._chuteDirRel = Vector( 0, 0, 0 )
     self._chuteDirRel = Vector( 0, 0, 0 )
 
+    table.insert( allParachutes, self )
+
     self:SetModel( "models/cfc/parachute/chute.mdl" )
     self:PhysicsInit( SOLID_NONE )
     self:SetSolid( SOLID_NONE )
@@ -60,22 +64,6 @@ function ENT:Initialize()
 
     timer.Simple( 0.02, function()
         self:_UpdateMoveKeys()
-    end )
-
-    -- Loosely follow the owner to stay within the same PVS. Client handles more precise positioning.
-    local timerNameFollowOwner = "CFC_Parachute_FollowOwner_" .. self:EntIndex()
-
-    timer.Create( timerNameFollowOwner, 2, 0, function()
-        if not IsValid( self ) then
-            timer.Remove( timerNameFollowOwner )
-
-            return
-        end
-
-        local owner = self:GetOwner()
-        if not IsValid( owner ) then return end
-
-        self:SetPos( getChutePos( owner ) )
     end )
 end
 
@@ -111,8 +99,8 @@ function ENT:Close( expireDelay )
 end
 
 function ENT:OnRemove()
+    table.RemoveByValue( allParachutes, self )
     timer.Remove( "CFC_Parachute_ExpireChute_" .. self:EntIndex() )
-    timer.Remove( "CFC_Parachute_FollowOwner_" .. self:EntIndex() )
 
     local owner = self:GetOwner()
     if not IsValid( owner ) then return end
@@ -219,3 +207,17 @@ function ENT:_UpdateMoveKeys()
         self:_KeyPress( owner, moveKey, owner:KeyDown( moveKey ) )
     end
 end
+
+
+-- Loosely follow the owner to stay within the same PVS. Client handles more precise positioning.
+timer.Create( "CFC_Parachute_FollowOwners", 2, 0, function()
+    for _, chute in ipairs( allParachutes ) do
+        if IsValid( chute ) then
+            local owner = chute:GetOwner()
+
+            if IsValid( owner ) then
+                chute:SetPos( getChutePos( owner ) )
+            end
+        end
+    end
+end )
