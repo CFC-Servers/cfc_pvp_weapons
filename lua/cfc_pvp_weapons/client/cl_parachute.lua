@@ -232,7 +232,7 @@ function CFC_Parachute.CreateToggleButton( x, y, ind, panel, w, h )
 
     button:SetText( button.cfcParachuteIntendedText() )
     button:SetPos( x, y )
-    button:SetSize( w or 200, h or 20 )
+    button:SetSize( w, h )
     CFC_Parachute.PaintButton( button )
 
     button.DoClick = buttonData.OnClick or function()
