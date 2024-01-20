@@ -236,35 +236,35 @@ end
 
 hook.Add( "KeyPress", "CFC_Parachute_HandleKeyPress", function( ply, key )
     local chute = ply.cfcParachuteChute
-    if not IsValid( chute ) then return end
+    if not chute then return end
 
     chute:_KeyPress( ply, key, true )
 end )
 
 hook.Add( "KeyRelease", "CFC_Parachute_HandleKeyRelease", function( ply, key )
     local chute = ply.cfcParachuteChute
-    if not IsValid( chute ) then return end
+    if not chute then return end
 
     chute:_KeyPress( ply, key, false )
 end )
 
 hook.Add( "OnPlayerHitGround", "CFC_Parachute_CloseChute", function( ply )
     local chute = ply.cfcParachuteChute
-    if not IsValid( chute ) then return end
+    if not chute then return end
 
     chute:Close( 0.5 )
 end )
 
 hook.Add( "PlayerEnteredVehicle", "CFC_Parachute_CloseChute", function( ply )
     local chute = ply.cfcParachuteChute
-    if not IsValid( chute ) then return end
+    if not chute then return end
 
     chute:Close( 0.5 )
 end )
 
 hook.Add( "PostPlayerDeath", "CFC_Parachute_CloseChute", function( ply )
     local chute = ply.cfcParachuteChute
-    if not IsValid( chute ) then return end
+    if not chute then return end
 
     chute:Remove()
 end )
@@ -322,7 +322,7 @@ hook.Add( "PlayerNoClip", "CFC_Parachute_CloseExcessChutes", function( ply, stat
     if not state then return end
 
     local chute = ply.cfcParachuteChute
-    if not IsValid( chute ) then return end
+    if not chute then return end
 
     chute:Close()
 end, HOOK_LOW )
@@ -361,7 +361,7 @@ hook.Add( "KeyPress", "CFC_Parachute_QuickClose", function( ply, key )
     if key ~= IN_WALK and key ~= IN_DUCK then return end
 
     local chute = ply.cfcParachuteChute
-    if not IsValid( chute ) then return end
+    if not chute then return end
 
     if quickCloseAdvancedEnabled( ply ) then
         local now = RealTime()
