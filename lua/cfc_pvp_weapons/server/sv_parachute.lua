@@ -202,9 +202,7 @@ function CFC_Parachute.IsPlayerCloseToGround( ply )
         filter = ply,
     } )
 
-    if tr.Hit then return true end
-
-    return false
+    return tr.Hit
 end
 
 
