@@ -106,15 +106,21 @@ local function getDesignPreviewMaterial( ind )
     end
 
     local originalMatPath = CFC_Parachute.DesignMaterialPrefix .. displayName
-    local tex = Material( originalMatPath ):GetTexture( "$basetexture" )
+    local originalMat = Material( originalMatPath )
+    local tex = originalMat:GetTexture( "$basetexture" )
 
     -- Material likely doesn't exist on the client. Not good, but not fatal.
     if not tex then
         return displayName, originalMatPath
     end
 
+    local color2 = originalMat:GetVector( "$color2" )
     local unlitMat = CreateMaterial( originalMatPath .. "_unlit", "UnlitGeneric" )
     unlitMat:SetTexture( "$basetexture", tex )
+
+    if color2 then
+        unlitMat:SetVector( "$color2", color2 )
+    end
 
     unlitMatPath = "!" .. unlitMat:GetName()
     designPreviewMaterialPaths[ind] = unlitMatPath
