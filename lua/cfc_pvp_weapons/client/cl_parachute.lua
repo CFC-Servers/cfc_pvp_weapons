@@ -40,6 +40,8 @@ local BUTTON_COLOR = Color( 42, 47, 74, 255 )
 local TOOLTIP_COLOR = Color( 24, 29, 59, 255 )
 local TOOLTIP_OUTLINE_COLOR = Color( 50, 58, 75, 255 )
 
+local designPreviewMaterialPaths = {}
+
 
 table.insert( CFC_Parachute.MenuToggleButtons, {
     HideState = true,
@@ -90,15 +92,44 @@ local function updateMenuButton( button )
     tooltip:SetText( button.cfcParachuteIntendedHoverText() )
 end
 
+--[[
+    - Returns displayName, materialPath for the given design index.
+    - Generates a copy of the base material as an UnlitGeneric version, caching it for future use.
+    - Only for use with ContentIcons, not entities.
+--]]
+local function getDesignPreviewMaterial( ind )
+    local displayName = CFC_Parachute.DesignMaterialNames[ind]
+    local unlitMatPath = designPreviewMaterialPaths[ind]
+
+    if unlitMatPath then
+        return displayName, unlitMatPath
+    end
+
+    local originalMatPath = CFC_Parachute.DesignMaterialPrefix .. displayName
+    local tex = Material( originalMatPath ):GetTexture( "$basetexture" )
+
+    -- Material likely doesn't exist on the client. Not good, but not fatal.
+    if not tex then
+        return displayName, originalMatPath
+    end
+
+    local unlitMat = CreateMaterial( originalMatPath .. "_unlit", "UnlitGeneric" )
+    unlitMat:SetTexture( "$basetexture", tex )
+
+    unlitMatPath = "!" .. unlitMat:GetName()
+    designPreviewMaterialPaths[ind] = unlitMatPath
+
+    return displayName, unlitMatPath
+end
+
 
 function CFC_Parachute.CreateDesignPreview( x, y, ind, panel )
     local icon = vgui.Create( "ContentIcon", panel )
-    local materialName = CFC_Parachute.DesignMaterialNames[ind]
-    local fullMaterial = CFC_Parachute.DesignMaterialPrefix .. materialName
+    local materialDisplayName, materialPath = getDesignPreviewMaterial( ind )
 
     icon:SetPos( x, y )
-    icon:SetName( materialName )
-    icon:SetMaterial( fullMaterial )
+    icon:SetName( materialDisplayName )
+    icon:SetMaterial( materialPath )
 
     icon.designInd = ind
 
