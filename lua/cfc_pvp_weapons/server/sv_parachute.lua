@@ -226,7 +226,9 @@ function CFC_Parachute._ApplyChuteForces( ply, chute )
     gravity = gravity == 0 and 1 or gravity -- GMod/HL2 makes SetGravity( 0 ) and SetGravity( 1 ) behave exactly the same for some reason.
     gravity = physenv.GetGravity() * gravity
 
-    vel = vel - gravity * timeMult
+    -- Have to counteract gravity twice over to actually cancel it out. Source spaghetti or natural consequence? Unsure.
+    -- Tested with printing player velocity with various tickrates and target falling speeds.
+    vel = vel - gravity * timeMult * 2
 
     ply:SetVelocity( vel - ply:GetVelocity() ) -- SetVelocity() on Players actually adds.
 end
