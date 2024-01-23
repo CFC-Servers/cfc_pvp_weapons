@@ -93,25 +93,25 @@ local function updateMenuButton( button )
 end
 
 --[[
-    - Returns displayName, materialPath for the given design index.
+    - Returns matName, matPath for the given design index.
     - Generates a copy of the base material as an UnlitGeneric version, caching it for future use.
     - Only for use with ContentIcons, not entities.
 --]]
 local function getDesignPreviewMaterial( ind )
-    local displayName = CFC_Parachute.DesignMaterialNames[ind]
+    local matName = CFC_Parachute.DesignMaterialNames[ind]
     local unlitMatPath = designPreviewMaterialPaths[ind]
 
     if unlitMatPath then
-        return displayName, unlitMatPath
+        return matName, unlitMatPath
     end
 
-    local originalMatPath = CFC_Parachute.DesignMaterialPrefix .. displayName
+    local originalMatPath = CFC_Parachute.DesignMaterialPrefix .. matName
     local originalMat = Material( originalMatPath )
     local tex = originalMat:GetTexture( "$basetexture" )
 
     -- Material likely doesn't exist on the client. Not good, but not fatal.
     if not tex then
-        return displayName, originalMatPath
+        return matName, originalMatPath
     end
 
     local unlitMat = CreateMaterial( originalMatPath .. "_unlit", "UnlitGeneric", {
@@ -119,23 +119,23 @@ local function getDesignPreviewMaterial( ind )
 
         -- Some materials do/don't have these values. The following getters return nil when absent, thus making this a safe and fast way to apply everything.
         ["$color2"] = originalMat:GetVector( "$color2" ), -- The simple colored designs all use this with the same base texture.
-        ["Proxies"] = CFC_Parachute.DesignMaterialProxyInfo[displayName], -- glua-created material proxies can only be set inside of CreateMaterial(), never after.
+        ["Proxies"] = CFC_Parachute.DesignMaterialProxyInfo[matName], -- glua-created material proxies can only be set inside of CreateMaterial(), never after.
     } )
 
     unlitMatPath = "!" .. unlitMat:GetName()
     designPreviewMaterialPaths[ind] = unlitMatPath
 
-    return displayName, unlitMatPath
+    return matName, unlitMatPath
 end
 
 
 function CFC_Parachute.CreateDesignPreview( x, y, ind, panel )
     local icon = vgui.Create( "ContentIcon", panel )
-    local materialDisplayName, materialPath = getDesignPreviewMaterial( ind )
+    local matName, matPath = getDesignPreviewMaterial( ind )
 
     icon:SetPos( x, y )
-    icon:SetName( materialDisplayName )
-    icon:SetMaterial( materialPath )
+    icon:SetName( matName )
+    icon:SetMaterial( matPath )
 
     icon.designInd = ind
 

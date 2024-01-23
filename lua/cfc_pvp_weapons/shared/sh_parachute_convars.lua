@@ -32,7 +32,7 @@ CFC_Parachute.DesignMaterialNames = {
 }
 CFC_Parachute.DesignMaterialCount = #CFC_Parachute.DesignMaterialNames
 
-CFC_Parachute.DesignMaterialProxyInfo = { -- Proxy info, indexed by material display name. glua is unable to get this info from the Material object.
+CFC_Parachute.DesignMaterialProxyInfo = { -- Proxy info, indexed by material name. glua is unable to get this info automatically from Material objects.
     biter = {
         AnimatedTexture = {
             animatedTextureVar = "$basetexture",
