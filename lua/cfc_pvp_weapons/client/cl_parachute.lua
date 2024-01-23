@@ -114,13 +114,13 @@ local function getDesignPreviewMaterial( ind )
         return displayName, originalMatPath
     end
 
-    local color2 = originalMat:GetVector( "$color2" )
-    local unlitMat = CreateMaterial( originalMatPath .. "_unlit", "UnlitGeneric" )
-    unlitMat:SetTexture( "$basetexture", tex )
+    local unlitMat = CreateMaterial( originalMatPath .. "_unlit", "UnlitGeneric", {
+        ["$basetexture"] = tex:GetName(),
 
-    if color2 then
-        unlitMat:SetVector( "$color2", color2 )
-    end
+        -- Some materials do/don't have these values. The following getters return nil when absent, thus making this a safe and fast way to apply everything.
+        ["$color2"] = originalMat:GetVector( "$color2" ), -- The simple colored designs all use this with the same base texture.
+        ["Proxies"] = CFC_Parachute.DesignMaterialProxyInfo[displayName], -- glua-created material proxies can only be set inside of CreateMaterial(), never after.
+    } )
 
     unlitMatPath = "!" .. unlitMat:GetName()
     designPreviewMaterialPaths[ind] = unlitMatPath

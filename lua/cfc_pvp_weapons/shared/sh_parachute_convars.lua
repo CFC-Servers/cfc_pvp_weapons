@@ -32,6 +32,16 @@ CFC_Parachute.DesignMaterialNames = {
 }
 CFC_Parachute.DesignMaterialCount = #CFC_Parachute.DesignMaterialNames
 
+CFC_Parachute.DesignMaterialProxyInfo = { -- Proxy info, indexed by material display name. glua is unable to get this info from the Material object.
+    biter = {
+        AnimatedTexture = {
+            animatedTextureVar = "$basetexture",
+            animatedTextureFrameNumVar = "$frame",
+            animatedTextureFrameRate = 6.25,
+        },
+    },
+}
+
 
 CreateConVar( "cfc_parachute_space_equip_sv", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Press spacebar while falling to quickly equip a parachute. Defines the default value for players.", 0, 1 )
 CreateConVar( "cfc_parachute_space_equip_double_sv", 0, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Double tap spacebar to equip parachutes, instead of a single press. Defines the default value for players.", 0, 1 )
