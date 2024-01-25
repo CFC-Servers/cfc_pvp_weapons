@@ -12,6 +12,7 @@ local cvHorizontalSpeed
 local cvHorizontalSpeedLimit
 local cvSprintBoost
 local cvHandling
+local cvViewPunchMult
 local cvSpaceEquipZVelThreshold
 
 -- Misc
@@ -154,6 +155,20 @@ function CFC_Parachute.OpenParachute( ply )
         chute:Open()
 
         return
+    end
+
+    local zVel = ply:GetVelocity()[3]
+    local viewPunchVelThreshold = cvFallZVel - 50
+
+    if zVel < viewPunchVelThreshold then
+        -- Apply view punch
+        local punchStrength = -math.abs( cvViewPunchMult * zVel / cvFallZVel )
+
+        ply:ViewPunch( Angle(
+            math.Rand( punchStrength * 0.5, punchStrength ),
+            math.Rand( punchStrength * 0.125, punchStrength * 0.25 ),
+            0
+        ) )
     end
 
     -- Spawn a parachute.
@@ -311,6 +326,11 @@ hook.Add( "InitPostEntity", "CFC_Parachute_GetConvars", function()
     cvHandling = HANDLING:GetFloat()
     cvars.AddChangeCallback( "cfc_parachute_handling", function( _, _, new )
         cvHandling = assert( tonumber( new ) )
+    end )
+
+    cvViewPunchMult = HANDLING:GetFloat()
+    cvars.AddChangeCallback( "cfc_parachute_viewpunch_strength", function( _, _, new )
+        cvViewPunchMult = assert( tonumber( new ) )
     end )
 
     cvSpaceEquipZVelThreshold = -SPACE_EQUIP_SPEED:GetFloat()
