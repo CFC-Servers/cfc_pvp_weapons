@@ -76,7 +76,7 @@ table.insert( CFC_Parachute.MenuToggleButtons, {
     ConVar = "cfc_parachute_quick_close_advanced",
     ConVarServerChoice = "2",
     HoverText = "Changes the key combo for closing parachutes from walk to crouch + walk." .. "\n" ..
-        "(alt and ctrl by default)" .. "\n\n" ..
+        "(ctrl by default)" .. "\n\n" ..
         "The keys must be pressed within quick succession of each other."
 } )
 
