@@ -6,6 +6,7 @@ include( "shared.lua" )
 CFC_Parachute = CFC_Parachute or {}
 
 local EXPIRATION_DELAY = GetConVar( "cfc_parachute_expiration_delay" )
+local VIEWPUNCH_STRENGTH = GetConVar( "cfc_parachute_viewpunch_strength" )
 
 local COLOR_SHOW = Color( 255, 255, 255, 255 )
 local COLOR_HIDE = Color( 255, 255, 255, 0 )
@@ -69,6 +70,8 @@ end
 
 function ENT:Open()
     if not self:CanOpen() then return end
+
+    self:ApplyViewPunch()
 
     self._chuteIsOpen = true
     self:SetNoDraw( false )
@@ -155,6 +158,24 @@ function ENT:ApplyChuteDesign()
     local fullMaterial = CFC_Parachute.DesignMaterialPrefix .. materialName
 
     self:SetSubMaterial( 0, fullMaterial )
+end
+
+function ENT:ApplyViewPunch()
+    local owner = self:GetOwner()
+    if not IsValid( owner ) then return end
+
+    local zVel = owner:GetVelocity()[3]
+    local viewPunchVelThreshold = cvFallZVel - 50
+    if zVel >= viewPunchVelThreshold then return end
+
+    local punchStrength = -math.abs( VIEWPUNCH_STRENGTH:GetFloat() * zVel / cvFallZVel )
+    if punchStrength == 0 then return end
+
+    owner:ViewPunch( Angle(
+        math.Rand( punchStrength * 0.5, punchStrength ),
+        math.Rand( punchStrength * 0.125, punchStrength * 0.25 ),
+        0
+    ) )
 end
 
 
