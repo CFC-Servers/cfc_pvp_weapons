@@ -16,7 +16,7 @@
 | cfc_parachute_horizontal_speed_limit | Max horizontal speed of a parachute. | 700 |
 | cfc_parachute_sprint_boost | How much of a horizontal boost you get in a parachute while sprinting. | 1.25 |
 | cfc_parachute_handling | Improves parachute handling by making it easier to brake or chagne directions. 1 gives no handling boost, 0-1 reduces handling. | 4 |
-| cfc_parachute_handling | How long until a parachute will delete itself after being closed. | 5 |
+| cfc_parachute_expiration_delay | How long until a parachute will delete itself after being closed. | 5 |
 | cfc_parachute_viewpunch_strength | Strength of the viewpunch players receive when opening a parachute. Scales with falling speed. | 15 |
 | cfc_parachute_lfs_eject_height | The minimum height above the ground a player must be for LFS eject events to trigger (e.g. auto-parachute and rendezook launch). | 500 |
 | cfc_parachute_lfs_eject_launch_force | The upwards force applied to players when they launch out of an LFS plane. | 1100 |
