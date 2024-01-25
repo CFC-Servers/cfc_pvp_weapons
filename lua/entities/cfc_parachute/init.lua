@@ -6,6 +6,7 @@ include( "shared.lua" )
 CFC_Parachute = CFC_Parachute or {}
 
 local EXPIRATION_DELAY = GetConVar( "cfc_parachute_expiration_delay" )
+local FALL_SPEED = GetConVar( "cfc_parachute_fall_speed" )
 local VIEWPUNCH_STRENGTH = GetConVar( "cfc_parachute_viewpunch_strength" )
 
 local COLOR_SHOW = Color( 255, 255, 255, 255 )
@@ -165,10 +166,11 @@ function ENT:ApplyViewPunch()
     if not IsValid( owner ) then return end
 
     local zVel = owner:GetVelocity()[3]
-    local viewPunchVelThreshold = cvFallZVel - 50
+    local targetFallVel = -FALL_SPEED:GetFloat()
+    local viewPunchVelThreshold = targetFallVel - 50
     if zVel >= viewPunchVelThreshold then return end
 
-    local punchStrength = -math.abs( VIEWPUNCH_STRENGTH:GetFloat() * zVel / cvFallZVel )
+    local punchStrength = -math.abs( VIEWPUNCH_STRENGTH:GetFloat() * zVel / targetFallVel )
     if punchStrength == 0 then return end
 
     owner:ViewPunch( Angle(
