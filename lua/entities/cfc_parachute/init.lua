@@ -175,7 +175,7 @@ function ENT:ApplyViewPunch()
 
     owner:ViewPunch( Angle(
         math.Rand( punchStrength * 0.5, punchStrength ),
-        math.Rand( punchStrength * 0.125, punchStrength * 0.25 ),
+        math.Rand( -punchStrength * 0.125, punchStrength * 0.125 ),
         0
     ) )
 end
