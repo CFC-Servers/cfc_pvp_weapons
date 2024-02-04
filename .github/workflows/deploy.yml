@@ -25,7 +25,7 @@ jobs:
           rm -fv $GITHUB_WORKSPACE/project/README*
       - uses: CFC-Servers/gmod-upload@master
         with:
-          id: 3143596223 # Temporarily pushing to the Parachutes workshop page
+          id: 3097864891
           changelog: ${{ inputs.changelog }}
           title: CFC PvP Weapons
           type: ServerContent
