@@ -1,6 +1,6 @@
 AddCSLuaFile()
 
-simple_weapons.Include("Convars")
+cfc_simple_weapons.Include("Convars")
 
 -- Primary fire
 function SWEP:CanPrimaryFire()
@@ -19,7 +19,7 @@ function SWEP:CanPrimaryFire()
 			return false
 		end
 
-		if ply:GetInfoNum("simple_weapons_auto_reload", 0) == 1 and self:GetBurstFired() == 0 then
+		if ply:GetInfoNum("cfc_simple_weapons_auto_reload", 0) == 1 and self:GetBurstFired() == 0 then
 			self:Reload()
 		end
 

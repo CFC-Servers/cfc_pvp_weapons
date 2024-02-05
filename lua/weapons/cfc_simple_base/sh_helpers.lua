@@ -1,7 +1,7 @@
 AddCSLuaFile()
 
-simple_weapons.Include("Convars")
-simple_weapons.Include("Enums")
+cfc_simple_weapons.Include("Convars")
+cfc_simple_weapons.Include("Enums")
 
 function SWEP:IsReady()
 	return CurTime() - self:GetLowerTime() >= ReadyTime:GetFloat()
@@ -80,7 +80,7 @@ end
 
 function SWEP:HandleAutoRaise()
 	if not self.ClassicMode and (self:GetLowered() or not self:IsReady()) and not self:IsReloading() then
-		if self:GetOwner():GetInfoNum("simple_weapons_disable_raise", 0) == 0 then
+		if self:GetOwner():GetInfoNum("cfc_simple_weapons_disable_raise", 0) == 0 then
 			self:SetLower(false)
 		end
 

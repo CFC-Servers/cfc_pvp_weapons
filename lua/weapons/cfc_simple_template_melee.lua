@@ -2,9 +2,9 @@ AddCSLuaFile()
 
 -- Boilerplate lines, required for anything to work at all.
 
-DEFINE_BASECLASS("simple_base_melee")
+DEFINE_BASECLASS("cfc_simple_base_melee")
 
-SWEP.Base = "simple_base_melee"
+SWEP.Base = "cfc_simple_base_melee"
 
 -- UI stuff
 

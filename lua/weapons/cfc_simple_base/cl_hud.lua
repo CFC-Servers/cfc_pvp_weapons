@@ -1,5 +1,5 @@
-simple_weapons.Include("Convars")
-simple_weapons.Include("Enums")
+cfc_simple_weapons.Include("Convars")
+cfc_simple_weapons.Include("Enums")
 
 function SWEP:DoDrawCrosshair(x, y)
 	if self.OverrideCrosshairDraw then

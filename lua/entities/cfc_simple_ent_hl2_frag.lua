@@ -1,10 +1,10 @@
 AddCSLuaFile()
 
-simple_weapons.Include("Convars")
+cfc_simple_weapons.Include("Convars")
 
-DEFINE_BASECLASS("simple_ent_grenade_base")
+DEFINE_BASECLASS("cfc_simple_ent_grenade_base")
 
-ENT.Base = "simple_ent_grenade_base"
+ENT.Base = "cfc_simple_ent_grenade_base"
 
 ENT.Model = Model("models/weapons/w_npcnade.mdl")
 

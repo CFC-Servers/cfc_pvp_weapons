@@ -1,6 +1,6 @@
 AddCSLuaFile()
 
-simple_weapons.Include("Convars")
+cfc_simple_weapons.Include("Convars")
 
 SWEP.Base = "weapon_base"
 
@@ -140,7 +140,7 @@ end
 
 function SWEP:PrimaryAttack()
 	if self:GetLowered() or not self:IsReady() then
-		if self:GetOwner():GetInfoNum("simple_weapons_disable_raise", 0) == 0 then
+		if self:GetOwner():GetInfoNum("cfc_simple_weapons_disable_raise", 0) == 0 then
 			self:SetLower(false)
 		end
 

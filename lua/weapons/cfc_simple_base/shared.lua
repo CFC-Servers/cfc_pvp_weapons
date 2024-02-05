@@ -1,6 +1,6 @@
 AddCSLuaFile()
 
-simple_weapons.Include("Convars")
+cfc_simple_weapons.Include("Convars")
 
 SWEP.Base = "weapon_base"
 

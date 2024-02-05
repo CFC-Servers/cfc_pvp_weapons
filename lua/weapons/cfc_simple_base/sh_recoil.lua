@@ -1,6 +1,6 @@
 AddCSLuaFile()
 
-simple_weapons.Include("Convars")
+cfc_simple_weapons.Include("Convars")
 
 function SWEP:ApplyRecoil(recoil)
 	local ply = self:GetOwner()

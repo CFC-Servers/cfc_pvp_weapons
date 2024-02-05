@@ -1,7 +1,7 @@
 AddCSLuaFile()
 
-simple_weapons.Include("Convars")
-simple_weapons.Include("Enums")
+cfc_simple_weapons.Include("Convars")
+cfc_simple_weapons.Include("Enums")
 
 function SWEP:GetAmmoType()
 	if self.Primary.Ammo == "" and self.Primary.ClipSize == -1 then

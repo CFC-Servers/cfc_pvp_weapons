@@ -1,4 +1,4 @@
-module("simple_weapons", package.seeall)
+module("cfc_simple_weapons", package.seeall)
 
 local blacklist = {
 	["BaseClass"] = true,
@@ -94,14 +94,12 @@ function FormatViewModelAttachment(nFOV, vOrigin, bFrom)
 	return vEyePos
 end
 
-include("simple_weapons/sh_convars.lua")
-include("simple_weapons/sh_enums.lua")
-include("simple_weapons/sh_hooks.lua")
+include("cfc_simple_weapons/sh_convars.lua")
+include("cfc_simple_weapons/sh_enums.lua")
+include("cfc_simple_weapons/sh_hooks.lua")
 
-AddCSLuaFile("simple_weapons/cl_ui.lua")
+AddCSLuaFile("cfc_simple_weapons/cl_ui.lua")
 
 if CLIENT then
-	include("simple_weapons/cl_ui.lua")
-else
-	resource.AddWorkshop("2821862386")
+	include("cfc_simple_weapons/cl_ui.lua")
 end

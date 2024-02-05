@@ -1,8 +1,8 @@
 AddCSLuaFile()
 
-simple_weapons.Include("Convars")
+cfc_simple_weapons.Include("Convars")
 
-hook.Add("SetupMove", "simple_base", function(ply, mv)
+hook.Add("SetupMove", "cfc_simple_base", function(ply, mv)
 	if not LimitMovement:GetBool() then
 		return
 	end
@@ -21,7 +21,7 @@ hook.Add("SetupMove", "simple_base", function(ply, mv)
 end)
 
 if CLIENT then
-	hook.Add("PostDrawTranslucentRenderables", "simple_base", function(depth, skybox, skybox3d)
+	hook.Add("PostDrawTranslucentRenderables", "cfc_simple_base", function(depth, skybox, skybox3d)
 		if skybox or skybox3d then
 			return
 		end
@@ -60,13 +60,13 @@ else
 
 	local isGiving = false
 
-	hook.Add("PlayerGiveSWEP", "simple_base", function(ply, weapon)
+	hook.Add("PlayerGiveSWEP", "cfc_simple_base", function(ply, weapon)
 		local replacement = key[weapon]
 
 		isGiving = ReplaceWeapons:GetBool() and replacement
 	end)
 
-	hook.Add("PlayerCanPickupWeapon", "simple_base", function(ply, weapon)
+	hook.Add("PlayerCanPickupWeapon", "cfc_simple_base", function(ply, weapon)
 		local replacement = key[weapon:GetClass()]
 
 		if weapon.IgnorePickup then -- For whatever reason, PlayerCanPickupWeapon is called multiple times if we return false, even when removing the original weapon

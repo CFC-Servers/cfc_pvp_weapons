@@ -1,6 +1,6 @@
 AddCSLuaFile()
 
-simple_weapons.Include("Convars")
+cfc_simple_weapons.Include("Convars")
 
 -- Firing
 function SWEP:GetDelay()
@@ -73,5 +73,5 @@ function SWEP:GetZoom()
 		return 1
 	end
 
-	return self:GetOwner():GetInfoNum("simple_weapons_zoom", 1.25)
+	return self:GetOwner():GetInfoNum("cfc_simple_weapons_zoom", 1.25)
 end

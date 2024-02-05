@@ -2,7 +2,7 @@ AddCSLuaFile()
 
 DEFINE_BASECLASS("weapon_base")
 
-simple_weapons.Include("Convars")
+cfc_simple_weapons.Include("Convars")
 
 function SWEP:TranslateFOV(fov)
 	if not IsValid(self:GetOwner()) then

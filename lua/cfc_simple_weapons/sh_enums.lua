@@ -1,6 +1,6 @@
 AddCSLuaFile()
 
-module("simple_weapons.Enums", package.seeall)
+module("cfc_simple_weapons.Enums", package.seeall)
 
 AMMO_NONE = 0
 AMMO_NORMAL = 1

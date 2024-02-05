@@ -1,10 +1,10 @@
 AddCSLuaFile()
 
-simple_weapons.Include("Convars")
+cfc_simple_weapons.Include("Convars")
 
-DEFINE_BASECLASS("simple_base")
+DEFINE_BASECLASS("cfc_simple_base")
 
-SWEP.Base = "simple_base"
+SWEP.Base = "cfc_simple_base"
 
 SWEP.Primary.UnscopedRange = 0
 SWEP.Primary.UnscopedAccuracy = 0
@@ -62,7 +62,7 @@ function SWEP:GetZoom()
 	local index = self:GetScopeIndex()
 
 	if index == 0 then
-		return ClassicMode:GetBool() and 1 or self:GetOwner():GetInfoNum("simple_weapons_zoom", 1.25)
+		return ClassicMode:GetBool() and 1 or self:GetOwner():GetInfoNum("cfc_simple_weapons_zoom", 1.25)
 	else
 		return istable(self.ScopeZoom) and self.ScopeZoom[index] or self.ScopeZoom
 	end

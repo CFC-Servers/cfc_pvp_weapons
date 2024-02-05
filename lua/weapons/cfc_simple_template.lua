@@ -1,10 +1,10 @@
 AddCSLuaFile()
 
--- Boilerplate lines, required for anything to work at all. simple_base can be swapped out for different base weapons depending on your needs (e.g. scoped weapons using simple_base_scoped)
+-- Boilerplate lines, required for anything to work at all. cfc_simple_base can be swapped out for different base weapons depending on your needs (e.g. scoped weapons using cfc_simple_base_scoped)
 
-DEFINE_BASECLASS("simple_base")
+DEFINE_BASECLASS("cfc_simple_base")
 
-SWEP.Base = "simple_base"
+SWEP.Base = "cfc_simple_base"
 
 -- UI stuff
 
