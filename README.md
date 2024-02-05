@@ -14,3 +14,4 @@
 ## Credits
 
 - [Slap swep](https://steamcommunity.com/sharedfiles/filedetails/?id=1052253533) - Workshop
+- [Simple Weapons SWEP Base](https://github.com/TankNut/simple-weapons) - GitHub
