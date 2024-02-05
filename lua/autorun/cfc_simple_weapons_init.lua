@@ -97,9 +97,3 @@ end
 include( "cfc_simple_weapons/sh_convars.lua" )
 include( "cfc_simple_weapons/sh_enums.lua" )
 include( "cfc_simple_weapons/sh_hooks.lua" )
-
-AddCSLuaFile( "cfc_simple_weapons/cl_ui.lua" )
-
-if CLIENT then
-    include( "cfc_simple_weapons/cl_ui.lua" )
-end
