@@ -69,5 +69,5 @@ end
 
 -- Zoom
 function SWEP:GetZoom()
-    return self:GetOwner():GetInfoNum( "cfc_simple_weapons_zoom", 1.25 )
+    return 1 -- Overridden in scoped weapon base
 end
