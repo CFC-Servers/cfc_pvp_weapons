@@ -31,7 +31,7 @@ function SWEP:CanReload()
         return false
     end
 
-    if self:GetOwner():GetAmmoCount( self.Primary.Ammo ) <= 0 then
+    if self:GetReserveAmmo() <= 0 then
         return false
     end
 
