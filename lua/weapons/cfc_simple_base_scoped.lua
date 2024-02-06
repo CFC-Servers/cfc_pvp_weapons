@@ -98,11 +98,11 @@ if CLIENT then
             return
         end
 
-        return self:GetScopeIndex() ~= 0 and UseScopes:GetBool()
+        return self:GetScopeIndex() ~= 0
     end
 
     function SWEP:ShouldHideCrosshair()
-        if self.UseScope and self:GetScopeIndex() ~= 0 and UseScopes:GetBool() then
+        if self.UseScope and self:GetScopeIndex() ~= 0 then
             return false
         else
             return self:IsReloading()
@@ -113,7 +113,7 @@ if CLIENT then
         if self:GetScopeIndex() == 0 or not self.UseScope then
             return false
         else
-            return UseScopes:GetBool() and self:DrawScope( x, y ) or false
+            return self:DrawScope( x, y )
         end
     end
 

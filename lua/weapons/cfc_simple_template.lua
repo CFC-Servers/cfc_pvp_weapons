@@ -77,8 +77,8 @@ SWEP.Primary = {
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
 
 -- Scope base exclusive variables
-SWEP.ScopeZoom = { 2, 6 } -- A number (or table) containing the zoom levels the weapon can cycle through
+SWEP.ScopeZoom = 1 -- A number (or table) containing the zoom levels the weapon can cycle through
 SWEP.ScopeSound = "Default.Zoom" -- optional: Sound to play when cycling through zoom levels
 
-SWEP.UseScope = true -- Whether this weapon obeys the draw scopes option
+SWEP.UseScope = false -- Whether this weapon obeys the draw scopes option
 SWEP.HideInScope = true -- Whether the viewmodel should be hidden when a scope is being drawn
