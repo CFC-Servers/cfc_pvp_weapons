@@ -55,14 +55,10 @@ function SWEP:GetRange()
 end
 
 function SWEP:GetZoom()
-    if self:GetLowered() then
-        return 1
-    end
-
     local index = self:GetScopeIndex()
 
     if index == 0 then
-        return ClassicMode:GetBool() and 1 or self:GetOwner():GetInfoNum( "cfc_simple_weapons_zoom", 1.25 )
+        return 1
     else
         return istable( self.ScopeZoom ) and self.ScopeZoom[index] or self.ScopeZoom
     end
@@ -87,7 +83,7 @@ function SWEP:CycleScope()
 end
 
 function SWEP:CanAltFire()
-    return not self:GetLowered()
+    return true
 end
 
 function SWEP:AltFire()
@@ -98,7 +94,7 @@ end
 
 if CLIENT then
     function SWEP:PreDrawViewModel( _vm, _, _ply )
-        if not self.UseScope or not self.HideInScope or self:GetLowered() then
+        if not self.UseScope or not self.HideInScope then
             return
         end
 
@@ -107,9 +103,9 @@ if CLIENT then
 
     function SWEP:ShouldHideCrosshair()
         if self.UseScope and self:GetScopeIndex() ~= 0 and UseScopes:GetBool() then
-            return self:GetLowered()
+            return false
         else
-            return self:GetLowered() or self:IsReloading()
+            return self:IsReloading()
         end
     end
 

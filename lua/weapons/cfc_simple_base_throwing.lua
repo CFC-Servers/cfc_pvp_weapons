@@ -14,7 +14,6 @@ SWEP.SimpleWeapon = true
 SWEP.SimpleWeaponThrowing = true
 
 SWEP.HoldType = "grenade"
-SWEP.LowerHoldType = "normal"
 
 SWEP.Primary.Ammo = ""
 SWEP.Primary.ClipSize = -1
@@ -61,8 +60,6 @@ function SWEP:AddNetworkVar( varType, name, extended )
 end
 
 function SWEP:Deploy()
-    self:SetHoldType( self.LowerHoldType )
-
     self:SetNextIdle( CurTime() + self:SendTranslatedWeaponAnim( ACT_VM_DRAW ) )
 end
 
@@ -254,8 +251,6 @@ function SWEP:FinishReload()
 
     self:SetNextPrimaryFire( time )
     self:SetNextSecondaryFire( time )
-
-    self:SetHoldType( self.LowerHoldType )
 
     return true
 end

@@ -53,10 +53,8 @@ if CLIENT then
 
         local fov = math.rad( ply:GetFOV() ) * 0.5
 
-        local frac = ( 1 - self:GetLowerFraction() )
-
-        local gap = yres( self:GetSpread().x * 320 / math.tan( fov ) ) * frac
-        local size = math.max( crosshair_size:GetFloat() * 6 * frac, 1 )
+        local gap = yres( self:GetSpread().x * 320 / math.tan( fov ) )
+        local size = math.max( crosshair_size:GetFloat() * 6, 1 )
 
         surface.DrawLine( x - gap - size, y, x - gap, y )
         surface.DrawLine( x + gap, y, x + gap + size, y )

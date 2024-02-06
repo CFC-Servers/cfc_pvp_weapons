@@ -25,7 +25,6 @@ SWEP.ViewModel = Model( "models/weapons/c_crowbar.mdl" ) -- Weapon viewmodel, us
 SWEP.WorldModel = Model( "models/weapons/w_crowbar.mdl" ) -- Weapon worldmodel, almost always a w_ model
 
 SWEP.HoldType = "melee" -- Default holdtype, you can find all the options here: https://wiki.facepunch.com/gmod/Hold_Types
-SWEP.LowerHoldType = "normal" -- Ditto, used when a weapon is lowered
 
 -- Weapon stats
 

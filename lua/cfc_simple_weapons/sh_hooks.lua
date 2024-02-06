@@ -2,24 +2,6 @@ AddCSLuaFile()
 
 cfc_simple_weapons.Include( "Convars" )
 
-hook.Add( "SetupMove", "cfc_simple_base", function( ply, mv )
-    if not LimitMovement:GetBool() then
-        return
-    end
-
-    local weapon = ply:GetActiveWeapon()
-
-    if not IsValid( weapon ) or not weapon.SimpleWeapon then
-        return
-    end
-
-    if not weapon.SetupMove then
-        return
-    end
-
-    weapon:SetupMove( ply, mv )
-end )
-
 if CLIENT then
     hook.Add( "PostDrawTranslucentRenderables", "cfc_simple_base", function( _depth, skybox, skybox3d )
         if skybox or skybox3d then

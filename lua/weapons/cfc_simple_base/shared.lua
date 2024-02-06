@@ -14,10 +14,7 @@ SWEP.ViewModelFOV = 54
 SWEP.SimpleWeapon = true
 
 SWEP.HoldType = "ar2"
-SWEP.LowerHoldType = "passive"
-
 SWEP.CustomHoldType = {}
-SWEP.CustomLowerHoldType = {}
 
 SWEP.Firemode = -1
 
@@ -119,7 +116,6 @@ function SWEP:SetupDataTables()
 
     self:AddNetworkVar( "Entity", "LastOwner" )
 
-    self:AddNetworkVar( "Bool", "Lowered" )
     self:AddNetworkVar( "Bool", "NeedPump" )
     self:AddNetworkVar( "Bool", "FirstReload" )
     self:AddNetworkVar( "Bool", "AbortReload" )
@@ -127,7 +123,6 @@ function SWEP:SetupDataTables()
     self:AddNetworkVar( "Int", "Firemode" )
     self:AddNetworkVar( "Int", "BurstFired" )
 
-    self:AddNetworkVar( "Float", "LowerTime" )
     self:AddNetworkVar( "Float", "NextIdle" )
     self:AddNetworkVar( "Float", "FinishReload" )
 
@@ -164,20 +159,10 @@ function SWEP:OwnerChanged()
 end
 
 function SWEP:Deploy()
-    self:SetLowerTime( 0 )
-
-    if ClassicMode:GetBool() then
-        self:SetLowered( false )
-        self:SetHoldType( self.HoldType )
-    else
-        self:SetLowered( true )
-        self:SetHoldType( self.LowerHoldType )
-    end
-
+    self:UpdateFOV( 0.1 )
+    self:SetHoldType( self.HoldType )
     self:SendTranslatedWeaponAnim( ACT_VM_DRAW )
     self:SetNextIdle( CurTime() + self:SequenceDuration() )
-
-    self.ClassicMode = ClassicMode:GetBool()
 end
 
 function SWEP:Holster()
@@ -194,59 +179,14 @@ function SWEP:Holster()
     return true
 end
 
-function SWEP:CanLower()
-    if not self:IsReady() then
-        return false
-    end
-
-    if not LoweredReloads:GetBool() and self:IsReloading() then
-        return false
-    end
-
-    return true
-end
-
-function SWEP:SetLower( lower )
-    if not self:CanLower() then
-        return false
-    end
-
-    if self:GetLowered() ~= lower then
-        self:SetLowered( lower )
-        self:SetLowerTime( CurTime() )
-
-        self:SetHoldType( lower and self.LowerHoldType or self.HoldType )
-
-        self:UpdateFOV( ReadyTime:GetFloat() )
-    end
-
-    self.Primary.Automatic = true
-
-    return true
-end
-
 function SWEP:PrimaryAttack()
-    local ply = self:GetOwner()
-
-    if not ClassicMode:GetBool() and ply:IsPlayer() and ply:KeyDown( IN_USE ) then
-        self:TryAltFire()
-
-        return
-    end
-
-    if self:GetNextFire() > CurTime() or not self:CanPrimaryFire() then
-        return
-    end
+    if self:GetNextFire() > CurTime() or not self:CanPrimaryFire() then return end
 
     self:PrimaryFire()
 end
 
 function SWEP:SecondaryAttack()
-    if ClassicMode:GetBool() then
-        self:TryAltFire()
-    else
-        self:SetLower( not self:GetLowered() )
-    end
+    self:TryAltFire()
 end
 
 function SWEP:HandleIdle()
@@ -295,28 +235,6 @@ function SWEP:Think()
     self:HandlePump()
     self:HandleBurst()
     self:HandleViewModel()
-
-    self:UpdateClassicMode()
-end
-
-function SWEP:UpdateClassicMode()
-    local classic = ClassicMode:GetBool()
-
-    if self.ClassicMode == nil then
-        self:Deploy()
-
-        return
-    end
-
-    if self.ClassicMode ~= classic then
-        self:SetLowered( false )
-        self:SetLowerTime( 0 )
-
-        self:UpdateFOV( 0.1 )
-
-        self:SetHoldType( self.HoldType )
-        self.ClassicMode = ClassicMode:GetBool()
-    end
 end
 
 function SWEP:OnReloaded()
@@ -325,31 +243,12 @@ function SWEP:OnReloaded()
     end
 end
 
-function SWEP:SetupMove( ply, mv )
-    local fraction = ClassicMode:GetBool() and 1 or self:GetLowerFraction()
-    local min = hook.Run( "SimpleLimitMoveSpeed", ply, self )
-
-    if not min then
-        min = WalkSpeed:GetFloat()
-
-        if ply:Crouching() then
-            min = math.min( min, ply:GetWalkSpeed() * ply:GetCrouchedWalkSpeed() )
-        end
-    end
-
-    local speed = math.Remap( fraction, 0, 1, min, ply:GetRunSpeed() )
-
-    mv:SetMaxSpeed( speed )
-    mv:SetMaxClientSpeed( speed )
-end
-
 function SWEP:OnRestore()
     self:SetFirstReload( false )
     self:SetAbortReload( false )
 
     self:SetBurstFired( 0 )
 
-    self:SetLowerTime( 0 )
     self:SetNextIdle( CurTime() )
     self:SetFinishReload( 0 )
 

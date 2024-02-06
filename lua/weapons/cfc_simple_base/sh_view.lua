@@ -32,25 +32,6 @@ if CLIENT then
         return pos, ang - ply:GetViewPunchAngles() * self.Primary.Recoil.Ratio, fov
     end
 
-    function SWEP:GetViewModelPosition( pos, ang )
-        local fraction = self:GetLowerFraction()
-        local offset = self.ViewOffset + Vector( VMOffsetX:GetFloat(), VMOffsetY:GetFloat(), VMOffsetZ:GetFloat() )
-
-        pos, ang = LocalToWorld( offset, Angle( fraction * 15, 0, 0 ), pos, ang )
-
-        local ply = self:GetOwner()
-
-        if IsValid( ply ) then
-            local const = math.pi / 360
-            local fov, vmfov = ply:GetFOV(), self.ViewModelFOV
-            local ratio = math.tan( math.min( fov, vmfov ) * const ) / math.tan( math.max( fov, vmfov ) * const )
-
-            ang = ang + ply:GetViewPunchAngles() * ratio * self.Primary.Recoil.Ratio
-        end
-
-        return pos, ang
-    end
-
     function SWEP:AdjustMouseSensitivity()
         if not self:HasCameraControl() then
             return 1

@@ -36,10 +36,6 @@ function SWEP:CanReload()
         return false
     end
 
-    if not LoweredReloads:GetBool() and self:GetLowered() then
-        return false
-    end
-
     return true
 end
 
