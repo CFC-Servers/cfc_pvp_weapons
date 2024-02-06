@@ -13,7 +13,6 @@ RecoilMult = CreateConVar( "cfc_simple_weapons_recoil_mult", 1, { FCVAR_ARCHIVE,
 if CLIENT then
     AutoReload = CreateClientConVar( "cfc_simple_weapons_auto_reload", 1, true, true, "Whether weapons should automatically reload when you fire them." )
 
-    AimZoom = CreateClientConVar( "cfc_simple_weapons_zoom", 1.25, true, true, "The amount of zoom to apply when raising a weapon.", 1, 1.5 )
     UseScopes = CreateClientConVar( "cfc_simple_weapons_scopes", 1, true, false, "Whether to use scopes when zooming." )
 
     SwayScale = CreateClientConVar( "cfc_simple_weapons_swayscale", 1, true, false, "The amount of viewmodel sway to apply to weapons" )
