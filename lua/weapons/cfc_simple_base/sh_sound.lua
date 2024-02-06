@@ -1,7 +1,7 @@
 AddCSLuaFile()
 
 function SWEP:EmitEmptySound()
-    self:EmitSound( " )weapons/pistol/pistol_empty.wav", 75, 100, 0.7, CHAN_STATIC )
+    self:EmitSound( "weapons/pistol/pistol_empty.wav", 75, 100, 0.7, CHAN_STATIC )
 end
 
 function SWEP:EmitFireSound()
