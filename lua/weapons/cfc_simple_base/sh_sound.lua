@@ -11,7 +11,7 @@ end
 function SWEP:EmitReloadSound()
     local reload = self.Primary.Reload
 
-    if reload.Sound != "" then
+    if reload.Sound ~= "" then
         self:EmitSound( reload.Sound )
     end
 end

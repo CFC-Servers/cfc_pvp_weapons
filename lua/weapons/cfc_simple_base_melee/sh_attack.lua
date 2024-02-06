@@ -34,7 +34,7 @@ function SWEP:PlayAttackSound( heavy, hit, trace )
         end
     end
 
-    if snd != "" then
+    if snd ~= "" then
         self:EmitSound( snd )
     end
 end
@@ -229,7 +229,7 @@ end
 function SWEP:WaterImpact( start, endpos )
     local flags = bit.bor( CONTENTS_WATER, CONTENTS_SLIME )
 
-    if bit.band( util.PointContents( start ), flags ) != 0 then
+    if bit.band( util.PointContents( start ), flags ) ~= 0 then
         return
     end
 

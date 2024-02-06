@@ -77,7 +77,7 @@ else
             local swep = weapons.Get( replacement )
             local new = ply:Give( replacement )
 
-            if not isGiving and not IsValid( new ) and swep.Primary.Ammo != "" then -- Picked up a weapon that we already have from the ground and has ammo
+            if not isGiving and not IsValid( new ) and swep.Primary.Ammo ~= "" then -- Picked up a weapon that we already have from the ground and has ammo
                 local amount = swep.Primary.DefaultClip
 
                 if swep.SimpleWeaponThrowing then

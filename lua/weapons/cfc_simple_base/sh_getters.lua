@@ -8,9 +8,9 @@ function SWEP:GetDelay()
 
     -- Basic support for burst fire
     if firemode > 0 then
-        if self:GetBurstFired() == 0 and self.Primary.BurstEndDelay != 0 then
+        if self:GetBurstFired() == 0 and self.Primary.BurstEndDelay ~= 0 then
             return self.Primary.BurstEndDelay
-        elseif self.Primary.BurstDelay != 0 then
+        elseif self.Primary.BurstDelay ~= 0 then
             return self.Primary.BurstDelay
         end
     end

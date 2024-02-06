@@ -197,7 +197,7 @@ if SERVER then
                 filter = ply
             } )
 
-            if tr.Fraction != 1 then
+            if tr.Fraction ~= 1 then
                 local tan = facing:Cross( tr.Normal )
 
                 facing = tr.Normal:Cross( tan )

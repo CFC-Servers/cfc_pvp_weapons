@@ -211,7 +211,7 @@ function SWEP:SetLower( lower )
         return false
     end
 
-    if self:GetLowered() != lower then
+    if self:GetLowered() ~= lower then
         self:SetLowered( lower )
         self:SetLowerTime( CurTime() )
 
@@ -269,7 +269,7 @@ function SWEP:HandlePump()
 
         local snd = self.Primary.PumpSound
 
-        if snd != "" and IsFirstTimePredicted() then
+        if snd ~= "" and IsFirstTimePredicted() then
             self:EmitSound( snd )
         end
 
@@ -308,7 +308,7 @@ function SWEP:UpdateClassicMode()
         return
     end
 
-    if self.ClassicMode != classic then
+    if self.ClassicMode ~= classic then
         self:SetLowered( false )
         self:SetLowerTime( 0 )
 
@@ -320,7 +320,7 @@ function SWEP:UpdateClassicMode()
 end
 
 function SWEP:OnReloaded()
-    if self:GetHoldType() != "" then
+    if self:GetHoldType() ~= "" then
         self:SetWeaponHoldType( self:GetHoldType() )
     end
 end

@@ -16,11 +16,11 @@ function SWEP:HandleReloadAbort()
 end
 
 function SWEP:IsReloading()
-    return self:GetFinishReload() != 0
+    return self:GetFinishReload() ~= 0
 end
 
 function SWEP:CanReload()
-    if self.AmmoType != AMMO_NORMAL then
+    if self.AmmoType ~= AMMO_NORMAL then
         return false
     end
 
@@ -114,7 +114,7 @@ function SWEP:FinishReload()
                 self:SetFirstReload( false )
             end
 
-            if reload.Sound != "" and IsFirstTimePredicted() then
+            if reload.Sound ~= "" and IsFirstTimePredicted() then
                 self:EmitSound( reload.Sound )
             end
 
