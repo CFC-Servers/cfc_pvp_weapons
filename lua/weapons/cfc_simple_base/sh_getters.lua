@@ -31,7 +31,7 @@ end
 function SWEP:GetDamageFalloff( distance )
     local distMod = 1000
 
-    return math.max( self.Primary.RangeModifier ^ ( distance / distMod ), MinDamage:GetFloat() )
+    return math.max( self.Primary.RangeModifier ^ ( distance / distMod ), MinDamageMult:GetFloat() )
 end
 
 function SWEP:GetRange()

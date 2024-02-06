@@ -80,7 +80,7 @@ function SWEP:DrawHUDBackground()
 
     local col = color_white
 
-    if falloff <= MinDamage:GetFloat() then
+    if falloff <= MinDamageMult:GetFloat() then
         col = color_red
     end
 
