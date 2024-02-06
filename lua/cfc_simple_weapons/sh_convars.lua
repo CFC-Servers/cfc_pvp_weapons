@@ -11,8 +11,6 @@ RangeMult = CreateConVar( "cfc_simple_weapons_range_mult", 1, { FCVAR_ARCHIVE, F
 RecoilMult = CreateConVar( "cfc_simple_weapons_recoil_mult", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "The recoil modifier to use for weapons.", 0 )
 
 if CLIENT then
-    AutoReload = CreateClientConVar( "cfc_simple_weapons_auto_reload", 1, true, true, "Whether weapons should automatically reload when you fire them." )
-
     SwayScale = CreateClientConVar( "cfc_simple_weapons_swayscale", 1, true, false, "The amount of viewmodel sway to apply to weapons" )
     BobScale = CreateClientConVar( "cfc_simple_weapons_bobscale", 1, true, false, "The amount of viewmodel bob to apply to weapons" )
 

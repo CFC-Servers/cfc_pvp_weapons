@@ -19,7 +19,7 @@ function SWEP:CanPrimaryFire()
             return false
         end
 
-        if ply:GetInfoNum( "cfc_simple_weapons_auto_reload", 0 ) == 1 and self:GetBurstFired() == 0 then
+        if self:GetBurstFired() == 0 then
             self:Reload()
         end
 
