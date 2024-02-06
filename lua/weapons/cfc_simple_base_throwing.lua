@@ -59,6 +59,8 @@ end
 
 function SWEP:Deploy()
     self:SetNextIdle( CurTime() + self:SendTranslatedWeaponAnim( ACT_VM_DRAW ) )
+
+    return true
 end
 
 function SWEP:Holster()

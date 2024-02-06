@@ -20,9 +20,9 @@ function SWEP:SetupDataTables()
 end
 
 function SWEP:Deploy()
-    BaseClass.Deploy( self )
-
     self:SetScopeIndex( 0 )
+
+    return BaseClass.Deploy( self )
 end
 
 function SWEP:Holster()

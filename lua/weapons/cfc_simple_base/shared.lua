@@ -161,6 +161,8 @@ function SWEP:Deploy()
     self:SetHoldType( self.HoldType )
     self:SendTranslatedWeaponAnim( ACT_VM_DRAW )
     self:SetNextIdle( CurTime() + self:SequenceDuration() )
+
+    return true
 end
 
 function SWEP:Holster()
