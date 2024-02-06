@@ -30,3 +30,9 @@ function SWEP:GetAmmo()
 
     return 1
 end
+
+function SWEP:IsEmpty()
+    if self.AmmoType == AMMO_NONE then return false end
+
+    return self:GetAmmo() < self.Primary.Cost
+end

@@ -1,7 +1,5 @@
 AddCSLuaFile()
 
-cfc_simple_weapons.Include( "Enums" )
-
 function SWEP:HasCameraControl()
     local ply = self:GetOwner()
 
@@ -36,12 +34,6 @@ end
 
 function SWEP:GetViewModel( _index )
     return self:GetOwner():GetViewModel()
-end
-
-function SWEP:IsEmpty()
-    if self.AmmoType == AMMO_NONE then return false end
-
-    return self:GetAmmo() < self.Primary.Cost
 end
 
 function SWEP:GetShootDir()
