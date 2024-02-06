@@ -1,7 +1,5 @@
 AddCSLuaFile()
 
-cfc_simple_weapons.Include( "Convars" )
-
 ENT.Base = "base_anim"
 ENT.Type = "anim"
 

@@ -1,7 +1,5 @@
 AddCSLuaFile()
 
-cfc_simple_weapons.Include( "Convars" )
-
 function SWEP:GetDelay( heavy, hit, _trace )
     local tab = heavy and self.Primary.Heavy or self.Primary.Light
 

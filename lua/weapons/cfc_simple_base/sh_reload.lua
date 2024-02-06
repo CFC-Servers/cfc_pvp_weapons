@@ -1,6 +1,5 @@
 AddCSLuaFile()
 
-cfc_simple_weapons.Include( "Convars" )
 cfc_simple_weapons.Include( "Enums" )
 
 function SWEP:HandleReloadAbort()

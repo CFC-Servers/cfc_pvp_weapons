@@ -1,7 +1,5 @@
 AddCSLuaFile()
 
-cfc_simple_weapons.Include( "Convars" )
-
 DEFINE_BASECLASS( "cfc_simple_ent_grenade_base" )
 
 ENT.Base = "cfc_simple_ent_grenade_base"

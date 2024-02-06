@@ -1,7 +1,5 @@
 AddCSLuaFile()
 
-cfc_simple_weapons.Include( "Convars" )
-
 SWEP.Base = "weapon_base"
 
 SWEP.m_WeaponDeploySpeed = 1
