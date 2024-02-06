@@ -35,10 +35,10 @@ SWEP.CustomLowerHoldType = {} -- Ditto, used when a weapon is lowered
 SWEP.Firemode = 0 -- The default firemode, -1 = full-auto, 0 = semi-auto, >1 = burst fire
 
 SWEP.Primary = {
-    Ammo = "Pistol", -- The ammo type used when reloading
+    Ammo = "Pistol", -- The ammo type used when reloading. Set to an empty string to not need/use/show ammo
     Cost = 1, -- The amount of ammo used per shot
 
-    ClipSize = 18, -- The amount of ammo per magazine, -1/infinite is not supported at the moment
+    ClipSize = 18, -- The amount of ammo per magazine, -1 to have no magazine (pull from reserves directly)
     DefaultClip = 18, -- How many rounds the player gets when picking up the weapon for the first time, excess ammo will be added to the player's reserves
 
     Damage = 13, -- Damage per shot

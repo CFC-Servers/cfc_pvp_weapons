@@ -110,10 +110,5 @@ end
 function SWEP:CustomAmmoDisplay()
     if self.AmmoType == AMMO_NONE then
         return { Draw = false }
-    elseif self.AmmoType == AMMO_INTERNAL then
-        return {
-            Draw = true,
-            PrimaryClip = self:Clip1()
-        }
     end
 end

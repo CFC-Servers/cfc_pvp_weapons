@@ -143,10 +143,7 @@ function SWEP:Throw()
     end
 
     self:SetFinishReload( CurTime() + self:SendTranslatedWeaponAnim( act ) )
-
-    if InfiniteAmmo:GetInt() == 0 then
-        self:TakePrimaryAmmo( 1 )
-    end
+    self:TakePrimaryAmmo( 1 )
 end
 
 if SERVER then

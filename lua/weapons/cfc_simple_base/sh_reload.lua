@@ -32,7 +32,7 @@ function SWEP:CanReload()
         return false
     end
 
-    if InfiniteAmmo:GetInt() == 0 and self:GetOwner():GetAmmoCount( self.Primary.Ammo ) <= 0 then
+    if self:GetOwner():GetAmmoCount( self.Primary.Ammo ) <= 0 then
         return false
     end
 
@@ -86,7 +86,7 @@ function SWEP:FinishReload()
     local amount = math.min( primary.ClipSize - self:Clip1(), reload.Amount )
     local first = self:GetFirstReload()
 
-    if InfiniteAmmo:GetInt() == 0 and not first then
+    if not first then
         amount = math.min( amount, ply:GetAmmoCount( primary.Ammo ) )
 
         ply:RemoveAmmo( amount, primary.Ammo )

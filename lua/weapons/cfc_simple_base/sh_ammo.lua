@@ -4,10 +4,8 @@ cfc_simple_weapons.Include( "Convars" )
 cfc_simple_weapons.Include( "Enums" )
 
 function SWEP:GetAmmoType()
-    if self.Primary.Ammo == "" and self.Primary.ClipSize == -1 then
+    if self.Primary.Ammo == "" then
         return AMMO_NONE
-    elseif self.Primary.Ammo == "" then
-        return AMMO_INTERNAL
     elseif self.Primary.ClipSize == -1 then
         return AMMO_NOMAG
     else
@@ -16,19 +14,16 @@ function SWEP:GetAmmoType()
 end
 
 function SWEP:ConsumeAmmo()
-    if self.AmmoType == AMMO_NONE then
-        return
-    elseif self.AmmoType == AMMO_NORMAL and InfiniteAmmo:GetInt() == 2 then
-        return
-    elseif self.AmmoType == AMMO_NOMAG and InfiniteAmmo:GetInt() != 0 then
-        return
-    end
+    if self.AmmoType == AMMO_NONE then return end
 
-    self:TakePrimaryAmmo( math.min( self.Primary.Cost, self:Clip1() ) )
+    local amountToConsume = math.min( self.Primary.Cost, self:Clip1() )
+    if amountToConsume <= 0 then return end
+
+    self:TakePrimaryAmmo( amountToConsume )
 end
 
 function SWEP:GetAmmo()
-    if self.AmmoType == AMMO_NORMAL or self.AmmoType == AMMO_INTERNAL then
+    if self.AmmoType == AMMO_NORMAL then
         return self:Clip1()
     elseif self.AmmoType == AMMO_NOMAG then
         return self:GetOwner():GetAmmoCount( self.Primary.Ammo )
