@@ -96,4 +96,3 @@ end
 
 include( "cfc_simple_weapons/sh_convars.lua" )
 include( "cfc_simple_weapons/sh_enums.lua" )
-include( "cfc_simple_weapons/sh_hooks.lua" )
