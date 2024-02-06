@@ -54,7 +54,7 @@ SWEP.Primary = {
     UnscopedRange = 0, -- Scope base only, optional: The range to use when unscoped
     UnscopedAccuracy = 0, -- Scope base only, optional: The accuracy reference to use when unscoped
 
-    RangeModifier = 0.85, -- The damage decrease applied for every 1000 units a bullet travels, e.g. 2000 units = 0.85 * 0.85 = 61% damage left
+    RangeModifier = 0.85, -- The damage multiplier applied for every 1000 units a bullet travels, e.g. 0.85 for 2000 units = 0.85 * 0.85 = 72% of original damage
 
     Recoil = {
         MinAng = Angle( 1, -0.3, 0 ), -- The minimum amount of recoil punch per shot
