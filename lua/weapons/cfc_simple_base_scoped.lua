@@ -38,7 +38,7 @@ function SWEP:GetRange()
     local accuracy = self.Primary.Accuracy
 
     if self:GetOwner():IsNPC() then
-        return range * RangeMult:GetFloat(), accuracy
+        return range, accuracy
     end
 
     if self:GetScopeIndex() == 0 then
@@ -51,7 +51,7 @@ function SWEP:GetRange()
         end
     end
 
-    return range * RangeMult:GetFloat(), accuracy
+    return range, accuracy
 end
 
 function SWEP:GetZoom()

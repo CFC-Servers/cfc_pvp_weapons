@@ -76,7 +76,7 @@ if SERVER then
         local explo = ents.Create( "env_explosion" )
         explo:SetOwner( self:GetOwner() )
         explo:SetPos( pos )
-        explo:SetKeyValue( "iMagnitude", self.Damage * DamageMult:GetFloat() )
+        explo:SetKeyValue( "iMagnitude", self.Damage )
         explo:SetKeyValue( "spawnflags", 32 )
         explo:Spawn()
         explo:Activate()

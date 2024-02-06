@@ -69,9 +69,9 @@ function SWEP:DrawHUDBackground()
 
     self:DrawDebugText( string.format( "Recoil multiplier: %.2f", self:GetRecoilMultiplier() ), -2 )
 
-    self:DrawDebugText( string.format( "Weapon damage: %.2f (%.2fx )", damage, DamageMult:GetFloat() ), 0 )
+    self:DrawDebugText( string.format( "Weapon damage: %.2f", damage ), 0 )
     self:DrawDebugText( string.format( "Damage falloff: %.2f", self.Primary.RangeModifier ), 1 )
-    self:DrawDebugText( string.format( "Weapon range: %.0f at %.0f units (%.2fx )", accuracy, range, RangeMult:GetFloat() ), 2 )
+    self:DrawDebugText( string.format( "Weapon range: %.0f at %.0f units", accuracy, range ), 2 )
 
 
     self:DrawDebugText( string.format( "Aim distance: %.2f units (%.2fx )", dist, dist / range ), 4 )

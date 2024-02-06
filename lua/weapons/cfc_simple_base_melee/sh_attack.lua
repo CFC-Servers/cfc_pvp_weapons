@@ -42,7 +42,7 @@ end
 function SWEP:GetDamage( heavy, _trace )
     local tab = heavy and self.Primary.Heavy or self.Primary.Light
 
-    return tab.Damage * DamageMult:GetFloat(), tab.DamageType
+    return tab.Damage, tab.DamageType
 end
 
 function SWEP:HandleCharge()

@@ -25,21 +25,17 @@ function SWEP:GetDelay()
 end
 
 function SWEP:GetDamage()
-    if self:GetOwner():IsNPC() then
-        return self.Primary.Damage * NPCDamageMult:GetFloat()
-    else
-        return self.Primary.Damage * DamageMult:GetFloat()
-    end
+    return self.Primary.Damage
 end
 
 function SWEP:GetDamageFalloff( distance )
-    local distMod = 1000 * Falloff:GetFloat()
+    local distMod = 1000
 
     return math.max( self.Primary.RangeModifier ^ ( distance / distMod ), MinDamage:GetFloat() )
 end
 
 function SWEP:GetRange()
-    return self.Primary.Range * RangeMult:GetFloat(), self.Primary.Accuracy
+    return self.Primary.Range, self.Primary.Accuracy
 end
 
 function SWEP:GetSpread( range, accuracy )
@@ -59,7 +55,7 @@ end
 
 -- Recoil
 function SWEP:GetRecoilMultiplier()
-    return math.tan( self:GetFOV() * ( math.pi / 360 ) ) * RecoilMult:GetFloat() * self:GetZoom()
+    return math.tan( self:GetFOV() * ( math.pi / 360 ) ) * self:GetZoom()
 end
 
 -- Reloading
