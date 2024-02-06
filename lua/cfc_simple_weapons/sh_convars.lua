@@ -2,8 +2,6 @@ AddCSLuaFile()
 
 module( "cfc_simple_weapons.Convars", package.seeall )
 
-ReplaceWeapons = CreateConVar( "cfc_simple_weapons_replace_weapons", 0, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "Whether the default HL2 weapons should be replaced.", 0, 1 )
-
 MinDamage = CreateConVar( "cfc_simple_weapons_min_damage", 0.2, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "The minimum percentage of damage a weapon deals regardless of range.", 0, 1 )
 Falloff = CreateConVar( "cfc_simple_weapons_falloff_mult", 1, { FCVAR_ARCHIVE, FCVAR_REPLICATED }, "How aggressively damage falloff applies.", 0 )
 
