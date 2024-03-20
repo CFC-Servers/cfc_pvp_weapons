@@ -34,7 +34,7 @@ SWEP.Primary = {
     ClipSize = 2, -- The amount of ammo per magazine, -1 to have no magazine (pull from reserves directly)
     DefaultClip = 1000, -- How many rounds the player gets when picking up the weapon for the first time, excess ammo will be added to the player's reserves
 
-    Damage = 2, -- Damage per shot
+    Damage = 3, -- Damage per shot
     Count = 10, -- Optional: Shots fired per shot
 
     PumpAction = false, -- Optional: Tries to pump the weapon between shots
