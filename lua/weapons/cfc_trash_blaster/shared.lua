@@ -41,7 +41,6 @@ SWEP.Primary = {
     PropSpeedMax = 1300, -- Maximum prop speed.
     PropStartFadeDelay = 3, -- Delay before props start fading.
     PropFadeDuration = 1, -- Duration of prop fade. 0 to delete instantly.
-    PropNocollideOnImpact = true, -- Nocollide props on impact.
     PropModels = {
         "models/props_junk/garbage_bag001a.mdl",
         "models/props_combine/breenglobe.mdl",
@@ -170,10 +169,6 @@ function SWEP:FireWeapon( chargeAmount )
 
     prop:EmitSound( self.Primary.Sound )
     prop:SetPhysicsAttacker( owner, 1000 )
-
-    if self.Primary.PropNocollideOnImpact then
-        prop._cfcPropGun_NocollideOnImpact = true
-    end
 
     local physObj = prop:GetPhysicsObject()
 
