@@ -8,8 +8,8 @@ SWEP.DrawWeaponInfoBox = false
 
 SWEP.ViewModelFOV = 54
 
-SWEP.SimpleWeapon = true
-SWEP.SimpleWeaponThrowing = true
+SWEP.CFCSimpleWeapon = true
+SWEP.CFCSimpleWeaponThrowing = true
 
 SWEP.HoldType = "grenade"
 

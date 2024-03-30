@@ -9,7 +9,7 @@ SWEP.DrawWeaponInfoBox = false
 SWEP.ViewModelTargetFOV = 54
 SWEP.ViewModelFOV = 54
 
-SWEP.SimpleWeapon = true
+SWEP.CFCSimpleWeapon = true
 
 SWEP.HoldType = "ar2"
 SWEP.CustomHoldType = {}

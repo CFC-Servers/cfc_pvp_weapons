@@ -8,7 +8,7 @@ SWEP.DrawWeaponInfoBox = false
 
 SWEP.ViewModelFOV = 54
 
-SWEP.SimpleWeapon = true
+SWEP.CFCSimpleWeapon = true
 
 SWEP.HoldType = "melee"
 
