@@ -72,9 +72,14 @@ SWEP.Primary = {
     TracerName = "", -- Tracer effect, leave blank for no tracer
 
     ChargeSound = "npc/combine_gunship/engine_rotor_loop1.wav", -- Should be a looping sound
+    ChargeVolume = 1,
     ChargeStepSound = "",
-    ChargeStepPitchMin = 80,
-    ChargeStepPitchMax = 90,
+    ChargeStepVolume = 1,
+    ChargeStepPitchMinStart = 100,
+    ChargeStepPitchMaxStart = 100,
+    ChargeStepPitchMinEnd = 255,
+    ChargeStepPitchMaxEnd = 255,
+    ChargeStepPitchEase = function( x ) return x end, -- Use an easing function (e.g. math.ease.InCubic). Default is linear, which isn't in the ease library.
 }
 
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
@@ -158,8 +163,12 @@ function SWEP:PrimaryAttack()
     local chargeStep = self.Primary.Delay
 
     local chargeStepSound = self.Primary.ChargeStepSound
-    local chargeStepPitchMin = self.Primary.ChargeStepPitchMin
-    local chargeStepPitchMax = self.Primary.ChargeStepPitchMax
+    local chargeStepVolume = self.Primary.ChargeStepVolume
+    local chargeStepPitchMinStart = self.Primary.ChargeStepPitchMinStart
+    local chargeStepPitchMaxStart = self.Primary.ChargeStepPitchMaxStart
+    local chargeStepPitchMinEnd = self.Primary.ChargeStepPitchMinEnd
+    local chargeStepPitchMaxEnd = self.Primary.ChargeStepPitchMaxEnd
+    local chargeStepPitchEase = self.Primary.ChargeStepPitchEase
 
     tryApplyChargedMovementMult( self, false )
 
@@ -202,7 +211,18 @@ function SWEP:PrimaryAttack()
         self:SetReserveAmmo( ammo - 1 )
 
         if chargeStepSound ~= "" and SERVER then
-            self:EmitSound( chargeStepSound, 75, math.Rand( chargeStepPitchMin, chargeStepPitchMax ) )
+            local pitchMin = chargeStepPitchMinStart
+            local pitchMax = chargeStepPitchMaxStart
+
+            if chargeStepPitchMinStart ~= chargeStepPitchMinEnd or chargeStepPitchMaxStart ~= chargeStepPitchMaxEnd then
+                local frac = chargeStepPitchEase( clip / clipMax )
+                pitchMin = Lerp( frac, chargeStepPitchMinStart, chargeStepPitchMinEnd )
+                pitchMax = Lerp( frac, chargeStepPitchMaxStart, chargeStepPitchMaxEnd )
+            end
+
+            local pitch = pitchMin == pitchMax and pitchMin or math.Rand( pitchMin, pitchMax )
+
+            self:EmitSound( chargeStepSound, 75, pitch, chargeStepVolume )
         end
 
         self:OnChargeStep( clip )
@@ -218,6 +238,7 @@ function SWEP:PrimaryAttack()
     chargeSound:Play()
     chargeSound:ChangePitch( 100 )
     chargeSound:ChangePitch( 255, clipMax * chargeStep )
+    chargeSound:ChangeVolume( self.Primary.ChargeVolume )
 end
 
 function SWEP:Reload()

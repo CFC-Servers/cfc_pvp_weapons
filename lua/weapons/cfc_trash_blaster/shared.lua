@@ -87,9 +87,14 @@ SWEP.Primary = {
     TracerName = "", -- Tracer effect, leave blank for no tracer
 
     ChargeSound = "npc/combine_gunship/engine_rotor_loop1.wav",
-    ChargeStepSound = "",
-    ChargeStepPitchMin = 80,
-    ChargeStepPitchMax = 90,
+    ChargeVolume = 1,
+    ChargeStepSound = "physics/metal/metal_computer_impact_soft2.wav",
+    ChargeStepVolume = 0.15,
+    ChargeStepPitchMinStart = 60,
+    ChargeStepPitchMaxStart = 60,
+    ChargeStepPitchMinEnd = 120,
+    ChargeStepPitchMaxEnd = 120,
+    ChargeStepPitchEase = function( x ) return x end, -- Use an easing function (e.g. math.ease.InCubic). Default is linear, which isn't in the ease library.
 }
 
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
