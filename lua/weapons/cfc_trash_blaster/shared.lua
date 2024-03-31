@@ -150,7 +150,7 @@ function SWEP:FireWeapon( chargeAmount )
         local velAccount = ownerVel * FrameTime() * 5
 
         velAccount = dir * math.Max( velAccount:Dot( dir ), 0 )
-        propPos = propPos + dir * 30 + velAccount
+        propPos = propPos + dir * 35 + velAccount
     end
 
     propPos = propPos + dir:Angle():Right() * 7
