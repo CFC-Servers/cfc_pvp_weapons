@@ -4,6 +4,11 @@ DEFINE_BASECLASS( "weapon_base" )
 
 cfc_simple_weapons.Include( "Convars" )
 
+
+local VECTOR_ZERO = Vector( 0, 0, 0 )
+local ANGLE_ZERO = Angle( 0, 0, 0 )
+
+
 function SWEP:TranslateFOV( fov )
     if not IsValid( self:GetOwner() ) then
         return fov
@@ -30,6 +35,15 @@ if CLIENT then
         end
 
         return pos, ang - ply:GetViewPunchAngles() * self.Primary.Recoil.Ratio, fov
+    end
+
+    function SWEP:GetViewModelPosition( pos, ang )
+        local offset = self.ViewOffset
+        if offset == VECTOR_ZERO then return end
+
+        pos, ang = LocalToWorld( offset, ANGLE_ZERO, pos, ang )
+
+        return pos, ang
     end
 
     function SWEP:AdjustMouseSensitivity()
