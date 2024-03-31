@@ -30,14 +30,14 @@ SWEP.Primary = {
     Ammo = "Buckshot", -- The ammo type used when reloading
     Cost = 1, -- A remnant of cfc_simple_base. Leave as 1.
 
-    ClipSize = 15, -- The max ammount of ammo for a full charge
+    ClipSize = 25, -- The max ammount of ammo for a full charge
     DefaultClip = 1000, -- How many rounds the player gets when picking up the weapon for the first time, excess ammo will be added to the player's reserves
 
     Damage = 1, -- Damage per shot
     Count = 1, -- Optional: Shots fired per unit ammo
 
     PropMass = 8, -- -1 will use the model's default mass.
-    PropSpeedMin = 1000, -- Minimum prop speed.
+    PropSpeedMin = 1100, -- Minimum prop speed.
     PropSpeedMax = 1300, -- Maximum prop speed.
     PropStartFadeDelay = 3, -- Delay before props start fading.
     PropFadeDuration = 1, -- Duration of prop fade. 0 to delete instantly.
@@ -57,10 +57,10 @@ SWEP.Primary = {
     PumpAction = false, -- Optional: Tries to pump the weapon between shots
     PumpSound = "Weapon_Shotgun.Special1", -- Optional: Sound to play when pumping
 
-    Delay = 0.15, -- Delay between each buildup of charge, use 60 / x for RPM (Rounds per minute) values
+    Delay = 0.1, -- Delay between each buildup of charge, use 60 / x for RPM (Rounds per minute) values
     BurstEnabled = true, -- When releasing the charge, decides whether to burst-fire the weapon once per unit ammo, or to expend the full charge in one fire call
     BurstDelay = 0.075, -- Burst only: the delay between shots during a burst
-    Cooldown = 3, -- Cooldown to apply once the charge is expended
+    Cooldown = 2.5, -- Cooldown to apply once the charge is expended
     OverchargeDelay = false, -- Once at full charge, it takes this long before overcharge occurs. False to disable.
 
     Range = 300, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
