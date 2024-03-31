@@ -88,8 +88,9 @@ function SWEP:OnChargeStep( _chargeAmount )
     -- chargeAmount is the current charge level, starting at 1.
 end
 
-function SWEP:OnFullChargeReached()
+function SWEP:OnFullChargeReached( _chargeAmount )
     -- Called when the weapon reaches full charge.
+    -- chargeAmount should be equivalent to self.Primary.ClipSize.
 end
 
 function SWEP:OnOvercharged()
@@ -155,7 +156,7 @@ function SWEP:PrimaryAttack()
         local clip = self:Clip1()
 
         if clip >= clipMax then
-            self:OnFullChargeReached()
+            self:OnFullChargeReached( clip )
 
             timer.Remove( "CFC_ChargeGun_Charge_" .. self:EntIndex() )
 
