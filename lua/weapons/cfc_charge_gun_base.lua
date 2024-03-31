@@ -100,6 +100,14 @@ function SWEP:OnOvercharged()
     self:PrimaryRelease()
 end
 
+function SWEP:OnStartCharging()
+    -- Called when the weapon starts charging.
+end
+
+function SWEP:OnStopCharging()
+    -- Called when the weapon stops charging.
+end
+
 
 ----- INSTANCE FUNCTIONS -----
 
@@ -146,6 +154,8 @@ function SWEP:PrimaryAttack()
     local chargeStepPitchMax = self.Primary.ChargeStepPitchMax
 
     self._charging = true
+
+    self:OnStartCharging()
 
     timer.Create( "CFC_ChargeGun_Charge_" .. self:EntIndex(), chargeStep, 0, function()
         if not self:IsValid() then return end
@@ -323,6 +333,8 @@ function SWEP:SetCharge( desClip )
 end
 
 function SWEP:StopCharge()
+    local wasCharging = self:IsCharging()
+
     self._charging = false
 
     timer.Remove( "CFC_ChargeGun_Charge_" .. self:EntIndex() )
@@ -333,5 +345,9 @@ function SWEP:StopCharge()
     if chargeSound then
         chargeSound:Stop()
         self._chargeSound = nil
+    end
+
+    if wasCharging then
+        self:OnStopCharging()
     end
 end
