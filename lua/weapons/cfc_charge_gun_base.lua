@@ -175,7 +175,6 @@ function SWEP:PrimaryAttack()
         local clip = self:Clip1()
 
         if clip >= clipMax then
-            self:OnChargeStep( clip )
             self:OnFullChargeReached( clip )
 
             timer.Remove( "CFC_ChargeGun_Charge_" .. self:EntIndex() )
