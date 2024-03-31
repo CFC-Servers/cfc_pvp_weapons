@@ -61,6 +61,7 @@ SWEP.Primary = {
     BurstEnabled = true, -- When releasing the charge, decides whether to burst-fire the weapon once per unit ammo, or to expend the full charge in one fire call
     BurstDelay = 0.075, -- Burst only: the delay between shots during a burst
     Cooldown = 2.5, -- Cooldown to apply once the charge is expended
+    MovementMultWhenCharging = 0.75, -- Multiplier against movement speed when charging
     OverchargeDelay = false, -- Once at full charge, it takes this long before overcharge occurs. False to disable.
 
     Range = 300, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units

@@ -3,6 +3,9 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "cfc_simple_base" )
 SWEP.Base = "cfc_simple_base"
 
+SWEP.CFCSimpleWeapon = true
+SWEP.CFCSimpleWeaponCharge = true
+
 -- UI stuff
 
 SWEP.PrintName = "cfc_charge_gun_base"
@@ -43,6 +46,7 @@ SWEP.Primary = {
     BurstEnabled = true, -- When releasing the charge, decides whether to burst-fire the weapon once per unit ammo, or to expend the full charge in one fire call
     BurstDelay = 0.075, -- Burst only: the delay between shots during a burst
     Cooldown = 3, -- Cooldown to apply once the charge is expended
+    MovementMultWhenCharging = 1, -- Multiplier against movement speed when charging
     OverchargeDelay = false, -- Once at full charge, it takes this long before overcharge occurs. False to disable.
 
     Range = 750, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
@@ -74,6 +78,10 @@ SWEP.Primary = {
 }
 
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
+
+
+local setMovementMult
+local tryApplyChargedMovementMult
 
 
 ----- OVERRIDABLE FUNCTIONS -----
@@ -153,8 +161,9 @@ function SWEP:PrimaryAttack()
     local chargeStepPitchMin = self.Primary.ChargeStepPitchMin
     local chargeStepPitchMax = self.Primary.ChargeStepPitchMax
 
-    self._charging = true
+    tryApplyChargedMovementMult( self, false )
 
+    self._charging = true
     self:OnStartCharging()
 
     timer.Create( "CFC_ChargeGun_Charge_" .. self:EntIndex(), chargeStep, 0, function()
@@ -348,6 +357,60 @@ function SWEP:StopCharge()
     end
 
     if wasCharging then
+        tryApplyChargedMovementMult( self, true )
         self:OnStopCharging()
     end
+end
+
+
+----- PRIVATE FUNCTIONS -----
+
+if FindMetaTable( "Player" ).SetMoveSpeedMultiplier then
+    -- Utility function from cfc_pvp_movespeed
+    setMovementMult = function( ply, mult )
+        ply:SetMoveSpeedMultiplier( mult )
+    end
+else
+    local baseRunSpeed
+    local baseWalkSpeed
+
+    setMovementMult = function( ply, mult )
+        if not baseRunSpeed then -- Could be more accurate, but should work well enough to cover standard Sandbox and TTT.
+            baseRunSpeed = ply:GetRunSpeed()
+            baseWalkSpeed = ply:GetWalkSpeed()
+        end
+
+        ply:SetRunSpeed( baseRunSpeed * mult )
+        ply:SetWalkSpeed( baseWalkSpeed * mult )
+    end
+end
+
+tryApplyChargedMovementMult = function( wep, reset )
+    if CLIENT then return end
+
+    local movementMult = wep.Primary.MovementMultWhenCharging
+    if movementMult == 1 then return end
+
+    local owner = wep:GetOwner()
+    if not IsValid( owner ) then return end
+
+    if reset then
+        setMovementMult( owner, 1 )
+    else
+        setMovementMult( owner, movementMult )
+    end
+end
+
+
+----- SETUP -----
+
+if SERVER then
+    hook.Add( "PlayerDroppedWeapon", "CFC_PvPWeapons_ChargeGunBase_ResetMovementMult", function( ply, wep )
+        if not IsValid( ply ) then return end
+        if not IsValid( wep ) then return end
+        if not wep.CFCSimpleWeaponCharge then return end
+        if wep.Primary.MovementMultWhenCharging == 1 then return end
+
+        setMovementMult( ply, 1 )
+    end )
 end
