@@ -83,7 +83,8 @@ SWEP.Primary = {
         Sound = ""
     },
 
-    Sound = "doors/vent_open3.wav", -- Firing sound
+    Sound = "physics/concrete/rock_impact_hard2.wav", -- Firing sound
+    Sound2 = "doors/door_metal_thin_close2.wav", -- Second firing sound, leave blank for none
     TracerName = "", -- Tracer effect, leave blank for no tracer
 
     ChargeSound = "npc/combine_gunship/engine_rotor_loop1.wav",
@@ -175,6 +176,10 @@ function SWEP:FireWeapon( chargeAmount )
 
     prop:EmitSound( self.Primary.Sound )
     prop:SetPhysicsAttacker( owner, 1000 )
+
+    if self.Primary.Sound2 ~= "" then
+        prop:EmitSound( self.Primary.Sound2 )
+    end
 
     local physObj = prop:GetPhysicsObject()
 
