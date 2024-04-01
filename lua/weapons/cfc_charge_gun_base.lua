@@ -60,6 +60,14 @@ SWEP.Primary = {
         Punch = 0.2, -- The percentage of recoil added to the player's view angles, if set to 0 a player's view will always reset to the exact point they were aiming at
         Ratio = 0.4 -- The percentage of recoil that's translated into the viewmodel, higher values cause bullets to end up above the crosshair
     },
+    RecoilCharging = {
+        Mult = 0, -- If above zero, will repeatedly apply recoil while charging, with this as a strength multiplier. Scales with charge level.
+        MinAng = Angle( -2, -1, 0 ),
+        MaxAng = Angle( 2, 1, 0 ),
+        Punch = 0.2,
+        Ratio = 0.4,
+    },
+    RecoilChargingInterval = 0.1, -- The interval at which to apply the charging recoil
 
     Reload = { -- Remnant of simple_base, leave as-is
         Time = 0,
@@ -121,6 +129,10 @@ function SWEP:OnStopCharging()
     -- Called when the weapon stops charging.
 end
 
+function SWEP:ChargeThink()
+    -- Called every tick/frame while the weapon is charging.
+end
+
 
 ----- INSTANCE FUNCTIONS -----
 
@@ -146,6 +158,11 @@ function SWEP:Think()
     BaseClass.Think( self )
 
     self:CheckForPrematureCharge()
+
+    if self:IsCharging() then
+        self:ChargeThink()
+        self:DoChargeRecoil()
+    end
 end
 
 function SWEP:CanPrimaryAttack()
@@ -380,6 +397,23 @@ function SWEP:StopCharge()
     if wasCharging then
         tryApplyChargedMovementMult( self, true )
         self:OnStopCharging()
+    end
+end
+
+function SWEP:DoChargeRecoil()
+    if CLIENT then return end
+
+    local primary = self.Primary
+    local recoilCharging = primary.RecoilCharging
+    local mult = recoilCharging.Mult
+    if mult <= 0 then return end
+
+    local now = CurTime()
+    local nextChargeRecoil = self._nextChargeRecoil or 0
+
+    if now >= nextChargeRecoil then
+        self:ApplyRecoil( recoilCharging, mult * self:Clip1() / primary.ClipSize )
+        self._nextChargeRecoil = now + primary.RecoilChargingInterval
     end
 end
 
