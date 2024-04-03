@@ -24,7 +24,7 @@ function SWEP:ApplyRecoil( recoil, mult )
     ply:ViewPunch( Angle( pitch, yaw, 0 ) )
 end
 
-function SWEP:ApplyStaticRecoil( ang, recoil, mult )
+function SWEP:ApplyStaticRecoil( ang, recoil, mult, notInPredictedHook )
     local ply = self:GetOwner()
 
     if not ply:IsPlayer() then
@@ -34,10 +34,10 @@ function SWEP:ApplyStaticRecoil( ang, recoil, mult )
     recoil = recoil or self.Primary.Recoil
     mult = self:GetRecoilMultiplier() * ( mult or 1 )
 
-    local pitch = ang.p * mult
+    local pitch = -ang.p * mult
     local yaw = ang.y * mult
 
-    if game.SinglePlayer() or ( CLIENT and IsFirstTimePredicted() ) then
+    if game.SinglePlayer() or ( CLIENT and ( notInPredictedHook or IsFirstTimePredicted() ) ) then
         ply:SetEyeAngles( ply:EyeAngles() + Angle( pitch, yaw, 0 ) * recoil.Punch )
     end
 

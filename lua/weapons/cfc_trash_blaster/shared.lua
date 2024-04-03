@@ -70,8 +70,7 @@ SWEP.Primary = {
     RangeModifier = 0.85, -- The damage multiplier applied for every 1000 units a bullet travels, e.g. 0.85 for 2000 units = 0.85 * 0.85 = 72% of original damage
 
     Recoil = {
-        MinAng = Angle( 1, -0.3, 0 ), -- The minimum amount of recoil punch per shot
-        MaxAng = Angle( 1.2, 0.3, 0 ), -- The maximum amount of recoil punch per shot
+        Ang = Angle( 1, -0.3, 0 ), -- Recoil per shot, static.
         Punch = 0.2, -- The percentage of recoil added to the player's view angles, if set to 0 a player's view will always reset to the exact point they were aiming at
         Ratio = 0.4 -- The percentage of recoil that's translated into the viewmodel, higher values cause bullets to end up above the crosshair
     },
@@ -109,15 +108,6 @@ SWEP.Primary = {
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
 
 
-if CLIENT then
-    function SWEP:PrimaryAttack()
-        -- Do nothing
-    end
-
-    return
-end
-
-
 function SWEP:Initialize()
     BaseClass.Initialize( self )
 
@@ -126,6 +116,8 @@ end
 
 function SWEP:OnRemove()
     BaseClass.OnRemove( self )
+
+    if CLIENT then return end
 
     for _, prop in ipairs( self._props ) do
         if prop:IsValid() then
@@ -138,11 +130,15 @@ function SWEP:OnRemove()
     self._props = {}
 end
 
-function SWEP:FireWeapon( chargeAmount )
+function SWEP:FireWeapon( chargeAmount, notFirstCall )
     if chargeAmount > 1 then
         for _ = 1, chargeAmount do
-            self:FireWeapon( 1 )
+            self:FireWeapon( 1, true )
         end
+
+        local recoil = self.Primary.Recoil
+
+        self:ApplyStaticRecoil( self.Primary.Recoil.Ang, recoil, chargeAmount, true )
 
         return
     end
@@ -150,11 +146,21 @@ function SWEP:FireWeapon( chargeAmount )
     local owner = self:GetOwner()
     if not IsValid( owner ) then return end
 
+    local aimDir = owner:GetAimVector()
+
+    if not notFirstCall then
+        local recoil = self.Primary.Recoil
+
+        self:ApplyStaticRecoil( recoil.Ang, recoil, chargeAmount, true )
+    end
+
+    if CLIENT then return end
+
     local speed = math.Rand( self.Primary.PropSpeedMin, self.Primary.PropSpeedMax )
     local mass = self.Primary.PropMass
     local models = self.Primary.PropModels
 
-    local dir = self:SpreadDirection( owner:GetAimVector() )
+    local dir = self:SpreadDirection( aimDir )
     local propPos
 
     if self:IsCloseToWall() then
