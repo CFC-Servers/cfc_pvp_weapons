@@ -201,7 +201,7 @@ function SWEP:FireWeapon( chargeAmount, notFirstCall )
         physObj:SetMass( mass )
     end
 
-    physObj:SetVelocity( dir * speed )
+    physObj:SetVelocity( dir * speed + owner:GetVelocity() )
 
     table.insert( self._props, prop )
 
