@@ -168,7 +168,7 @@ function SWEP:FireWeapon( chargeAmount, notFirstCall )
     else
         propPos = owner:GetShootPos()
         local ownerVel = owner:GetVelocity()
-        local velAccount = ownerVel * FrameTime() * 5
+        local velAccount = ownerVel * FrameTime() * 7
 
         velAccount = dir * math.Max( velAccount:Dot( dir ), 0 )
         propPos = propPos + dir * 35 + velAccount
