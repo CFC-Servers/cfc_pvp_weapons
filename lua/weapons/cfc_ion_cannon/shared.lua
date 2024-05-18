@@ -71,7 +71,7 @@ SWEP.Primary = {
     Range = 2000, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
     Accuracy = 6, -- The reference value to use for the previous option, 12 = headshots, 24 = bodyshots
 
-    RangeModifier = 0.75, -- The damage multiplier applied for every 1000 units a bullet travels, e.g. 0.85 for 2000 units = 0.85 * 0.85 = 72% of original damage
+    RangeModifier = 0.85, -- The damage multiplier applied for every 1000 units a bullet travels, e.g. 0.85 for 2000 units = 0.85 * 0.85 = 72% of original damage
 
     Recoil = {
         MinAng = Angle( 20, -10, 0 ), -- The minimum amount of recoil punch per shot
