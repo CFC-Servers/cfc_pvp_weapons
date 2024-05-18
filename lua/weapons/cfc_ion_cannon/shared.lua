@@ -80,7 +80,7 @@ SWEP.Primary = {
         Ratio = 0.4 -- The percentage of recoil that's translated into the viewmodel, higher values cause bullets to end up above the crosshair
     },
     RecoilCharging = {
-        Mult = 0.06, -- If above zero, will repeatedly apply recoil while charging, with this as a strength multiplier. Scales with charge level.
+        Mult = 0.04, -- If above zero, will repeatedly apply recoil while charging, with this as a strength multiplier. Scales with charge level.
         MinAng = Angle( -20, -10, 0 ),
         MaxAng = Angle( 20, 10, 0 ),
         Punch = 0.2,
