@@ -1,0 +1,7 @@
+"VertexLitGeneric"
+{
+	// Original shader: VertexLitTexture
+	"$basetexture" "models/Weapons/cfc_ion_cannon/stock"
+
+	"$color2" "{ 200 255 255 }"
+}

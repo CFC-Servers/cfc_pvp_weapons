@@ -16,3 +16,4 @@
 - [Slap swep](https://steamcommunity.com/sharedfiles/filedetails/?id=1052253533) - Workshop
 - [Simple Weapons SWEP Base](https://github.com/TankNut/simple-weapons) - GitHub
 - [Ithaca M37 (bonk gun model)](https://steamcommunity.com/sharedfiles/filedetails/?id=128091208) - Workshop
+- [MMod Tau Cannon (ion cannon)](https://steamcommunity.com/sharedfiles/filedetails/?id=2885673816) - Workshop rip from MMod
