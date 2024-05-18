@@ -156,6 +156,8 @@ function SWEP:FireWeapon( chargeAmount )
         if damageExplosive > 0 then
             doExplosiveDamage( self, owner, damageExplosive, primary.DamageExplosiveRadius * damageFrac, damageFrac )
         end
+    else
+        self._isChargeVMShakeActive = false
     end
 
     self:ApplyRecoil( nil, damageFrac )
@@ -191,7 +193,11 @@ function SWEP:OnOvercharged()
     self:SetNextFire( CurTime() + self.Primary.Cooldown )
     --self:SendWeaponAnim( ACT_VM_PRIMARYATTACK )
 
-    if CLIENT then return end
+    if CLIENT then
+        self._isChargeVMShakeActive = false
+
+        return
+    end
 
     local owner = self:GetOwner()
     if not IsValid( owner ) then return end
