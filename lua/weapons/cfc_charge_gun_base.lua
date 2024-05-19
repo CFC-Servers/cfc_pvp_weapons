@@ -388,7 +388,7 @@ function SWEP:ChargeThinkInternal()
     local chargeStepSound = primary.ChargeStepSound
 
     -- Charge step sound
-    if SERVER and chargeStepSound ~= "" then
+    if chargeStepSound ~= "" then
         local chargeStepPitchMinStart = primary.ChargeStepPitchMinStart
         local chargeStepPitchMaxStart = primary.ChargeStepPitchMaxStart
         local chargeStepPitchMinEnd = primary.ChargeStepPitchMinEnd
