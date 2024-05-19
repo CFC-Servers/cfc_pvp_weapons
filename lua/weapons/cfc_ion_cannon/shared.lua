@@ -42,7 +42,7 @@ SWEP.Primary = {
 
     Damage = 90, -- Damage per bullet at max charge
     DamageExplosive = 150, -- Damage at max charge, done as one explosion at the impact point. 0 to disable.
-    DamageExplosiveRadius = 250, -- Explosive radius at max charge.
+    DamageExplosiveRadius = 300, -- Explosive radius at max charge.
     DamageEase = math.ease.InCubic, -- Easing function to use for the damage curve
     Count = 10, -- Optional: Shots fired per unit ammo
 
