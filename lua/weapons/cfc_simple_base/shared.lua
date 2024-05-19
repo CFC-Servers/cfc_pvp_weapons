@@ -189,6 +189,19 @@ function SWEP:SecondaryAttack()
     self:TryAltFire()
 end
 
+function SWEP:HandleRelease()
+    local ply = self:GetOwner()
+    if not IsValid( ply ) then return end
+
+    if ply:KeyReleased( IN_ATTACK ) then
+        self:PrimaryRelease()
+    end
+
+    if ply:KeyReleased( IN_ATTACK2 ) then
+        self:SecondaryRelease()
+    end
+end
+
 function SWEP:HandleIdle()
     local idle = self:GetNextIdle()
 
@@ -230,6 +243,7 @@ function SWEP:HandleBurst()
 end
 
 function SWEP:Think()
+    self:HandleRelease()
     self:HandleReload()
     self:HandleIdle()
     self:HandlePump()

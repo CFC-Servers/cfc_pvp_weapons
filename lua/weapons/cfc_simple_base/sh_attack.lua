@@ -129,19 +129,3 @@ end
 function SWEP:ShouldPump()
     return self.Primary.PumpAction
 end
-
-
-hook.Add( "KeyRelease", "CFC_PvPWeapons_SimpleBase_PrimaryRelease", function( ply, key )
-    if key ~= IN_ATTACK then return end
-    if not IsFirstTimePredicted() then return end
-
-    local wep = ply:GetActiveWeapon()
-    if not IsValid( wep ) then return end
-
-    if not wep.CFCSimpleWeapon then return end
-
-    local primaryRelease = wep.PrimaryRelease
-    if not primaryRelease then return end
-
-    primaryRelease( wep )
-end )

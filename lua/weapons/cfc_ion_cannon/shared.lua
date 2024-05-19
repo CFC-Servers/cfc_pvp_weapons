@@ -3,10 +3,6 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "cfc_charge_gun_base" )
 SWEP.Base = "cfc_charge_gun_base"
 
-CFC_PvPWeapons = CFC_PvPWeapons or {}
-CFC_PvPWeapons.PrimaryReleaseClasses = CFC_PvPWeapons.PrimaryReleaseClasses or {}
-CFC_PvPWeapons.PrimaryReleaseClasses["cfc_ion_cannon"] = true
-
 -- UI stuff
 
 SWEP.PrintName = "Ion Cannon"
