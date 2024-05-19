@@ -120,8 +120,6 @@ SWEP.Primary = {
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
 
 
-local VECTOR_ZERO = Vector( 0, 0, 0 )
-
 local doExplosiveDamage
 
 
@@ -132,6 +130,11 @@ function SWEP:FireWeapon( chargeAmount )
     local primary = self.Primary
     local damageFrac = primary.DamageEase( chargeAmount / primary.ClipSize )
     local damage = math.max( 1, primary.Damage * damageFrac )
+    local selfObj = self
+
+    if SERVER then
+        self._hasDoneFirstBullet = false
+    end
 
     local bullet = {
         Num = primary.Count,
@@ -145,19 +148,23 @@ function SWEP:FireWeapon( chargeAmount )
         Callback = function( _attacker, tr, dmginfo )
             dmginfo:ScaleDamage( self:GetDamageFalloff( tr.StartPos:Distance( tr.HitPos ) ) )
             dmginfo:SetDamageType( DMG_BULLET + DMG_DISSOLVE )
+
+            -- Add explosion to the first bullet only
+            if SERVER then
+                if selfObj._hasDoneFirstBullet then return end
+
+                selfObj._hasDoneFirstBullet = true
+
+                local damageExplosive = math.floor( primary.DamageExplosive * damageFrac )
+
+                if damageExplosive > 0 then
+                    doExplosiveDamage( selfObj, owner, tr, damageExplosive, primary.DamageExplosiveRadius * damageFrac, damageFrac )
+                end
+            end
         end
     }
 
     owner:FireBullets( bullet )
-
-    if SERVER then
-        local damageExplosive = math.floor( primary.DamageExplosive * damageFrac )
-
-        if damageExplosive > 0 then
-            doExplosiveDamage( self, owner, damageExplosive, primary.DamageExplosiveRadius * damageFrac, damageFrac )
-        end
-    end
-
     self:ApplyRecoil( nil, damageFrac )
 
     if CLIENT then return end
@@ -360,27 +367,23 @@ end
 ----- PRIVATE FUNCTIONS -----
 
 if SERVER then
-    doExplosiveDamage = function( wep, owner, damage, radius, damageFrac )
+    doExplosiveDamage = function( wep, owner, tr, damage, radius, damageFrac )
         local pullback = 1 -- Pull the explosion position back this much along the line, to avoid it getting stuck on the surface
-
-        local startPos = owner:GetShootPos()
-        local dir = owner:GetAimVector()
-        local trRequest = {
-            start = startPos,
-            endpos = startPos + dir * 10000,
-            filter = owner,
-            mins = VECTOR_ZERO,
-            maxs = VECTOR_ZERO,
-        }
-
-        owner:LagCompensation( true )
-            local tr = util.TraceHull( trRequest )
-        owner:LagCompensation( false )
 
         if not tr.Hit then return end
 
+        local startPos = tr.StartPos
         local hitPos = tr.HitPos
-        local dmgPos = hitPos - dir * pullback
+        local traceDir = hitPos - startPos
+        local dist = traceDir:Length()
+
+        if dist == 0 then
+            traceDir = Vector( 0, 0, 0 )
+        else
+            traceDir = traceDir / dist
+        end
+
+        local dmgPos = hitPos - traceDir * pullback
         local falloffMult = wep:GetDamageFalloff( startPos:Distance( hitPos ) )
 
         damage = damage * falloffMult
