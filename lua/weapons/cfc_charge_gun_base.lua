@@ -258,11 +258,13 @@ function SWEP:Deploy()
 end
 
 function SWEP:Holster()
+    if self:IsReleasing() then return false end
+
     BaseClass.Holster( self )
     self:SetCharge( 0 )
     self:StopCharge()
 
-    return not self:IsReleasing()
+    return true
 end
 
 function SWEP:OnRemove()
