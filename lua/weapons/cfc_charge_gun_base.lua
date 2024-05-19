@@ -422,7 +422,7 @@ function SWEP:ReleaseThinkInternal()
 
     if clip <= 0 then
         self:SetReleasing( false )
-        self:ChargeNextTime( -1 )
+        self:SetChargeNextTime( -1 )
     else
         self:SetChargeNextTime( stepTime + self.Primary.BurstDelay )
     end
