@@ -105,6 +105,15 @@ SWEP.Primary = {
     ChargeStepPitchEase = function( x ) return x end, -- Use an easing function (e.g. math.ease.InCubic). Default is linear, which isn't in the ease library.
 }
 
+SWEP.CFC_FirstTimeHints = {
+    {
+        Message = "The Trash Blaster is a charged weapon. Hold left mouse before releasing to fire.",
+        Sound = "ambient/water/drip1.wav",
+        Duration = 7,
+        DelayNext = 0,
+    },
+}
+
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
 
 
