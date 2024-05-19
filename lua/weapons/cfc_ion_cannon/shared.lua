@@ -164,7 +164,10 @@ function SWEP:FireWeapon( chargeAmount )
         end
     }
 
-    owner:FireBullets( bullet )
+    owner:LagCompensation( true )
+        owner:FireBullets( bullet )
+    owner:LagCompensation( false )
+
     self:ApplyRecoil( nil, damageFrac )
 
     if CLIENT then return end
