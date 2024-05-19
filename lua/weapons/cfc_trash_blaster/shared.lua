@@ -187,6 +187,7 @@ function SWEP:FireWeapon( chargeAmount, notFirstCall )
     ) )
     prop:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS )
     prop:Spawn()
+    prop:SetOwner( owner )
 
     prop:EmitSound( self.Primary.Sound )
     prop:SetPhysicsAttacker( owner, 1000 )
