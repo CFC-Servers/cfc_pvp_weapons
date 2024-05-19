@@ -1,6 +1,7 @@
-list.Set( "ContentCategoryIcons", "CFC", "icon16/star.png" )
+local hintConvars = {}
 
-local hasSeenClassThisSession = {}
+
+list.Set( "ContentCategoryIcons", "CFC", "icon16/star.png" )
 
 
 -- Most reliable way on client to listen when a weapon is equipped without using net messages.
@@ -12,9 +13,16 @@ hook.Add( "HUDWeaponPickedUp", "CFC_PvPWeapons_FirstTimeHints", function( wep )
     if not hints then return end
 
     local class = wep:GetClass()
-    if hasSeenClassThisSession[class] then return end
+    local convar = hintConvars[class]
 
-    hasSeenClassThisSession[class] = true
+    if not convar then
+        convar = CreateClientConVar( "cfc_pvp_weapons_hint_seen_" .. class, "0", true, false )
+        hintConvars[class] = convar
+    end
+
+    if convar:GetInt() == 1 then return end
+
+    convar:SetInt( 1 )
 
     local hintInd = 1
 
