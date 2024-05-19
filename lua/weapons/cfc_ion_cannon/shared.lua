@@ -395,7 +395,7 @@ if SERVER then
         eff:SetOrigin( dmgPos )
         eff:SetMagnitude( 2.5 * damageFrac )
         eff:SetScale( 1.75 * damageFrac )
-        eff:SetRadius( radius * 0.8 )
+        eff:SetRadius( radius * 0.5 )
         eff:SetNormal( tr.HitNormal )
         util.Effect( "AR2Explosion", eff, true, true )
         util.Effect( "Sparks", eff, true, true )
