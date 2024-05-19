@@ -189,6 +189,12 @@ function SWEP:SecondaryAttack()
     self:TryAltFire()
 end
 
+function SWEP:PrimaryRelease()
+end
+
+function SWEP:SecondaryRelease()
+end
+
 function SWEP:HandleRelease()
     local ply = self:GetOwner()
     if not IsValid( ply ) then return end
