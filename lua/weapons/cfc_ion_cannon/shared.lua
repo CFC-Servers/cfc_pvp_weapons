@@ -257,8 +257,12 @@ end
 
 function SWEP:OnStopCharging()
     if CLIENT then
-        self.ViewOffset = self._baseViewOffset
-        self._isChargeVMShakeActive = false
+        timer.Simple( 0.1, function()
+            if not IsValid( self ) then return end
+
+            self.ViewOffset = self._baseViewOffset
+            self._isChargeVMShakeActive = false
+        end )
     end
 
     timer.Remove( "CFC_PvPWeapons_IonCannon_SpinAnim_" .. self:EntIndex() )
