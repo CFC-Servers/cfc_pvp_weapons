@@ -47,7 +47,7 @@ SWEP.Primary = {
     BurstDelay = 0.075, -- Burst only: the delay between shots during a burst
     Cooldown = 3, -- Cooldown to apply once the charge is expended
     MovementMultWhenCharging = 1, -- Multiplier against movement speed when charging
-    OverchargeDelay = false, -- Once at full charge, it takes this long before overcharge occurs. False to disable.
+    OverchargeDelay = false, -- Once at full charge, it takes this long before overcharge occurs. False to disable overcharge.
 
     Range = 750, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
     Accuracy = 12, -- The reference value to use for the previous option, 12 = headshots, 24 = bodyshots
@@ -141,17 +141,29 @@ function SWEP:Initialize()
 
     self:SetCharge( 0 )
     self:SetNextFire( 0 )
+end
 
-    self._charging = false
-    self._releasing = false
+function SWEP:SetupDataTables()
+    BaseClass.SetupDataTables( self )
+
+    self:AddNetworkVar( "Float", "ChargeNextTime" )
+    self:AddNetworkVar( "Int", "ChargeState" )
+    self:AddNetworkVar( "Bool", "Releasing" )
+
+    if SERVER then
+        self:SetChargeNextTime( -1 )
+        self:SetChargeState( 0 )
+    end
+
+    self.IsReleasing = self.GetReleasing
 end
 
 function SWEP:IsCharging()
-    return self._charging
+    return self:GetChargeState() > 0
 end
 
-function SWEP:IsReleasing()
-    return self._releasing
+function SWEP:IsOvercharging()
+    return self:GetChargeState() == 2
 end
 
 function SWEP:Think()
@@ -160,8 +172,11 @@ function SWEP:Think()
     self:CheckForPrematureCharge()
 
     if self:IsCharging() then
+        self:ChargeThinkInternal()
         self:ChargeThink()
         self:DoChargeRecoil()
+    elseif self:IsReleasing() then
+        self:ReleaseThinkInternal()
     end
 end
 
@@ -179,71 +194,11 @@ function SWEP:PrimaryAttack()
     local clipMax = self.Primary.ClipSize
     local chargeStep = self.Primary.Delay
 
-    local chargeStepSound = self.Primary.ChargeStepSound
-    local chargeStepVolume = self.Primary.ChargeStepVolume
-    local chargeStepPitchMinStart = self.Primary.ChargeStepPitchMinStart
-    local chargeStepPitchMaxStart = self.Primary.ChargeStepPitchMaxStart
-    local chargeStepPitchMinEnd = self.Primary.ChargeStepPitchMinEnd
-    local chargeStepPitchMaxEnd = self.Primary.ChargeStepPitchMaxEnd
-    local chargeStepPitchEase = self.Primary.ChargeStepPitchEase
-
     tryApplyChargedMovementMult( self, false )
 
-    self._charging = true
+    self:SetChargeNextTime( CurTime() + chargeStep )
+    self:SetChargeState( 1 )
     self:OnStartCharging()
-
-    timer.Create( "CFC_ChargeGun_Charge_" .. self:EntIndex(), chargeStep, 0, function()
-        if not self:IsValid() then return end
-
-        local ammo = self:GetReserveAmmo()
-        if ammo <= 0 then return end
-
-        local clip = self:Clip1()
-
-        if clip >= clipMax then
-            self:OnFullChargeReached( clip )
-
-            timer.Remove( "CFC_ChargeGun_Charge_" .. self:EntIndex() )
-
-            local overchargeDelay = self.Primary.OverchargeDelay
-            if not overchargeDelay then return end
-
-            timer.Create( "CFC_ChargeGun_Overcharge_" .. self:EntIndex(), overchargeDelay, 1, function()
-                if not self:IsValid() then return end
-
-                self:OnOvercharged()
-                self:StopCharge()
-
-                if not self:IsReleasing() then
-                    self:SetCharge( 0 )
-                end
-            end )
-
-            return
-        end
-
-        clip = clip + 1
-
-        self:SetClip1( clip )
-        self:SetReserveAmmo( ammo - 1 )
-
-        if chargeStepSound ~= "" and SERVER then
-            local pitchMin = chargeStepPitchMinStart
-            local pitchMax = chargeStepPitchMaxStart
-
-            if chargeStepPitchMinStart ~= chargeStepPitchMinEnd or chargeStepPitchMaxStart ~= chargeStepPitchMaxEnd then
-                local frac = chargeStepPitchEase( clip / clipMax )
-                pitchMin = Lerp( frac, chargeStepPitchMinStart, chargeStepPitchMinEnd )
-                pitchMax = Lerp( frac, chargeStepPitchMaxStart, chargeStepPitchMaxEnd )
-            end
-
-            local pitch = pitchMin == pitchMax and pitchMin or math.Rand( pitchMin, pitchMax )
-
-            self:EmitSound( chargeStepSound, 75, pitch, chargeStepVolume )
-        end
-
-        self:OnChargeStep( clip )
-    end )
 
     if CLIENT then return end
 
@@ -273,7 +228,7 @@ function SWEP:PrimaryRelease()
     if clip <= 0 then return end
 
     self:StopCharge()
-    self._releasing = true
+    self:SetReleasing( true )
 
     local cooldown = self.Primary.Cooldown
 
@@ -282,28 +237,17 @@ function SWEP:PrimaryRelease()
         self:SetClip1( 0 )
         self:FireWeapon( clip )
         self:SetNextFire( CurTime() + cooldown )
-        self._releasing = false
+        self:SetReleasing( false )
 
         return
     end
 
     -- Burst
     local burstDelay = self.Primary.BurstDelay
+    local now = CurTime()
 
-    self:SetNextFire( CurTime() + burstDelay * clip + cooldown )
-
-    timer.Create( "CFC_ChargeGun_Release_" .. self:EntIndex(), burstDelay, clip, function()
-        if not self:IsValid() then return end
-
-        clip = clip - 1
-
-        self:SetClip1( clip )
-        self:FireWeapon( 1 )
-
-        if clip <= 0 then
-            self._releasing = false
-        end
-    end )
+    self:SetNextFire( now + burstDelay * ( clip - 1 ) + cooldown )
+    self:SetChargeNextTime( now )
 end
 
 function SWEP:Deploy()
@@ -330,12 +274,7 @@ function SWEP:OwnerChanged()
     BaseClass.OwnerChanged( self )
     self:SetCharge( 0 )
     self:StopCharge()
-
-    if self:IsReleasing() then
-        self._releasing = false
-
-        timer.Remove( "CFC_ChargeGun_Release_" .. self:EntIndex() )
-    end
+    self:SetReleasing( false )
 end
 
 function SWEP:CheckForPrematureCharge()
@@ -382,10 +321,8 @@ end
 function SWEP:StopCharge()
     local wasCharging = self:IsCharging()
 
-    self._charging = false
-
-    timer.Remove( "CFC_ChargeGun_Charge_" .. self:EntIndex() )
-    timer.Remove( "CFC_ChargeGun_Overcharge_" .. self:EntIndex() )
+    self:SetChargeNextTime( -1 )
+    self:SetChargeState( 0 )
 
     local chargeSound = self._chargeSound
 
@@ -397,6 +334,97 @@ function SWEP:StopCharge()
     if wasCharging then
         tryApplyChargedMovementMult( self, true )
         self:OnStopCharging()
+    end
+end
+
+function SWEP:ChargeThinkInternal()
+    local now = CurTime()
+    local stepTime = self:GetChargeNextTime()
+    if stepTime == -1 then return end
+    if now < stepTime then return end
+
+    -- Overcharge check
+    if self:IsOvercharging() then
+        self:OnOvercharged()
+        self:StopCharge()
+
+        if not self:IsReleasing() then
+            self:SetCharge( 0 )
+        end
+
+        return
+    end
+
+    -- Charge step
+    local ammo = self:GetReserveAmmo()
+    if ammo <= 0 then return end
+
+    local clip = self:Clip1() + 1
+    local primary = self.Primary
+    local clipMax = primary.ClipSize
+
+    self:SetClip1( clip )
+    self:SetReserveAmmo( ammo - 1 )
+
+    if clip >= clipMax then
+        local overchargeDelay = self.Primary.OverchargeDelay
+
+        if overchargeDelay then
+            self:SetChargeNextTime( stepTime + overchargeDelay )
+            self:SetChargeState( 2 )
+            self:OnFullChargeReached( clip )
+
+            return
+        end
+
+        self:SetChargeNextTime( -1 )
+        self:OnFullChargeReached( clip )
+    else
+        self:SetChargeNextTime( stepTime + self.Primary.Delay )
+    end
+
+    local chargeStepSound = primary.ChargeStepSound
+
+    -- Charge step sound
+    if SERVER and chargeStepSound ~= "" then
+        local chargeStepPitchMinStart = primary.ChargeStepPitchMinStart
+        local chargeStepPitchMaxStart = primary.ChargeStepPitchMaxStart
+        local chargeStepPitchMinEnd = primary.ChargeStepPitchMinEnd
+        local chargeStepPitchMaxEnd = primary.ChargeStepPitchMaxEnd
+
+        local pitchMin = chargeStepPitchMinStart
+        local pitchMax = chargeStepPitchMaxStart
+
+        if chargeStepPitchMinStart ~= chargeStepPitchMinEnd or chargeStepPitchMaxStart ~= chargeStepPitchMaxEnd then
+            local frac = primary.ChargeStepPitchEase( clip / clipMax )
+            pitchMin = Lerp( frac, chargeStepPitchMinStart, chargeStepPitchMinEnd )
+            pitchMax = Lerp( frac, chargeStepPitchMaxStart, chargeStepPitchMaxEnd )
+        end
+
+        local pitch = pitchMin == pitchMax and pitchMin or math.Rand( pitchMin, pitchMax )
+
+        self:EmitSound( chargeStepSound, 75, pitch, primary.ChargeStepVolume )
+    end
+
+    self:OnChargeStep( clip )
+end
+
+function SWEP:ReleaseThinkInternal()
+    local now = CurTime()
+    local stepTime = self:GetChargeNextTime()
+    if stepTime == -1 then return end
+    if now < stepTime then return end
+
+    local clip = self:Clip1() - 1
+
+    self:SetClip1( clip )
+    self:FireWeapon( 1 )
+
+    if clip <= 0 then
+        self:SetReleasing( false )
+        self:ChargeNextTime( -1 )
+    else
+        self:SetChargeNextTime( stepTime + self.Primary.BurstDelay )
     end
 end
 

@@ -54,7 +54,7 @@ SWEP.Primary = {
     BurstDelay = 0.075, -- Burst only: the delay between shots during a burst
     Cooldown = 2, -- Cooldown to apply once the charge is expended
     MovementMultWhenCharging = 0.5, -- Multiplier against movement speed when charging
-    OverchargeDelay = 2, -- Once at full charge, it takes this long before overcharge occurs. False to disable.
+    OverchargeDelay = 2, -- Once at full charge, it takes this long before overcharge occurs. False to disable overcharge.
     OverchargeExplosionDamage = 200, -- Damage dealt by the overcharge explosion
     OverchargeExplosionRadius = 200, -- Radius of the overcharge explosion
 
