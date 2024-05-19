@@ -67,6 +67,21 @@ SWEP.Primary = {
     TracerName = "Tracer", -- Tracer effect, leave blank for no tracer
 }
 
+SWEP.CFC_FirstTimeHints = {
+    {
+        Message = "The Bonk Shotgun is a powerful mobility tool. Shoot downwards while in the air to launch yourself.",
+        Sound = "ambient/water/drip1.wav",
+        Duration = 10,
+        DelayNext = 6,
+    },
+    {
+        Message = "The Bonk Shotgun can also launch your enemies into walls to deal extra damage.",
+        Sound = "ambient/water/drip2.wav",
+        Duration = 8,
+        DelayNext = 0,
+    },
+}
+
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
 
 

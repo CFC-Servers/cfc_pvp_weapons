@@ -113,6 +113,21 @@ SWEP.Primary = {
     ExplosionPitch = 105,
 }
 
+SWEP.CFC_FirstTimeHints = {
+    {
+        Message = "The Ion Cannon is a charged weapon. Hold left mouse before releasing to fire.",
+        Sound = "ambient/water/drip1.wav",
+        Duration = 8,
+        DelayNext = 5,
+    },
+    {
+        Message = "The Ion Cannon is great for destroying props and vehicles.",
+        Sound = "ambient/water/drip2.wav",
+        Duration = 7,
+        DelayNext = 0,
+    },
+}
+
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
 
 
