@@ -329,6 +329,7 @@ function SWEP:CheckForPrematureCharge()
             return
         end
 
+        self:UpdateChargeSprite() -- Prevent net delay issues making the sprite appear large for one tick. Strangely, only happens from premature charges, not standard ones.
         self:PrimaryAttack()
     else
         self._prematureChargeOneTickCheck = false
