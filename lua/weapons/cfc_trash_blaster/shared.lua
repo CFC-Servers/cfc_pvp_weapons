@@ -103,6 +103,22 @@ SWEP.Primary = {
     ChargeStepPitchMinEnd = 120,
     ChargeStepPitchMaxEnd = 120,
     ChargeStepPitchEase = function( x ) return x end, -- Use an easing function (e.g. math.ease.InCubic). Default is linear, which isn't in the ease library.
+
+    ChargeSprite = {
+        Enabled = false,
+        Mat = "sprites/light_glow01", -- Material path for the sprite (should have ignorez)
+        MatVM = "cfc_pvp_weapons/sprites/charge_glow", -- Material path for the viewmodel (shouldn't have ignorez)
+        Offset = Vector( 25, 0, 0 ), -- Position offset for the sprite
+        OffsetVM = Vector( 25, -3, -3 ), -- Position offset for the viewmodel sprite
+        Color = Color( 255, 255, 255 ),
+        AlphaStart = 0,
+        AlphaEnd = 255,
+        Framerate = 10,
+        ScaleStart = 0, -- Used by the world sprite
+        ScaleEnd = 0.75, -- Used by the world sprite
+        SizeStart = 0, -- Used by the viewmodel sprite
+        SizeEnd = 20, -- Used by the viewmodel sprite
+    }
 }
 
 SWEP.CFC_FirstTimeHints = {

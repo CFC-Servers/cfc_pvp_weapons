@@ -111,6 +111,22 @@ SWEP.Primary = {
     ExplosionSound = "npc/roller/mine/rmine_explode_shock1.wav",
     ExplosionVolume = 1,
     ExplosionPitch = 105,
+
+    ChargeSprite = {
+        Enabled = true,
+        Mat = "sprites/light_glow01", -- Material path for the sprite (should have ignorez)
+        MatVM = "cfc_pvp_weapons/sprites/charge_glow", -- Material path for the viewmodel (shouldn't have ignorez)
+        Offset = Vector( 26, -6.5, 5 ), -- Position offset for the sprite
+        OffsetVM = Vector( 27, -4, -4 ), -- Position offset for the viewmodel sprite
+        Color = Color( 110, 250, 200 ),
+        AlphaStart = 0,
+        AlphaEnd = 255,
+        Framerate = 10,
+        ScaleStart = 0, -- Used by the world sprite
+        ScaleEnd = 0.75, -- Used by the world sprite
+        SizeStart = 0, -- Used by the viewmodel sprite
+        SizeEnd = 20, -- Used by the viewmodel sprite
+    }
 }
 
 SWEP.CFC_FirstTimeHints = {
