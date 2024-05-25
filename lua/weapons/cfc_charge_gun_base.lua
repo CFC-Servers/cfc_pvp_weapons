@@ -407,21 +407,22 @@ function SWEP:ChargeThinkInternal()
     self:SetReserveAmmo( ammo - 1 )
     self:UpdateChargeSprite()
 
+    -- Charge step delay and overcharge check
     if clip >= clipMax then
         local overchargeDelay = self.Primary.OverchargeDelay
 
         if overchargeDelay then
             self:SetChargeNextTime( stepTime + overchargeDelay )
             self:SetChargeState( 2 )
-            self:OnFullChargeReached( clip )
-
-            return
+        else
+            self:SetChargeNextTime( -1 )
         end
 
-        self:SetChargeNextTime( -1 )
+        self:OnChargeStep( clip )
         self:OnFullChargeReached( clip )
     else
         self:SetChargeNextTime( stepTime + self.Primary.Delay )
+        self:OnChargeStep( clip )
     end
 
     local chargeStepSound = primary.ChargeStepSound
@@ -446,8 +447,6 @@ function SWEP:ChargeThinkInternal()
 
         self:EmitSound( chargeStepSound, 75, pitch, primary.ChargeStepVolume )
     end
-
-    self:OnChargeStep( clip )
 end
 
 function SWEP:ReleaseThinkInternal()
