@@ -561,7 +561,7 @@ if CLIENT then
         end
 
         local pos = vm:LocalToWorld( chargeSpriteInfo.OffsetVM )
-        local size = chargeSpriteInfo.Size
+        local size = chargeSpriteInfo.Size or 0
 
         render.SetMaterial( mat )
         render.DrawSprite( pos, size, size, chargeSpriteInfo.Color )
