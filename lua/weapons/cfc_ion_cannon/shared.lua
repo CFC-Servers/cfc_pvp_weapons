@@ -155,7 +155,8 @@ function SWEP:FireWeapon( chargeAmount )
     if not IsValid( owner ) then return end
 
     local primary = self.Primary
-    local damageFrac = primary.DamageEase( chargeAmount / primary.ClipSize )
+    local clipMax = primary.ClipSize
+    local damageFrac = primary.DamageEase( chargeAmount / clipMax )
     local damage = math.max( 1, primary.Damage * damageFrac )
     local selfObj = self
 
@@ -197,18 +198,25 @@ function SWEP:FireWeapon( chargeAmount )
 
     self:ApplyRecoil( nil, damageFrac )
 
-    if CLIENT then return end
+    if SERVER then
+        local rf = RecipientFilter()
+        rf:AddAllPlayers()
 
-    local rf = RecipientFilter()
-    rf:AddAllPlayers()
+        local pitchMult = Lerp( damageFrac, primary.SoundPitchMultLowCharge, 1 )
+        local pitch = math.Rand( primary.SoundPitchMin, primary.SoundPitchMax ) * pitchMult
+        local volume = math.max( damageFrac, 0.25 )
 
-    local pitchMult = Lerp( damageFrac, primary.SoundPitchMultLowCharge, 1 )
-    local pitch = math.Rand( primary.SoundPitchMin, primary.SoundPitchMax ) * pitchMult
-    local volume = math.max( damageFrac, 0.25 )
+        owner:EmitSound( self.Primary.Sound, 90, pitch, volume, CHAN_WEAPON, nil, nil, rf )
+        self:SendTranslatedWeaponAnim( ACT_VM_PRIMARYATTACK )
+        owner:SetAnimation( PLAYER_ATTACK1 )
+    end
 
-    owner:EmitSound( self.Primary.Sound, 90, pitch, volume, CHAN_WEAPON, nil, nil, rf )
-    self:SendTranslatedWeaponAnim( ACT_VM_PRIMARYATTACK )
-    owner:SetAnimation( PLAYER_ATTACK1 )
+    -- Force the overcharged effect if the gun is somehow fired with more than the limit.
+    -- e.g. CFC's ammo powerup forcing the clip to 100, leading to a massive explosion.
+    -- The massive charge will still apply, but now it will guarantee the player explodes in the process, making it a one-time thing.
+    if chargeAmount > clipMax then
+        self:OnOvercharged()
+    end
 end
 
 function SWEP:OnChargeStep( chargeAmount )
