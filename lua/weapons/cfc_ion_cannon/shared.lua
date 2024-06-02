@@ -196,7 +196,7 @@ function SWEP:FireWeapon( chargeAmount )
 
     if SERVER then
         local rf = RecipientFilter()
-        rf:AddAllPlayers()
+        rf:AddPAS( self:GetPos() )
 
         local pitchMult = Lerp( damageFrac, primary.SoundPitchMultLowCharge, 1 )
         local pitch = math.Rand( primary.SoundPitchMin, primary.SoundPitchMax ) * pitchMult
@@ -427,7 +427,7 @@ if SERVER then
         util.Effect( "Sparks", eff, true, true )
 
         local rf = RecipientFilter()
-        rf:AddAllPlayers()
+        rf:AddPAS( dmgPos )
 
         EmitSound( wep.Primary.ExplosionSound, dmgPos, 0, CHAN_AUTO, wep.Primary.ExplosionVolume * damageFrac * falloffMult, 80, 0, wep.Primary.ExplosionPitch, 0, rf )
     end
