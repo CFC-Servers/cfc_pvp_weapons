@@ -275,18 +275,6 @@ function SWEP:OnStartCharging()
         self._curChargeVMShakeIntervalMax = self.Primary.ChargeVMShakeIntervalMaxStart
         self._isChargeVMShakeActive = true
     end
-
-    local timerName = "CFC_PvPWeapons_IonCannon_SpinAnim_" .. self:EntIndex()
-
-    timer.Create( timerName, 0.2, 0, function()
-        if not IsValid( self ) or not IsValid( self:GetOwner() ) then
-            timer.Remove( timerName )
-
-            return
-        end
-
-        self:SendWeaponAnim( ACT_VM_PULLBACK )
-    end )
 end
 
 function SWEP:OnStopCharging()
@@ -298,8 +286,6 @@ function SWEP:OnStopCharging()
             self._isChargeVMShakeActive = false
         end )
     end
-
-    timer.Remove( "CFC_PvPWeapons_IonCannon_SpinAnim_" .. self:EntIndex() )
 end
 
 function SWEP:Reload()
@@ -316,6 +302,19 @@ function SWEP:Reload()
 
             self:EmitSound( "weapons/gauss/gauss_fidget.wav" )
         end )
+    end
+end
+
+
+if SERVER then
+    function SWEP:ChargeThink()
+        local now = CurTime()
+        local chargeSpinAnimTime = self._chargeSpinAnimTime or 0
+
+        if now >= chargeSpinAnimTime then
+            self._chargeSpinAnimTime = now + 0.2
+            self:SendWeaponAnim( ACT_VM_PULLBACK )
+        end
     end
 end
 
