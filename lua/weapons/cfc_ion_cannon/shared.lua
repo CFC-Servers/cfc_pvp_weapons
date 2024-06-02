@@ -16,8 +16,6 @@ SWEP.Spawnable = true
 SWEP.UseHands = true -- If your viewmodel includes it's own hands (v_ model instead of a c_ model), set this to false
 
 SWEP.ViewModelTargetFOV = 65
---SWEP.ViewModel = Model( "models/weapons/c_357.mdl" ) -- Weapon viewmodel, usually a c_ or v_ model
---SWEP.WorldModel = Model( "models/weapons/w_357.mdl" ) -- Weapon worldmodel, almost always a w_ model
 SWEP.ViewModel = Model( "models/weapons/cfc_ion_cannon/c_gauss.mdl" ) -- Weapon viewmodel, usually a c_ or v_ model
 SWEP.WorldModel = Model( "models/weapons/cfc_ion_cannon/w_gauss.mdl" ) -- Weapon worldmodel, almost always a w_ model
 
@@ -234,7 +232,6 @@ end
 
 function SWEP:OnOvercharged()
     self:SetNextFire( CurTime() + self.Primary.Cooldown )
-    --self:SendWeaponAnim( ACT_VM_PRIMARYATTACK )
 
     if CLIENT then
         self._isChargeVMShakeActive = false
