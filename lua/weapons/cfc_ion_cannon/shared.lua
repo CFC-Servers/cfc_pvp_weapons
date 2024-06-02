@@ -256,11 +256,7 @@ function SWEP:OnOvercharged()
 
     owner:EmitSound( "ambient/explosions/explode_4.wav", 80, math.Rand( 110, 115 ), 1 )
 
-    timer.Simple( 0, function()
-        if not IsValid( self ) then return end
-
-        self:Remove()
-    end )
+    self:Remove()
 end
 
 function SWEP:Equip()
