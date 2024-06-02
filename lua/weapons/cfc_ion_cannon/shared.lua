@@ -150,8 +150,6 @@ local doExplosiveDamage
 
 function SWEP:FireWeapon( chargeAmount )
     local owner = self:GetOwner()
-    if not IsValid( owner ) then return end
-
     local primary = self.Primary
     local clipMax = primary.ClipSize
     local damageFrac = primary.DamageEase( chargeAmount / clipMax )
@@ -240,8 +238,6 @@ function SWEP:OnOvercharged()
     end
 
     local owner = self:GetOwner()
-    if not IsValid( owner ) then return end
-
     local recoil = self.Primary.Recoil
     local recoilMin = recoil.MinAng
     local recoilMax = recoil.MaxAng
@@ -315,7 +311,7 @@ function SWEP:Reload()
 
     local owner = self:GetOwner()
 
-    if IsValid( owner ) and owner:KeyPressed( IN_RELOAD ) then
+    if owner:KeyPressed( IN_RELOAD ) then
         self:SendWeaponAnim( ACT_VM_IDLE_DEPLOYED_1 )
         owner:SetAnimation( PLAYER_RELOAD )
 
