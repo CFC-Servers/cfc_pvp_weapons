@@ -411,6 +411,7 @@ if SERVER then
 
         local dmgPos = hitPos - traceDir * pullback
         local falloffMult = wep:GetDamageFalloff( startPos:Distance( hitPos ) )
+        local damageFracClamped = math.Clamp( damageFrac, 0, 1 )
 
         damage = damage * falloffMult
         radius = radius * falloffMult
@@ -419,8 +420,8 @@ if SERVER then
 
         local eff = EffectData()
         eff:SetOrigin( dmgPos )
-        eff:SetMagnitude( 2.5 * damageFrac )
-        eff:SetScale( 1.75 * damageFrac )
+        eff:SetMagnitude( 2.5 * damageFracClamped ) -- Clamp the effect scale, as high-magntitude sparks can prevent future sparks from rendering 
+        eff:SetScale( 1.75 * damageFracClamped )
         eff:SetRadius( radius * 0.35 )
         eff:SetNormal( tr.HitNormal )
         util.Effect( "AR2Explosion", eff, true, true )
@@ -429,6 +430,6 @@ if SERVER then
         local rf = RecipientFilter()
         rf:AddPAS( dmgPos )
 
-        EmitSound( wep.Primary.ExplosionSound, dmgPos, 0, CHAN_AUTO, wep.Primary.ExplosionVolume * damageFrac * falloffMult, 80, 0, wep.Primary.ExplosionPitch, 0, rf )
+        EmitSound( wep.Primary.ExplosionSound, dmgPos, 0, CHAN_AUTO, wep.Primary.ExplosionVolume * damageFracClamped * falloffMult, 80, 0, wep.Primary.ExplosionPitch, 0, rf )
     end
 end
