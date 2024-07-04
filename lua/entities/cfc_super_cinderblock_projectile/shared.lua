@@ -40,7 +40,7 @@ function ENT:PostHitEnt( hitEnt, damageDealt )
     local block = ents.Create( "cfc_super_cinder_block" )
 
     if IsValid( block ) then
-        block.cfcsupercinderblock_nextpickup = CurTime() + 1.5
+        block.cfcsupercinderblock_nextpickup = CurTime() + 1.25
         block:SetPos( self:GetPos() -self:GetVelocity():GetNormalized() * 10 )
         block:SetAngles( self:GetAngles() )
         block:SetModel( self.Model )
