@@ -11,11 +11,26 @@ SWEP.ViewModelFOV = 54
 SWEP.CFCSimpleWeapon = true
 SWEP.CFCSimpleWeaponThrowing = true
 
-SWEP.HoldType = "grenade"
+SWEP.ThrowVelMul = 1
+SWEP.ProjectileClass = ""
+SWEP.InfiniteAmmo = nil
+SWEP.IdleHoldType = "normal"
+SWEP.ThrowingHoldType = "melee"
+
+SWEP.ModelScale = 1
+SWEP.ModelMaterial = nil
+
+SWEP.WorldModel = "models/weapons/w_grenade.mdl"
+SWEP.WMPosOffset = Vector( 0, 0, 0 )
+SWEP.WMAngOffset = Angle( 0, 0, 0 )
+
+SWEP.HeldModel = nil
+SWEP.HeldModelPosOffset = Vector( 0, 0, 0 )
+SWEP.HeldModelAngOffset = Angle( 0, 0, 0 )
 
 SWEP.Primary.Ammo = ""
 SWEP.Primary.ClipSize = -1
-SWEP.Primary.DefaultClip = 1
+SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = false
 
 SWEP.Primary.ThrowAct = { ACT_VM_PULLBACK_HIGH, ACT_VM_THROW }
@@ -43,6 +58,21 @@ function SWEP:SetupDataTables()
     self:AddNetworkVar( "Float", "NextIdle" )
     self:AddNetworkVar( "Float", "FinishThrow" )
     self:AddNetworkVar( "Float", "FinishReload" )
+
+end
+
+function SWEP:Initialize()
+    self:SetHoldType( self.IdleHoldType )
+    self:SetNW2Bool( "ThrowableInHand", true )
+    if self.ModelMaterial then
+        self:SetMaterial( self.ModelMaterial )
+    end
+    if CLIENT and self.HeldModel then
+        self.MyHeldModel = ClientsideModel( self.HeldModel )
+        self.MyHeldModel:SetMaterial( self.ModelMaterial )
+        self.MyHeldModel:SetNoDraw( true )
+        self.MyHeldModel:SetParent( self )
+    end
 end
 
 function SWEP:AddNetworkVar( varType, name, extended )
@@ -64,6 +94,10 @@ function SWEP:Deploy()
 end
 
 function SWEP:Holster()
+    if CLIENT and IsFirstTimePredicted() then
+        self:TearDownViewModel()
+
+    end
     return true
 end
 
@@ -88,11 +122,12 @@ function SWEP:PrimaryAttack()
         return
     end
 
+    self:SetHoldType( self.ThrowingHoldType )
+
     self:SetThrowMode( 1 )
     self:SetFinishThrow( CurTime() + self:SendTranslatedWeaponAnim( self.Primary.ThrowAct[1] ) )
     self:SetNextIdle( 0 )
 
-    self:SetHoldType( self.HoldType )
 end
 
 function SWEP:SecondaryAttack()
@@ -101,6 +136,7 @@ function SWEP:SecondaryAttack()
     end
 
     local duration = 0
+    self:SetHoldType( self.ThrowingHoldType )
 
     if self:GetOwner():Crouching() then
         duration = self:SendTranslatedWeaponAnim( self.Primary.RollAct[1] )
@@ -113,7 +149,6 @@ function SWEP:SecondaryAttack()
     self:SetFinishThrow( CurTime() + duration )
     self:SetNextIdle( 0 )
 
-    self:SetHoldType( self.HoldType )
 end
 
 function SWEP:Throw()
@@ -168,19 +203,28 @@ if SERVER then
             return
         end
 
+        self:SetNW2Bool( "ThrowableInHand", false )
+
+        if self.ModelMaterial then
+            ent:SetMaterial( self.ModelMaterial )
+
+        end
+
+        local moveType = ent:GetMoveType()
         local phys = ent:GetPhysicsObject()
 
-        if not IsValid( phys ) then
-            return
-        end
+        ent:SetAngles( AngleRand() )
 
         if mode == 1 then
             local pos = LocalToWorld( Vector( 18, -8, 0 ), angle_zero, ply:GetShootPos(), ply:GetAimVector():Angle() )
 
             ent:SetPos( self:GetThrowPosition( pos ) )
 
-            phys:SetVelocity( ply:GetVelocity() + ( ply:GetForward() + Vector( 0, 0, 0.1 ) ) * 1200 )
-            phys:AddAngleVelocity( Vector( 600, math.random( -1200, 1200 ), 0 ) )
+            local vel = ply:GetVelocity() + ( ply:GetForward() + Vector( 0, 0, 0.1 ) ) * 1200 * self.ThrowVelMul
+            local angVel = Vector( 600, math.random( -1200, 1200 ), 0 )
+
+            self:DoVel( phys, ent, moveType, vel, angVel )
+
         elseif mode == 3 then
             local pos = ply:GetPos() + Vector( 0, 0, 4 )
             local facing = ply:GetAimVector()
@@ -205,15 +249,30 @@ if SERVER then
             ent:SetPos( self:GetThrowPosition( pos ) )
             ent:SetAngles( Angle( 0, ply:GetAngles().y, -90 ) )
 
-            phys:SetVelocity( ply:GetVelocity() + ply:GetForward() * 700 )
-            phys:AddAngleVelocity( Vector( 0, 0, 720 ) )
+            local vel = ply:GetVelocity() + ply:GetForward() * 700 * self.ThrowVelMul
+            local angVel = Vector( 0, 0, 720 )
+
+            self:DoVel( phys, ent,  moveType, vel, angVel )
+
         elseif mode == 2 then
             local pos = LocalToWorld( Vector( 18, -8, 0 ), angle_zero, ply:GetShootPos(), ply:GetAimVector():Angle() )
 
             ent:SetPos( self:GetThrowPosition( pos ) )
 
-            phys:SetVelocity( ply:GetVelocity() + ( ply:GetForward() * 350 ) + Vector( 0, 0, 50 ) )
-            phys:AddAngleVelocity( Vector( 200, math.random( -600, 600 ), 0 ) )
+            local vel = ply:GetVelocity() + ( ply:GetForward() * 350 * self.ThrowVelMul ) + Vector( 0, 0, 50 )
+            local angVel = Vector( 200, math.random( -600, 600 ), 0 )
+
+            self:DoVel( phys, ent,  moveType, vel, angVel )
+        end
+    end
+
+    function SWEP:DoVel( phys, ent, moveType, vel, angVel )
+        if IsValid( phys ) and moveType ~= MOVETYPE_FLYGRAVITY then
+            phys:SetVelocity( vel )
+            phys:AddAngleVelocity( angVel )
+        else
+            ent:SetVelocity( vel )
+            ent:SetLocalAngularVelocity( angVel:Angle() )
         end
     end
 end
@@ -237,7 +296,7 @@ end
 function SWEP:FinishReload()
     local ply = self:GetOwner()
 
-    if ply:GetAmmoCount( self.Primary.Ammo ) <= 0 then
+    if not self.InfiniteAmmo and ply:GetAmmoCount( self.Primary.Ammo ) <= 0 then
         if SERVER then
             ply:StripWeapon( self.ClassName )
         end
@@ -249,13 +308,17 @@ function SWEP:FinishReload()
 
     self:SetNextIdle( time )
 
+    self:SetNW2Bool( "ThrowableInHand", true )
+
     self:SetNextPrimaryFire( time )
     self:SetNextSecondaryFire( time )
+    self:SetHoldType( self.IdleHoldType )
 
     return true
 end
 
 function SWEP:Think()
+    local owner = self:GetOwner()
     local idle = self:GetNextIdle()
 
     if idle > 0 and idle <= CurTime() then
@@ -274,10 +337,16 @@ function SWEP:Think()
 
     local throw = self:GetFinishThrow()
 
-    if throw > 0 and throw <= CurTime() and not self:GetOwner():KeyDown( self:GetThrowMode() == 1 and IN_ATTACK or IN_ATTACK2 ) then
+    if throw > 0 and throw <= CurTime() and not owner:KeyDown( self:GetThrowMode() == 1 and IN_ATTACK or IN_ATTACK2 ) then
         self:Throw()
 
         self:SetFinishThrow( 0 )
+    end
+
+    self.oldOwner = owner
+    if CLIENT then
+        self:SetupViewModel()
+
     end
 end
 
@@ -285,21 +354,98 @@ function SWEP:OnReloaded()
     self:SetWeaponHoldType( self:GetHoldType() )
 end
 
-if CLIENT then
-    function SWEP:DoDrawCrosshair( _x, _y )
-        return self:GetFinishThrow() == 0
-    end
-
-    function SWEP:CustomAmmoDisplay()
-        return {
-            Draw = true,
-            PrimaryClip = self:GetOwner():GetAmmoCount( self.Primary.Ammo )
-        }
-    end
-end
-
 function SWEP:OnRestore()
     self:SetNextIdle( CurTime() )
     self:SetFinishThrow( 0 )
     self:SetFinishReload( 0 )
+end
+
+function SWEP:OnDrop()
+end
+
+
+if not CLIENT then return end
+
+function SWEP:DoDrawCrosshair( _x, _y )
+    return self:GetFinishThrow() == 0
+end
+
+function SWEP:CustomAmmoDisplay()
+    return {
+        Draw = true,
+        PrimaryClip = self:GetOwner():GetAmmoCount( self.Primary.Ammo )
+    }
+end
+
+-- hack, but it works!
+function SWEP:OwnerChanged()
+    if IsValid( self.oldOwner ) then
+        self:TearDownViewModel( self.oldOwner )
+        self.oldOwner = nil
+    end
+end
+
+function SWEP:DrawWorldModel()
+    local owner = self:GetOwner()
+    if IsValid( owner ) then
+        local attachId = owner:LookupAttachment( "anim_attachment_RH" )
+        if attachId <= 0 then return end
+        local attachTbl = owner:GetAttachment( attachId )
+        local posOffsetW, angOffsetW = LocalToWorld( self.WMPosOffset, self.WMAngOffset, attachTbl.Pos, attachTbl.Ang )
+        self:SetPos( posOffsetW )
+        self:SetAngles( angOffsetW )
+
+    end
+    if not self:GetNW2Bool( "ThrowableInHand" ) then return end
+    self:SetModelScale( self.ModelScale )
+    self:DrawModel()
+end
+
+function SWEP:SetupViewModel()
+    if not self.HeldModel then return end
+
+    if not self.ViewModelSetup then
+        local vm = self:GetOwner():GetViewModel( 0 )
+        vm:SetupBones()
+
+        local nadeBone = vm:LookupBone( "ValveBiped.Grenade_body" )
+        if not nadeBone then return end -- just in case someone has a really screwed up custom model
+
+        self.MyHeldModel:FollowBone( vm, nadeBone )
+        local bonePos, boneAng = vm:GetBonePosition( nadeBone )
+        local offsettedPos, offsettedAng = LocalToWorld( self.HeldModelPosOffset, self.HeldModelAngOffset, bonePos, boneAng )
+        self.MyHeldModel:SetPos( offsettedPos )
+        self.MyHeldModel:SetAngles( offsettedAng )
+
+        self.MyHeldModel:SetModelScale( self.ModelScale )
+
+        self:CallOnRemove( "remove_extramodel", function( me ) me:TearDownViewModel() end, me )
+        self.ViewModelSetup = true
+    end
+end
+
+function SWEP:TearDownViewModel( owner )
+    owner = owner or self:GetOwner()
+    if not IsValid( owner ) then return end
+    self.ViewModelSetup = nil
+    self.MyHeldModel:SetParent( self )
+
+end
+
+local invisMat = Material( "models/blackout/blackout" )
+
+function SWEP:PreDrawViewModel()
+    if not self.ViewModelSetup then
+        self:SetupViewModel()
+        return
+
+    end
+    self.MyHeldModel:DrawModel()
+
+    render.MaterialOverrideByIndex( 0, invisMat )
+    render.MaterialOverrideByIndex( 1, invisMat )
+    render.MaterialOverrideByIndex( 2, invisMat )
+    render.MaterialOverrideByIndex( 3, invisMat )
+    render.MaterialOverrideByIndex( 4, invisMat )
+
 end

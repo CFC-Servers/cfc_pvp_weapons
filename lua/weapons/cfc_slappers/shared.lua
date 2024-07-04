@@ -54,6 +54,14 @@ SWEP.Sounds = {
     }
 }
 
+SWEP.CFC_FirstTimeHints = {
+    {
+        Message = "slap",
+        Sound = "ambient/water/drip1.wav",
+        Duration = 15,
+    },
+}
+
 SWEP.NPCFilter = {
     npc_eli = true,
     npc_alyx = true,
