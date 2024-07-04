@@ -9,6 +9,8 @@ SWEP.PrintName = "Super Cinder Block"
 SWEP.Category = "CFC"
 SWEP.UseHands = true
 
+SWEP.AutoSwitchTo = true
+SWEP.Weight = 1000
 SWEP.Slot = 1
 SWEP.ViewModel = Model( "models/weapons/c_grenade.mdl" )
 SWEP.Spawnable = true
@@ -18,12 +20,12 @@ SWEP.Instructions = "all bricked up"
 SWEP.IdleHoldType = "slam"
 SWEP.ThrowingHoldType = "melee"
 
-SWEP.ProjectileClass = "cfc_cinderblock_projectile"
-SWEP.InfiniteAmmo = true
+SWEP.ProjectileClass = "cfc_super_cinderblock_projectile"
+SWEP.InfiniteAmmo = false
 
 SWEP.ModelScale = 1
-SWEP.ModelMaterial = "models/weapons/cfc/gold_player"
-SWEP.ThrowVelMul = 2
+SWEP.ModelMaterial = "models/cfc/gold/gold_player"
+SWEP.ThrowVelMul = 3
 
 SWEP.WorldModel = "models/props_debris/concrete_cynderblock001.mdl"
 SWEP.WMPosOffset = Vector( 8, 2, 0 )
@@ -36,6 +38,8 @@ SWEP.HeldModelAngOffset = Angle( 0, -80, 0 )
 SWEP.Primary.ThrowAct = { ACT_VM_PULLBACK_HIGH, ACT_VM_THROW }
 SWEP.Primary.LobAct = { ACT_VM_PULLBACK_LOW, ACT_VM_HAULBACK }
 SWEP.Primary.RollAct = { ACT_VM_PULLBACK_LOW, ACT_VM_SECONDARYATTACK }
+
+SWEP.IsCFCSuperCinderBlock = true
 
 SWEP.CFC_FirstTimeHints = {
     {
@@ -63,3 +67,11 @@ function SWEP:EmitThrowSound()
     util.ScreenShake( self:WorldSpaceCenter(), 10, 20, 0.1, 1500 )
     util.ScreenShake( self:WorldSpaceCenter(), 20, 20, 0.5, 500 )
 end
+
+if not SERVER then return end
+
+hook.Add( "PlayerCanPickupWeapon", "cfc_super_cinder_block_nodoublepickup", function( ply, weapon )
+    if not weapon.IsCFCSuperCinderBlock then return end
+    if ply:HasWeapon( "cfc_super_cinder_block" ) then return false end
+
+end )

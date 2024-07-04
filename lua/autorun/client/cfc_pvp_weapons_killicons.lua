@@ -5,3 +5,4 @@ killicon.Add( "cfc_trash_blaster", "vgui/hud/cfc_trash_blaster", icol ) -- Sadly
 killicon.Add( "cfc_ion_cannon", "vgui/hud/cfc_ion_cannon", icol )
 killicon.Add( "cfc_rotten_tomato_projectile", "vgui/hud/cfc_rotten_tomato_killicon.png", icol )
 killicon.Add( "cfc_cinderblock_projectile", "vgui/hud/cfc_cinderblock_killicon.png", icol )
+killicon.Add( "cfc_super_cinderblock_projectile", "vgui/hud/cfc_super_cinderblock_killicon.png", icol )
