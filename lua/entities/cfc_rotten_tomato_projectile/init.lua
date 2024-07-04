@@ -45,6 +45,7 @@ end
 function ENT:PostHitEnt( hitEnt )
     if not hitEnt:IsPlayer() then return end
     if hook.Run( "cfc_weapons_tomato_blockblinding", hitEnt, self ) == true then return end
+    if self:WorldSpaceCenter():Distance( hitEnt:GetShootPos() ) > 30 then return end
     net.Start( "cfc_weapons_tomato_screentomato", false )
     net.Send( hitEnt )
 end
