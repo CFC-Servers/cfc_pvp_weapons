@@ -65,9 +65,3 @@ function ENT:PostHitEnt( hitEnt, damageDealt )
         self:EmitSound( "player/pl_fallpain1.wav", 90, 80, 1, CHAN_STATIC )
     end
 end
-
-hook.Add( "PlayerCanPickupWeapon", "cfc_super_cinder_block_noinstantpickup", function( _, weapon )
-    if not weapon.cfcsupercinderblock_nextpickup then return end
-    if weapon.cfcsupercinderblock_nextpickup > CurTime() then return false end
-
-end )

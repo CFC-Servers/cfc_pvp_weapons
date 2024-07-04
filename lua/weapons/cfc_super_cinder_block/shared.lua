@@ -15,7 +15,7 @@ SWEP.Slot = 1
 SWEP.ViewModel = Model( "models/weapons/c_grenade.mdl" )
 SWEP.Spawnable = true
 SWEP.AdminOnly = true
-SWEP.Instructions = "all bricked up"
+SWEP.Instructions = "bricked"
 
 SWEP.IdleHoldType = "slam"
 SWEP.ThrowingHoldType = "melee"
@@ -73,5 +73,35 @@ if not SERVER then return end
 hook.Add( "PlayerCanPickupWeapon", "cfc_super_cinder_block_nodoublepickup", function( ply, weapon )
     if not weapon.IsCFCSuperCinderBlock then return end
     if ply:HasWeapon( "cfc_super_cinder_block" ) then return false end
+
+end )
+
+hook.Add( "PlayerDeath", "cfc_super_cinder_block_dropondeath", function( ply )
+    local superBlock = ply:GetWeapon( "cfc_super_cinder_block" )
+    if not IsValid( superBlock ) then return end
+
+    local newWep = ents.Create( "cfc_super_cinder_block" )
+    if not IsValid( newWep ) then return end
+
+    newWep:SetPos( ply:GetShootPos() )
+    newWep:SetAngles( AngleRand() )
+    newWep:Spawn()
+
+    newWep:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS )
+    newWep:EmitSound( "Concrete_Block.ImpactHard", 70, 120, 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
+    newWep:EmitSound( "physics/concrete/concrete_impact_hard3.wav", 70, 40, 1, CHAN_STATIC )
+
+    timer.Simple( math.random( 240, 280 ), function()
+        if not IsValid( newWep ) then return end
+        if IsValid( newWep:GetOwner() ) or IsValid( newWep:GetParent() ) then return end
+
+        SafeRemoveEntity( newWep )
+
+    end )
+end )
+
+hook.Add( "PlayerCanPickupWeapon", "cfc_super_cinder_block_noinstantpickup", function( _, weapon )
+    if not weapon.cfcsupercinderblock_nextpickup then return end
+    if weapon.cfcsupercinderblock_nextpickup > CurTime() then return false end
 
 end )
