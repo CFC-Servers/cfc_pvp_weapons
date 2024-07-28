@@ -11,7 +11,7 @@ end
 local hookName = "cfc_weapons_tomato_screentomato"
 local tomatoMat = Material( "decals/cfctomatosplat.png" )
 local tomatoes = {}
-local hooking
+local hooking = nil
 local aliveTime = 6
 local next = 0
 
@@ -20,7 +20,7 @@ net.Receive( "cfc_weapons_tomato_screentomato", function()
     next = CurTime() + 0.1
 
     local xExtent = ScrW()
-    for _ = 1, math.random( 2, 4 ) do
+    for _ = 1, math.random( 3, 6 ) do
         local new = {
             tomatoAlpha = 255,
             tomatoTime = CurTime() + aliveTime,
@@ -33,7 +33,7 @@ net.Receive( "cfc_weapons_tomato_screentomato", function()
     if hooking then return end
     hooking = true
 
-    hook.Add( "RenderScreenspaceEffects", hookName, function()
+    hook.Add( "PostDrawHUD", hookName, function()
         local curTime = CurTime()
 
         -- animate each splat individually
@@ -42,7 +42,7 @@ net.Receive( "cfc_weapons_tomato_screentomato", function()
             if tomatoTime < curTime then
                 table.remove( tomatoes, index )
                 if #tomatoes <= 0 then
-                    hook.Remove( "RenderScreenspaceEffects", hookName )
+                    hook.Remove( "PostDrawHUD", hookName )
                     hooking = nil
                     return
                 end
@@ -59,3 +59,45 @@ net.Receive( "cfc_weapons_tomato_screentomato", function()
         end
     end )
 end )
+
+local airSoundPath = "ambient/levels/canals/windmill_wind_loop1.wav"
+
+local function stopAirSound( ent )
+    if not IsValid( ent ) then return end
+    local snd = ent.airSound
+
+    if not snd or not snd:IsPlaying() then return end
+    snd:Stop()
+    snd = nil
+end
+
+function ENT:Think()
+    local airSound = self.airSound
+    local baseDamage = self.BaseDamage
+    if not airSound then
+        airSound = CreateSound( self, airSoundPath )
+        self.airSound = airSound
+        local lvl = 80 + ( baseDamage / 10 )
+        airSound:SetSoundLevel( lvl )
+
+        self:CallOnRemove( "cfc_tomato_whistle_stop", function() stopAirSound( self ) end )
+    end
+
+    if not airSound:IsPlaying() then
+        airSound:Play()
+    end
+
+    local vel = self:GetVelocity():Length()
+    local pitch = vel / 8
+    local volume = vel / 1500
+
+    airSound:ChangePitch( pitch )
+    airSound:ChangeVolume( volume )
+
+    local myPos = self:GetPos()
+    if myPos:DistToSqr( LocalPlayer():GetPos() ) < 500^2 then
+        local amp = pitch / 1000
+        amp = amp * ( baseDamage / 10 )
+        util.ScreenShake( myPos, amp, 20, 0.2, 500 )
+    end
+end

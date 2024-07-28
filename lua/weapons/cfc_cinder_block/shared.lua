@@ -39,7 +39,7 @@ SWEP.Primary.RollAct = { ACT_VM_PULLBACK_LOW, ACT_VM_SECONDARYATTACK }
 
 function SWEP:CreateEntity()
     local ent = ents.Create( self.ProjectileClass )
-    ent:SetOwner( self:GetOwner() )
+    ent:SetCreator( self:GetOwner() )
     ent:Spawn()
     return ent
 end

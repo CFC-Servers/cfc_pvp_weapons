@@ -203,6 +203,13 @@ if SERVER then
             return
         end
 
+        ent:SetOwner( ply )
+        timer.Simple( 0.25, function()
+            if not IsValid( ent ) then return end
+            ent:SetOwner()
+
+        end )
+
         self:SetNW2Bool( "ThrowableInHand", false )
 
         if self.ModelMaterial then

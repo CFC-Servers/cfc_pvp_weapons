@@ -51,7 +51,7 @@ SWEP.CFC_FirstTimeHints = {
 
 function SWEP:CreateEntity()
     local ent = ents.Create( self.ProjectileClass )
-    ent:SetOwner( self:GetOwner() )
+    ent:SetCreator( self:GetOwner() )
     ent:Spawn()
     return ent
 end
@@ -69,6 +69,19 @@ function SWEP:EmitThrowSound()
 end
 
 if not SERVER then return end
+
+function SWEP:OwnerChanged()
+    timer.Simple( 0, function()
+        if not IsValid( self ) then return end
+        if not IsValid( self:GetOwner() ) then
+            self:EmitSound( "Canister.ImpactSoft", 80, math.random( 80, 90 ), 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
+            self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 20, 30 ), 0.5, CHAN_STATIC )
+        else
+            self:EmitSound( "Canister.ImpactSoft", 80, math.random( 100, 110 ), 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
+            self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 30, 40 ), 0.5, CHAN_STATIC )
+        end
+    end )
+end
 
 hook.Add( "PlayerCanPickupWeapon", "cfc_super_cinder_block_nodoublepickup", function( ply, weapon )
     if not weapon.IsCFCSuperCinderBlock then return end
@@ -88,12 +101,20 @@ hook.Add( "PlayerDeath", "cfc_super_cinder_block_dropondeath", function( ply )
     newWep:Spawn()
 
     newWep:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS )
-    newWep:EmitSound( "Concrete_Block.ImpactHard", 70, 120, 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
-    newWep:EmitSound( "physics/concrete/concrete_impact_hard3.wav", 70, 40, 1, CHAN_STATIC )
+    timer.Simple( 0, function()
+        if not IsValid( newWep ) then return end
+        newWep:EmitSound( "physics/concrete/concrete_impact_hard3.wav", 90, 40, 1, CHAN_STATIC )
+        newWep:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 10, 15 ), 1, CHAN_STATIC )
+
+    end )
+
+    local cur = CurTime()
+    newWep.cfc_supercinderblock_lastdrop = cur
 
     timer.Simple( math.random( 240, 280 ), function()
         if not IsValid( newWep ) then return end
         if IsValid( newWep:GetOwner() ) or IsValid( newWep:GetParent() ) then return end
+        if newWep.cfc_supercinderblock_lastdrop ~= cur then return end
 
         SafeRemoveEntity( newWep )
 

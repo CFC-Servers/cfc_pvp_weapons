@@ -8,7 +8,6 @@ function ENT:Initialize()
     self:SetModel( self.Model )
     self:SetMaterial( self.ModelMaterial )
 
-    self:DoFlyingSound()
     self:PhysicsInitBox( -self.HullVec, self.HullVec )
     self:SetMoveType( MOVETYPE_FLYGRAVITY )
     self:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
@@ -77,7 +76,7 @@ function ENT:Touch( ent )
 
     self.Projectile_Hit = true
 
-    local attacker = self:GetOwner()
+    local attacker = self:GetCreator()
     if not IsValid( attacker ) then
         attacker = self
 
@@ -136,39 +135,4 @@ function ENT:Touch( ent )
     self:PostHitEnt( hitEnt, damageDealt )
 
     SafeRemoveEntity( self )
-end
-
-local airSoundPath = "ambient/levels/canals/windmill_wind_loop1.wav"
-
-function ENT:DoFlyingSound()
-    local filterAll = RecipientFilter()
-    filterAll:AddPVS( self:GetPos() )
-
-    local airSound = CreateSound( self, airSoundPath, filterAll )
-    self.airSound = airSound
-    airSound:SetSoundLevel( 70 )
-    airSound:Play()
-
-    local timerName = "cfc_tomato_whistle_sound_" .. self:GetCreationID()
-
-    local StopAirSound = function()
-        timer.Remove( timerName )
-        if not IsValid( self ) then return end
-        self.airSound:Stop()
-        self.airSound = nil
-
-    end
-
-    self:CallOnRemove( "cfc_tomato_whistle_stop", function() StopAirSound() end )
-
-    -- change pitch/vol
-    timer.Create( timerName, 0, 0, function()
-        if not IsValid( self ) then StopAirSound() return end
-        if not airSound:IsPlaying() then StopAirSound() return end
-        local vel = self:GetVelocity():Length()
-        local pitch = vel / 8
-        local volume = vel / 1500
-        airSound:ChangePitch( pitch )
-        airSound:ChangeVolume( volume )
-    end )
 end

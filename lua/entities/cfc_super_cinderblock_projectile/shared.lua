@@ -13,7 +13,7 @@ ENT.Spawnable       = false
 ENT.Model = Model( "models/props_debris/concrete_cynderblock001.mdl" )
 ENT.ModelScale = 1
 
-ENT.BaseDamage = 25
+ENT.BaseDamage = 100
 ENT.AdditionalDamageStartingVel = 500
 ENT.VelocityForOneDamage = 8
 
@@ -52,6 +52,8 @@ function ENT:PostHitEnt( hitEnt, damageDealt )
         if critical then
             blocksObj:SetVelocity( vec_up * damageDealt * 1 )
             blocksObj:ApplyTorqueCenter( vec_up * damageDealt * 2 )
+            block:EmitSound( "physics/metal/metal_box_impact_bullet" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 10, 20 ), 1, CHAN_STATIC )
+            block:EmitSound( "physics/metal/metal_canister_impact_hard2.wav", 90, math.random( 10, 15 ), 1, CHAN_STATIC )
 
         else
             blocksObj:SetVelocity( self:GetVelocity() / 2 )
@@ -61,7 +63,10 @@ function ENT:PostHitEnt( hitEnt, damageDealt )
     end
     if not ( hitEnt:IsPlayer() or hitEnt:IsNPC() ) then return end
     if critical then
-        self:EmitSound( "physics/concrete/concrete_block_impact_hard1.wav", 90, 70, 1, CHAN_STATIC )
-        self:EmitSound( "player/pl_fallpain1.wav", 90, 80, 1, CHAN_STATIC )
+        hitEnt:EmitSound( "Flesh.ImpactHard", 90, 70, 1, CHAN_STATIC )
+        hitEnt:EmitSound( "Breakable.MatFlesh", 90, 70, 1, CHAN_STATIC )
+        hitEnt:EmitSound( "player/pl_fallpain1.wav", 95, 80, 1, CHAN_STATIC )
+        hitEnt:EmitSound( "npc/antlion/shell_impact4.wav", 95, math.random( 20, 30 ), 1, CHAN_STATIC )
+
     end
 end
