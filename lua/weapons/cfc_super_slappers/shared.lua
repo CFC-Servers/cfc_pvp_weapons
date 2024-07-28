@@ -36,6 +36,15 @@ SWEP.SuperSlapSounds = {
     }
 }
 
+SWEP.CFC_FirstTimeHints = {
+    {
+        Message = "super SLAP",
+        Sound = "ambient/water/drip1.wav",
+        Duration = 15,
+    },
+}
+
+
 function SWEP:ForceMul()
     return 12
 end
