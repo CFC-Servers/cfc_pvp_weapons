@@ -64,6 +64,17 @@ function SWEP:Deploy()
 end
 
 function SWEP:Holster()
+    -- Cancel throw
+    if self:GetFinishThrow() > 0 then
+        self:SetFinishThrow( 0 )
+    end
+
+    -- Force finish reload so it doesn't doesn't play the anim or strip the weapon once re-deployed
+    if self:GetFinishReload() > 0 then
+        self:FinishReload()
+        self:SetFinishReload( 0 )
+    end
+
     return true
 end
 
