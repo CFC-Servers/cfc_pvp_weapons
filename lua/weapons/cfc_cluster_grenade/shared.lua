@@ -31,6 +31,10 @@ SWEP.Primary = {
 }
 
 
+function SWEP:Initialize()
+    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade" )
+end
+
 function SWEP:PrimaryAttack()
     if not self:CanThrow() then return end
 

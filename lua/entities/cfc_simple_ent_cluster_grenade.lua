@@ -26,8 +26,10 @@ function ENT:SetupDataTables()
         self:NetworkVarNotify( "NoMoreSplits", function( ent, _, _, state )
             if state then
                 ent:SetModel( GIB_MODEL )
+                self:SetMaterial( "" )
             else
                 ent:SetModel( ent.Model )
+                self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade" )
             end
         end )
     end
@@ -35,6 +37,8 @@ end
 
 function ENT:Initialize()
     BaseClass.Initialize( self )
+
+    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade" )
 
     if SERVER then
         timer.Simple( 0, function()
@@ -59,6 +63,7 @@ function ENT:Initialize()
     else
         if self:GetNoMoreSplits() then
             self:SetModel( GIB_MODEL )
+            self:SetMaterial( "" )
         end
     end
 end
@@ -133,6 +138,7 @@ function ENT:Explode( splitDir, baseVelMult )
         ent:SetNoMoreSplits( true )
 
         ent:SetModel( GIB_MODEL )
+        ent:SetMaterial( "" )
         ent:PhysicsInit( SOLID_VPHYSICS )
 
         ent:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS )

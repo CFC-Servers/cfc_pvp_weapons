@@ -26,6 +26,11 @@ SWEP.Primary = {
 }
 
 
+function SWEP:Initialize()
+    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade" )
+end
+
+
 if SERVER then
     function SWEP:CreateEntity()
         local ent = ents.Create( "cfc_simple_ent_discombob" )

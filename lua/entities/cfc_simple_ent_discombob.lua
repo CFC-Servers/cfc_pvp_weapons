@@ -20,6 +20,12 @@ function ENT:SetTimer( delay )
     self.Beep = CurTime()
 end
 
+function ENT:Initialize()
+    BaseClass.Initialize( self )
+
+    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade" )
+end
+
 function ENT:Explode()
     local pos = self:WorldSpaceCenter()
     local attacker = self:GetOwner()

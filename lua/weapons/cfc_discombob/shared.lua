@@ -16,7 +16,7 @@ SWEP.Spawnable = true
 SWEP.UseHands = true
 SWEP.ViewModelFOV = 54
 SWEP.ViewModel = Model( "models/weapons/cstrike/c_eq_fraggrenade.mdl" ) -- Funnily enough, both of these are in the gmod vpk.
-SWEP.WorldModel = Model( "models/weapons/w_eq_fraggrenade.mdl" )
+SWEP.WorldModel = Model( "models/weapons/w_eq_fraggrenade.mdl" ) -- However, the worldmodel's material is not packed, while the viewmodel's material is. Hence it being set in Initialize.
 
 SWEP.HoldType = "melee"
 
@@ -30,6 +30,12 @@ SWEP.Primary = {
     RadiusMult = 1.25, -- Affects the explosion radius
     StrengthMult = 1.25, -- Affects the knockback strengths
 }
+
+
+function SWEP:Initialize()
+    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade" )
+end
+
 
 if SERVER then
     function SWEP:CreateEntity()
