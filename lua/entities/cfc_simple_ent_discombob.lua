@@ -20,16 +20,6 @@ function ENT:SetTimer( delay )
     self.Beep = CurTime()
 end
 
-function ENT:Initialize()
-    BaseClass.Initialize( self )
-
-    if SERVER then
-        self:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
-    self:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_IMPACT_DMG )
-    self:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_NPC_IMPACT_DMG )
-    end
-end
-
 function ENT:Explode()
     local pos = self:WorldSpaceCenter()
     local attacker = self:GetOwner()
