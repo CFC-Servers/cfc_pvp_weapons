@@ -22,6 +22,12 @@ end
 
 function ENT:Initialize()
     BaseClass.Initialize( self )
+
+    if SERVER then
+        self:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
+    self:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_IMPACT_DMG )
+    self:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_NPC_IMPACT_DMG )
+    end
 end
 
 function ENT:Explode()
@@ -53,7 +59,14 @@ function ENT:Explode()
 
         if victim:IsPlayer() then
             force = force * ( victim == attacker and playerSelfKnockback or playerKnockback )
-            victim:SetVelocity( force + playerKnockbackVelAdd )
+
+            -- If the explosion was caused by an impact with the player, the movement caused by the collison overrides our :SetVelocity() call.
+            -- It ignores it even with a delay of 0 (i.e. the next tick), but delaying by 1 tick interval (i.e. the next next tick) works.
+            timer.Simple( engine.TickInterval(), function()
+                if not IsValid( victim ) then return end
+
+                victim:SetVelocity( force + playerKnockbackVelAdd )
+            end )
         else
             local physObj = victim:GetPhysicsObject()
             if not IsValid( physObj ) then return true end
