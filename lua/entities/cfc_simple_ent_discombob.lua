@@ -23,7 +23,7 @@ end
 function ENT:Initialize()
     BaseClass.Initialize( self )
 
-    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade" )
+    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_discombob" )
 end
 
 function ENT:Explode()

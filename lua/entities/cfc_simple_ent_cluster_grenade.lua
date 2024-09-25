@@ -29,7 +29,7 @@ function ENT:SetupDataTables()
                 self:SetMaterial( "" )
             else
                 ent:SetModel( ent.Model )
-                self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade" )
+                self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_cluster" )
             end
         end )
     end
@@ -38,7 +38,7 @@ end
 function ENT:Initialize()
     BaseClass.Initialize( self )
 
-    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade" )
+    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_cluster" )
 
     if SERVER then
         timer.Simple( 0, function()
