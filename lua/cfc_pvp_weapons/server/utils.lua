@@ -41,3 +41,17 @@ function CFCPvPWeapons.BlastDamage( inflictor, attacker, pos, radius, damage, et
 
     CFCPvPWeapons.BlastDamageInfo( dmgInfo, pos, radius, etdCallback, petdCallback )
 end
+
+-- Spread is on 0-180 scale, output will be a unit vector.
+function CFCPvPWeapons.SpreadDir( dir, pitchSpread, yawSpread )
+    yawSpread = yawSpread or pitchSpread
+
+    local ang = dir:Angle()
+    local right = ang:Right()
+    local up = ang:Up()
+
+    ang:RotateAroundAxis( right, math.Rand( -pitchSpread, pitchSpread ) )
+    ang:RotateAroundAxis( up, math.Rand( -yawSpread, yawSpread ) )
+
+    return ang:Forward()
+end
