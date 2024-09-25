@@ -21,7 +21,9 @@ function ENT:Initialize()
         self:SetMoveType( MOVETYPE_VPHYSICS )
         self:SetSolid( SOLID_VPHYSICS )
 
-        self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+        self:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
+        self:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_IMPACT_DMG )
+        self:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_NPC_IMPACT_DMG )
 
         local phys = self:GetPhysicsObject()
 
