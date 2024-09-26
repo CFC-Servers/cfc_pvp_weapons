@@ -9,6 +9,8 @@ ENT.Model = Model( "models/weapons/w_eq_fraggrenade.mdl" )
 ENT.Damage = 20
 ENT.Radius = 200
 ENT.ClusterAmount = 6
+ENT.ClusterAmountMult = 0 -- Multiplier for the next grenade's split amount. Must be >= 0 and < 1.
+ENT.ExplodeOnSplit = false -- Also make an explosion when splitting.
 ENT.SplitSpeed = 300
 ENT.SplitSpread = 60 -- 0 to 180
 ENT.SplitMoveAhead = 0
@@ -20,10 +22,10 @@ local GIB_MODEL = "models/props_phx/gibs/flakgib1.mdl"
 
 
 function ENT:SetupDataTables()
-    self:NetworkVar( "Bool", 0, "NoMoreSplits" )
+    self:NetworkVar( "Bool", 0, "UseGibModel" )
 
     if CLIENT then
-        self:NetworkVarNotify( "NoMoreSplits", function( ent, _, _, state )
+        self:NetworkVarNotify( "UseGibModel", function( ent, _, _, state )
             if state then
                 ent:SetModel( GIB_MODEL )
                 self:SetMaterial( "" )
@@ -61,7 +63,7 @@ function ENT:Initialize()
             end
         end )
     else
-        if self:GetNoMoreSplits() then
+        if self:GetUseGibModel() then
             self:SetModel( GIB_MODEL )
             self:SetMaterial( "" )
         end
@@ -72,8 +74,8 @@ function ENT:Explode( splitDir, baseVelMult )
     local clusterAmount = self.ClusterAmount
 
     -- Explode
-    if clusterAmount == 0 then
-        local pos = self:LocalToWorld( GIB_POS_TO_CENTER )
+    if clusterAmount == 0 or self.ExplodeOnSplit then
+        local pos = self:GetUseGibModel() and self:LocalToWorld( GIB_POS_TO_CENTER ) or self:WorldSpaceCenter()
 
         local dmgInfoInit = DamageInfo()
         dmgInfoInit:SetAttacker( self:GetOwner() )
@@ -97,9 +99,10 @@ function ENT:Explode( splitDir, baseVelMult )
         util.Effect( "Explosion", effect, true, true )
         sound.Play( "weapons/explode" .. math.random( 3, 5 ) .. ".wav", pos, 130, 120, 0.25 )
 
-        self:Remove()
-
-        return
+        if clusterAmount == 0 then
+            self:Remove()
+            return
+        end
     end
 
     -- Split
@@ -124,7 +127,9 @@ function ENT:Explode( splitDir, baseVelMult )
     local splitSpeed = self.SplitSpeed
     local splitSpread = self.SplitSpread
     local splitMoveAhead = self.SplitMoveAhead
+    local explodeDelay = self._explodeDelay
     local class = self:GetClass()
+    local nextClusterAmount = math.floor( clusterAmount * self.ClusterAmountMult )
 
     for _ = 1, clusterAmount do
         local dir = CFCPvPWeapons.SpreadDir( splitDir, splitSpread )
@@ -135,8 +140,7 @@ function ENT:Explode( splitDir, baseVelMult )
         ent:SetOwner( owner )
         ent:Spawn()
 
-        ent:SetNoMoreSplits( true )
-
+        ent:SetUseGibModel( true )
         ent:SetModel( GIB_MODEL )
         ent:SetMaterial( "" )
         ent:PhysicsInit( SOLID_VPHYSICS )
@@ -145,11 +149,11 @@ function ENT:Explode( splitDir, baseVelMult )
         ent:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_IMPACT_DMG )
         ent:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_NPC_IMPACT_DMG )
 
-        ent.ClusterAmount = 0
+        ent.ClusterAmount = nextClusterAmount
 
-        -- Funny mode
-        --ent.ClusterAmount = math.floor( clusterAmount / 2 )
-        --if self._explodeTime and ent.ClusterAmount ~= 0 then ent:SetTimer( 0.25 ) end
+        if explodeDelay and nextClusterAmount ~= 0 then
+            ent:SetTimer( explodeDelay )
+        end
 
         local physObj = ent:GetPhysicsObject()
         physObj:SetVelocity( dir * splitSpeed + baseVel )

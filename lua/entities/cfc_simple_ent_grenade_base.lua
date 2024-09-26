@@ -9,6 +9,7 @@ ENT.Model = Model( "models/weapons/w_npcnade.mdl" )
 
 function ENT:SetTimer( delay )
     self._explodeTime = CurTime() + delay
+    self._explodeDelay = delay
 
     self:NextThink( CurTime() )
 end
