@@ -171,7 +171,7 @@ function ENT:Explode( splitDir, baseVelMult )
         entGrenadeParams.ClusterAmount = nextClusterAmount
         entGrenadeParams.SplitLimit = splitLimit
 
-        if explodeDelay and nextClusterAmount ~= 0 then
+        if explodeDelay and nextClusterAmount ~= 0 and splitLimit ~= 0 then
             ent:SetTimer( explodeDelay )
         end
 
