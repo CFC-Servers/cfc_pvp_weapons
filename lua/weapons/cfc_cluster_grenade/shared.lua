@@ -64,7 +64,7 @@ SWEP.CFC_FirstTimeHints = {
         DelayNext = 4,
     },
     {
-        Message = "It clusters less, but it can be deadly if spaced right.",
+        Message = "It makes less grenades, but it can be deadly if spaced right.",
         Sound = "ambient/water/drip2.wav",
         Duration = 7,
         DelayNext = 0,
