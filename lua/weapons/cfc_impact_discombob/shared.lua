@@ -1,7 +1,7 @@
 AddCSLuaFile()
 
 SWEP.Base = "cfc_discombob"
-SWEP.PrintName = "Impact Discombob Grenade"
+SWEP.PrintName = "Impact Discombob"
 SWEP.Category = "CFC"
 
 SWEP.Slot = 4
