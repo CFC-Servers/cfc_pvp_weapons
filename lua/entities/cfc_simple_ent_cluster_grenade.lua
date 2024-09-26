@@ -17,6 +17,7 @@ ENT.GrenadeParams = {
     SplitSpread = 60, -- 0 to 180
     SplitMoveAhead = 0,
     BaseVelMultOnImpact = 0.25,
+    ExplosionPitch = 120,
 }
 
 
@@ -106,7 +107,7 @@ function ENT:Explode( splitDir, baseVelMult )
         effect:SetFlags( 4 + 64 + 128 )
 
         util.Effect( "Explosion", effect, true, true )
-        sound.Play( "weapons/explode" .. math.random( 3, 5 ) .. ".wav", pos, 130, 120, 0.25 )
+        sound.Play( "weapons/explode" .. math.random( 3, 5 ) .. ".wav", pos, 130, grenadeParams.ExplosionPitch, 0.25 )
 
         if clusterAmount == 0 then
             self:Remove()

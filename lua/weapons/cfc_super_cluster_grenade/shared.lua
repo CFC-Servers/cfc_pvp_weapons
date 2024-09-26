@@ -42,6 +42,7 @@ SWEP.Primary = {
         SplitSpread = 50,
         SplitMoveAhead = 0,
         BaseVelMultOnImpact = 0.25,
+        ExplosionPitch = 70,
     },
     GrenadeOverridesSplitMidAir = {
         Damage = 20,
@@ -54,5 +55,6 @@ SWEP.Primary = {
         SplitSpread = 60,
         SplitMoveAhead = 0,
         BaseVelMultOnImpact = 0.25,
+        ExplosionPitch = 70,
     },
 }
