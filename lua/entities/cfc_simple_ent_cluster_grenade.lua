@@ -6,15 +6,18 @@ ENT.Base = "cfc_simple_ent_grenade_base"
 
 ENT.Model = Model( "models/weapons/w_eq_fraggrenade.mdl" )
 
-ENT.Damage = 20
-ENT.Radius = 200
-ENT.ClusterAmount = 6
-ENT.ClusterAmountMult = 0 -- Multiplier for the next grenade's split amount. Must be >= 0 and < 1.
-ENT.ExplodeOnSplit = false -- Also make an explosion when splitting.
-ENT.SplitSpeed = 300
-ENT.SplitSpread = 60 -- 0 to 180
-ENT.SplitMoveAhead = 0
-ENT.BaseVelMultOnImpact = 0.25
+ENT.GrenadeParams = {
+    Damage = 20,
+    Radius = 200,
+    ClusterAmount = 6,
+    ClusterAmountMult = 0, -- Multiplier for the next grenade's split amount. Must be >= 0 and < 1.
+    ExplodeOnSplit = false, -- Also make an explosion when splitting.
+    SplitLimit = false, -- If provided as a number, then the number of splits will be capped by this amount, regardless of the cluster amount or mult.
+    SplitSpeed = 300,
+    SplitSpread = 60, -- 0 to 180
+    SplitMoveAhead = 0,
+    BaseVelMultOnImpact = 0.25,
+}
 
 
 local GIB_POS_TO_CENTER = Vector( 11.33175, 0, 0 ) -- The flakgib model has a messed up origin.
@@ -58,7 +61,7 @@ function ENT:Initialize()
                 timer.Simple( 0, function()
                     if not IsValid( self ) then return end
 
-                    self:Explode( hitNormal, self.BaseVelMultOnImpact )
+                    self:Explode( hitNormal, self.GrenadeParams.BaseVelMultOnImpact )
                 end )
             end
         end )
@@ -71,21 +74,27 @@ function ENT:Initialize()
 end
 
 function ENT:Explode( splitDir, baseVelMult )
-    local clusterAmount = self.ClusterAmount
+    local grenadeParams = self.GrenadeParams
+    local clusterAmount = grenadeParams.ClusterAmount
+    local splitLimit = grenadeParams.SplitLimit
+
+    if splitLimit == 0 then
+        clusterAmount = 0
+    end
 
     -- Explode
-    if clusterAmount == 0 or self.ExplodeOnSplit then
+    if clusterAmount == 0 or grenadeParams.ExplodeOnSplit then
         local pos = self:GetUseGibModel() and self:LocalToWorld( GIB_POS_TO_CENTER ) or self:WorldSpaceCenter()
 
         local dmgInfoInit = DamageInfo()
         dmgInfoInit:SetAttacker( self:GetOwner() )
         dmgInfoInit:SetInflictor( self )
-        dmgInfoInit:SetDamage( self.Damage )
+        dmgInfoInit:SetDamage( grenadeParams.Damage )
         dmgInfoInit:SetDamageType( DMG_BLAST )
 
         local class = self:GetClass()
 
-        CFCPvPWeapons.BlastDamageInfo( dmgInfoInit, pos, self.Radius, function( victim )
+        CFCPvPWeapons.BlastDamageInfo( dmgInfoInit, pos, grenadeParams.Radius, function( victim )
             if victim == self then return true end
             if not IsValid( victim ) then return end
             if victim:GetClass() == class then return true end -- Don't damage other cluster grenades
@@ -124,12 +133,14 @@ function ENT:Explode( splitDir, baseVelMult )
         baseVel = baseVel * baseVelMult
     end
 
-    local splitSpeed = self.SplitSpeed
-    local splitSpread = self.SplitSpread
-    local splitMoveAhead = self.SplitMoveAhead
+    local splitSpeed = grenadeParams.SplitSpeed
+    local splitSpread = grenadeParams.SplitSpread
+    local splitMoveAhead = grenadeParams.SplitMoveAhead
     local explodeDelay = self._explodeDelay
     local class = self:GetClass()
-    local nextClusterAmount = math.floor( clusterAmount * self.ClusterAmountMult )
+    local nextClusterAmount = math.floor( clusterAmount * grenadeParams.ClusterAmountMult )
+
+    splitLimit = splitLimit and splitLimit - 1
 
     for _ = 1, clusterAmount do
         local dir = CFCPvPWeapons.SpreadDir( splitDir, splitSpread )
@@ -149,7 +160,15 @@ function ENT:Explode( splitDir, baseVelMult )
         ent:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_IMPACT_DMG )
         ent:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_NPC_IMPACT_DMG )
 
-        ent.ClusterAmount = nextClusterAmount
+        local entGrenadeParams = ent.GrenadeParams
+
+        -- Copy the grenade params
+        for k, v in pairs( grenadeParams ) do
+            entGrenadeParams[k] = v
+        end
+
+        entGrenadeParams.ClusterAmount = nextClusterAmount
+        entGrenadeParams.SplitLimit = splitLimit
 
         if explodeDelay and nextClusterAmount ~= 0 then
             ent:SetTimer( explodeDelay )

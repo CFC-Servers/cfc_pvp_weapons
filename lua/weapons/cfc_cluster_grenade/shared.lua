@@ -30,6 +30,30 @@ SWEP.Primary = {
     RollAct = { ACT_VM_PULLBACK_LOW, ACT_VM_SECONDARYATTACK },
 
     SplitDelay = 0.25, -- Reload toggles between only splitting on impact and splitting either mid-air or on impact.
+    GrenadeOverrides = {
+        Damage = 20,
+        Radius = 200,
+        ClusterAmount = 6,
+        ClusterAmountMult = 3 / 6,
+        ExplodeOnSplit = false,
+        SplitLimit = 2,
+        SplitSpeed = 350,
+        SplitSpread = 50,
+        SplitMoveAhead = 0,
+        BaseVelMultOnImpact = 0.25,
+    },
+    GrenadeOverridesSplitMidAir = {
+        Damage = 20,
+        Radius = 150,
+        ClusterAmount = 5,
+        ClusterAmountMult = 0,
+        ExplodeOnSplit = false,
+        SplitLimit = false,
+        SplitSpeed = 300,
+        SplitSpread = 60,
+        SplitMoveAhead = 0,
+        BaseVelMultOnImpact = 0.25,
+    },
 }
 
 SWEP.CFC_FirstTimeHints = {
@@ -40,7 +64,7 @@ SWEP.CFC_FirstTimeHints = {
         DelayNext = 4,
     },
     {
-        Message = "If you time it right, it can be devastating.",
+        Message = "It clusters less, but it can be deadly if spaced right.",
         Sound = "ambient/water/drip2.wav",
         Duration = 7,
         DelayNext = 0,
@@ -85,6 +109,18 @@ if SERVER then
 
         if self:GetMidAirSplit() then
             ent:SetTimer( self.Primary.SplitDelay )
+
+            local entGrenadeParams = ent.GrenadeParams
+
+            for k, v in pairs( self.Primary.GrenadeOverridesSplitMidAir ) do
+                entGrenadeParams[k] = v
+            end
+        else
+            local entGrenadeParams = ent.GrenadeParams
+
+            for k, v in pairs( self.Primary.GrenadeOverrides ) do
+                entGrenadeParams[k] = v
+            end
         end
 
         return ent
