@@ -59,6 +59,7 @@ end
 
 function SWEP:Deploy()
     self:SetNextIdle( CurTime() + self:SendTranslatedWeaponAnim( ACT_VM_DRAW ) )
+    self:SetHoldType( self.HoldType )
 
     return true
 end
@@ -102,8 +103,6 @@ function SWEP:PrimaryAttack()
     self:SetThrowMode( 1 )
     self:SetFinishThrow( CurTime() + self:SendTranslatedWeaponAnim( self.Primary.ThrowAct[1] ) )
     self:SetNextIdle( 0 )
-
-    self:SetHoldType( self.HoldType )
 end
 
 function SWEP:SecondaryAttack()
@@ -123,8 +122,6 @@ function SWEP:SecondaryAttack()
 
     self:SetFinishThrow( CurTime() + duration )
     self:SetNextIdle( 0 )
-
-    self:SetHoldType( self.HoldType )
 end
 
 function SWEP:Throw()
