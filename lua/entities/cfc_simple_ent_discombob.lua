@@ -92,7 +92,7 @@ function ENT:Think()
 
         local time = 1
 
-        if self.Detonate and self.Detonate - CurTime() <= 1.5 then
+        if self._explodeTime and self._explodeTime - CurTime() <= 1.5 then
             time = 0.3
         end
 

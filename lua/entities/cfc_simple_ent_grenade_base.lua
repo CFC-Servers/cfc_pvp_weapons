@@ -8,7 +8,7 @@ ENT.AutomaticFrameAdvance = true
 ENT.Model = Model( "models/weapons/w_npcnade.mdl" )
 
 function ENT:SetTimer( delay )
-    self.Detonate = CurTime() + delay
+    self._explodeTime = CurTime() + delay
 
     self:NextThink( CurTime() )
 end
@@ -43,7 +43,7 @@ function ENT:Think()
         return
     end
 
-    if self.Detonate and self.Detonate <= CurTime() then
+    if self._explodeTime and self._explodeTime <= CurTime() then
         self:Explode()
         self:NextThink( math.huge )
 

@@ -149,7 +149,7 @@ function ENT:Explode( splitDir, baseVelMult )
 
         -- Funny mode
         --ent.ClusterAmount = math.floor( clusterAmount / 2 )
-        --if self.Detonate and ent.ClusterAmount ~= 0 then ent:SetTimer( 0.25 ) end
+        --if self._explodeTime and ent.ClusterAmount ~= 0 then ent:SetTimer( 0.25 ) end
 
         local physObj = ent:GetPhysicsObject()
         physObj:SetVelocity( dir * splitSpeed + baseVel )
