@@ -58,7 +58,7 @@ SWEP.Primary = {
 
 SWEP.CFC_FirstTimeHints = {
     {
-        Message = "Press reload (r) to toggle the grenades splitting mid-air.",
+        Message = "Press reload (R) to toggle the grenades splitting mid-air.",
         Sound = "ambient/water/drip1.wav",
         Duration = 7,
         DelayNext = 4,
