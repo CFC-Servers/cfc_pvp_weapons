@@ -23,7 +23,7 @@ SWEP.Primary = {
     LobAct = { ACT_VM_PULLBACK_LOW, ACT_VM_HAULBACK },
     RollAct = { ACT_VM_PULLBACK_LOW, ACT_VM_SECONDARYATTACK },
 
-    ChargeGap = 1, -- The gap between charge steps.
+    ChargeGap = 0.8, -- The gap between charge steps.
     ChargeStep = 1, -- Amount of charge to add per step. Must be an integer.
     ChargeMax = 5, -- Maximum charge.
 
