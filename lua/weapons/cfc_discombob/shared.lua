@@ -28,7 +28,8 @@ SWEP.Primary = {
     RollAct = { ACT_VM_PULLBACK_LOW, ACT_VM_SECONDARYATTACK },
 
     RadiusMult = 1.25, -- Affects the explosion radius
-    StrengthMult = 1.25, -- Affects the knockback strengths
+    StrengthMult = 1.25, -- Affects the knockback strength against other players and props
+    StrengthMultSelf = 1.25, -- Affects the knockback strength against the player who threw it
 }
 
 
@@ -52,11 +53,12 @@ if SERVER then
 
         local radiusMult = self.Primary.RadiusMult
         local strengthMult = self.Primary.StrengthMult
+        local strengthMultSelf = self.Primary.StrengthMultSelf
 
         ent.Radius = ent.Radius * radiusMult
         ent.Knockback = ent.Knockback * strengthMult
         ent.PlayerKnockback = ent.PlayerKnockback * strengthMult
-        ent.PlayerSelfKnockback = ent.PlayerSelfKnockback * strengthMult
+        ent.PlayerSelfKnockback = ent.PlayerSelfKnockback * strengthMultSelf
 
         return ent
     end
