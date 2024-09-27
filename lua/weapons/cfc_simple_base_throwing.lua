@@ -27,6 +27,12 @@ SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = 0
 SWEP.Secondary.Automatic = false
 
+SWEP.ThrowCooldown = 0
+
+
+local cooldownEndTimesPerClass = {}
+
+
 function SWEP:SetupDataTables()
     self._NetworkVars = {
         ["String"] = 0,
@@ -80,6 +86,14 @@ function SWEP:Holster()
 end
 
 function SWEP:CanThrow()
+    local class = self:GetClass()
+    local cooldownEndTimes = cooldownEndTimesPerClass[class]
+
+    if cooldownEndTimes then
+        local endTime = cooldownEndTimes[self:GetOwner()] or 0
+        if endTime > CurTime() then return false end
+    end
+
     if self:GetFinishThrow() > 0 then
         return false
     end
@@ -146,6 +160,16 @@ function SWEP:Throw()
     elseif mode == 3 then
         act = self.Primary.RollAct[2]
     end
+
+    local class = self:GetClass()
+    local cooldownEndTimes = cooldownEndTimesPerClass[class]
+
+    if not cooldownEndTimes then
+        cooldownEndTimes = {}
+        cooldownEndTimesPerClass[class] = cooldownEndTimes
+    end
+
+    cooldownEndTimes[ply] = CurTime() + ( self.ThrowCooldown or 0 )
 
     self:SetFinishReload( CurTime() + self:SendTranslatedWeaponAnim( act ) )
     self:TakePrimaryAmmo( 1 )
