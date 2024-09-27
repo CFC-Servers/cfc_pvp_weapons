@@ -36,6 +36,7 @@ local BLACKLISTED_EFFECTS = {
     ["TheFloorIsLava"] = true,
     ["Drunk"] = true,
     ["NoInteract"] = true,
+    ["Lidar"] = true,
 
     -- Causes a big lagspike for the first time per session, and doesn't affect pvp a huge amount
     ["SoundShuffle"] = true,
@@ -43,6 +44,9 @@ local BLACKLISTED_EFFECTS = {
 
     -- Would be fun to include, but it'll end up causing accidental photos and toolgun clicks.
     ["WeaponIndecision"] = true,
+
+    -- Allow FilmDevelopmentNoClear, but not the regular one.
+    ["FilmDevelopment"] = true,
 }
 
 
