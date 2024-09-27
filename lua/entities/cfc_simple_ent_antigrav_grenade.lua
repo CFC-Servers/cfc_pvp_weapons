@@ -101,6 +101,12 @@ function ENT:BubbleStartTouch( ent )
 
     ent._cfcPvPWeapons_AntiGravityGrenade = self
 
+    local rf = RecipientFilter()
+    rf:AddPlayer( ent )
+
+    sound.Play( "ambient/machines/machine1_hit2.wav", ent:EyePos(), 75, 120 )
+    util.ScreenShake( ent:EyePos(), 3, 5, 1.5, 500, true, ent )
+
     return true
 end
 
