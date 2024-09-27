@@ -7,7 +7,7 @@ end
 game.AddAmmoType( { name = "cfc_discomob", maxcarry = 5 } )
 
 SWEP.Base = "cfc_simple_base_throwing"
-SWEP.PrintName = "Discombob"
+SWEP.PrintName = "'Nade (Discombob)"
 SWEP.Category = "CFC"
 
 SWEP.Slot = 4

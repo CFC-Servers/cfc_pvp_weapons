@@ -7,7 +7,7 @@ end
 game.AddAmmoType( { name = "cfc_curse_grenade", maxcarry = 5 } )
 
 SWEP.Base = "cfc_simple_base_throwing"
-SWEP.PrintName = "Curse Grenade"
+SWEP.PrintName = "'Nade (Curse)"
 SWEP.Category = "CFC"
 
 SWEP.Slot = 4

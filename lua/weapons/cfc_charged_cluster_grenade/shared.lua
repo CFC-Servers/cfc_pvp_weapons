@@ -3,7 +3,7 @@ AddCSLuaFile()
 DEFINE_BASECLASS( "cfc_charged_throwable" )
 
 SWEP.Base = "cfc_charged_throwable"
-SWEP.PrintName = "Charged Cluster Nade"
+SWEP.PrintName = "'Nade (Charged Cluster)"
 SWEP.Category = "CFC"
 
 SWEP.Slot = 4
