@@ -28,6 +28,8 @@ SWEP.Primary = {
     RollAct = { ACT_VM_PULLBACK_LOW, ACT_VM_SECONDARYATTACK },
 }
 
+SWEP.ThrowCooldown = 3
+
 
 function SWEP:Initialize()
     self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_antigrav" )

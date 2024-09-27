@@ -1,15 +1,18 @@
 AddCSLuaFile()
 
-DEFINE_BASECLASS( "cfc_simple_ent_grenade_base" )
+DEFINE_BASECLASS( "cfc_simple_ent_bubble_grenade" )
 
-ENT.Base = "cfc_simple_ent_grenade_base"
+ENT.Base = "cfc_simple_ent_bubble_grenade"
 
 ENT.Model = Model( "models/weapons/w_eq_fraggrenade.mdl" )
 
-ENT.Damage = 100 -- Doesn't actually deal damage, just used to compare against damage falloff for scaling the duration.
-ENT.Radius = 400
-ENT.Duration = 3
-ENT.GravityMult = -0.15
+ENT.BubbleRadius = 200
+ENT.BubbleDuration = 5
+ENT.BubbleGrowDuration = 0.25
+ENT.BubbleShrinkDuration = 0.25
+ENT.EffectLingerOutsideBubble = 0.5
+
+ENT.GravityMult = -0.5
 ENT.PushStrength = 260 -- Pushes the player up to get them off the ground.
 
 
@@ -25,55 +28,100 @@ function ENT:Initialize()
     self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_antigrav" )
 end
 
-function ENT:Explode()
+function ENT:CreateBubble()
     local pos = self:WorldSpaceCenter()
-    local attacker = self:GetOwner()
+    local bubble = ents.Create( "cfc_simple_ent_bubble" )
+    bubble:SetPos( pos )
+    bubble:SetAngles( Angle( 0, 0, 0 ) )
+    bubble:SetMaterial( "models/props_combine/portalball001_sheet" )
+    bubble:Spawn()
+    bubble:SetBubbleRadius( self.BubbleRadius )
 
-    local dmgInfoInit = DamageInfo()
-    dmgInfoInit:SetAttacker( attacker )
-    dmgInfoInit:SetInflictor( self )
-    dmgInfoInit:SetDamage( self.Damage )
-    dmgInfoInit:SetDamageType( DMG_SONIC ) -- Don't use DMG_BLAST, otherwise rocket jump addons will also try to apply knockback (or even scale the damage)
+    local cosmeticBubbles = {}
 
-    local damage = self.Damage
-    local duration = self.Duration
-    local gravityMult = self.GravityMult
-    local pushVel = Vector( 0, 0, self.PushStrength )
+    local bubble2 = ents.Create( "cfc_simple_ent_bubble" )
+    bubble2:SetPos( pos )
+    bubble2:SetAngles( Angle( 0, 0, 0 ) )
+    bubble2:SetMaterial( "sprites/heatwave" )
+    bubble2:Spawn()
+    bubble2:SetBubbleRadius( self.BubbleRadius )
+    bubble2:SetColor( Color( 255, 255, 255, 100 ) )
+    bubble2:SetRenderMode( RENDERMODE_TRANSCOLOR )
+    bubble2._bubbleScaleMult = 1
+    table.insert( cosmeticBubbles, bubble2 )
 
-    local effect = EffectData()
-    effect:SetOrigin( pos )
-    effect:SetRadius( 80 )
-    effect:SetNormal( Vector( 0, 0, 1 ) )
-
-    util.Effect( "VortDispel", effect, true, true )
-    util.Effect( "AR2Explosion", effect, true, true )
-    util.Effect( "cball_explode", effect, true, true )
-
-    CFCPvPWeapons.BlastDamageInfo( dmgInfoInit, pos, self.Radius, function( victim, dmgInfo )
-        if victim == self then return true end
-        if not IsValid( victim ) then return end
-        if not victim:IsPlayer() then return true end
-
-        victim:SetGravity( gravityMult )
-
-        if victim:IsOnGround() then
-            victim:SetVelocity( pushVel )
-        end
-
-        timer.Create( "CFC_PvPWeapons_AntiGravityGrenade_Restore_" .. victim:SteamID(), duration * dmgInfo:GetDamage() / damage, 1, function()
-            if not IsValid( victim ) then return end
-
-            victim:SetGravity( 1 )
-        end )
-
-        return true
-    end )
+    local bubble3 = ents.Create( "cfc_simple_ent_bubble" )
+    bubble3:SetPos( pos )
+    bubble3:SetAngles( Angle( 0, 0, 0 ) )
+    bubble3:SetMaterial( "sprites/heatwave" )
+    bubble3:Spawn()
+    bubble3:SetBubbleRadius( self.BubbleRadius )
+    bubble3:SetColor( Color( 255, 255, 255, 100 ) )
+    bubble3:SetRenderMode( RENDERMODE_TRANSCOLOR )
+    bubble3._bubbleScaleMult = -1
+    table.insert( cosmeticBubbles, bubble3 )
 
     sound.Play( "ambient/levels/labs/electric_explosion1.wav", pos, 90, 110 )
     sound.Play( "ambient/fire/ignite.wav", pos, 90, 75, 0.5 )
     sound.Play( "ambient/machines/machine1_hit2.wav", pos, 90, 100 )
 
-    self:Remove()
+    return bubble, cosmeticBubbles
+end
+
+function ENT:BubbleStartTouch( ent )
+    if not ent:IsPlayer() then return end
+    if not ent:Alive() then return end
+
+    -- Check if we're allowed to affect the player (there might be a build/pvp system, etc)
+    local allowed = false
+
+    hook.Add( "EntityTakeDamage", "CFC_PvPWeapons_AntiGravityGrenade_CheckIfDamageIsAllowed", function()
+        allowed = true
+
+        return true
+    end, HOOK_LOW )
+
+    local dmgInfo = DamageInfo()
+    dmgInfo:SetAttacker( self:GetOwner() )
+    dmgInfo:SetInflictor( self )
+    dmgInfo:SetDamage( 100 )
+    dmgInfo:SetDamageType( ent:InVehicle() and DMG_VEHICLE or DMG_GENERIC )
+
+    ent:TakeDamageInfo( dmgInfo )
+    hook.Remove( "EntityTakeDamage", "CFC_PvPWeapons_AntiGravityGrenade_CheckIfDamageIsAllowed" )
+
+    if not allowed then return end
+
+    -- Apply the effect
+    ent:SetGravity( self.GravityMult )
+
+    if ent:IsOnGround() then
+        ent:SetVelocity( Vector( 0, 0, self.PushStrength ) )
+    end
+
+    ent._cfcPvPWeapons_AntiGravityGrenade = self
+
+    return true
+end
+
+function ENT:BubbleTouch( ent )
+    if ent:IsOnGround() then
+        ent:SetVelocity( Vector( 0, 0, self.PushStrength ) )
+    end
+end
+
+function ENT:BubbleEndTouch()
+end
+
+function ENT:BubbleEndEffect( ent )
+    if not ent:IsPlayer() then return end
+
+    -- Prevent grenades from resetting gravity early if the player quickly enters another one.
+    local otherGrenade = ent._cfcPvPWeapons_AntiGravityGrenade
+    if otherGrenade ~= self and IsValid( otherGrenade ) then return end
+
+    ent:SetGravity( 1 )
+    ent._cfcPvPWeapons_AntiGravityGrenade = nil
 end
 
 function ENT:Think()
