@@ -9,7 +9,7 @@ ENT.Model = Model( "models/weapons/w_eq_fraggrenade.mdl" )
 ENT.Damage = 100 -- Doesn't actually deal damage, just used to compare against damage falloff for scaling the knockback.
 ENT.Radius = 300
 ENT.Knockback = 1000 * 40
-ENT.PlayerKnockback = 600
+ENT.PlayerKnockback = 500
 ENT.PlayerSelfKnockback = 400
 ENT.PlayerKnockbackVelAdd = Vector( 0, 0, 200 )
 
