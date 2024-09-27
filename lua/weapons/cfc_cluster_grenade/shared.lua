@@ -29,20 +29,8 @@ SWEP.Primary = {
     LobAct = { ACT_VM_PULLBACK_LOW, ACT_VM_HAULBACK },
     RollAct = { ACT_VM_PULLBACK_LOW, ACT_VM_SECONDARYATTACK },
 
-    SplitDelay = 0.25, -- Reload toggles between only splitting on impact and splitting either mid-air or on impact.
+    SplitDelay = 0.25, -- Splits early mid-air.
     GrenadeOverrides = {
-        Damage = 20,
-        Radius = 200,
-        ClusterAmount = 6,
-        ClusterAmountMult = 3 / 6,
-        ExplodeOnSplit = false,
-        SplitLimit = 2,
-        SplitSpeed = 350,
-        SplitSpread = 50,
-        SplitMoveAhead = 0,
-        BaseVelMultOnImpact = 0.25,
-    },
-    GrenadeOverridesSplitMidAir = {
         Damage = 20,
         Radius = 150,
         ClusterAmount = 5,
@@ -56,45 +44,12 @@ SWEP.Primary = {
     },
 }
 
-SWEP.CFC_FirstTimeHints = {
-    {
-        Message = "Press reload (R) to toggle the grenades splitting mid-air.",
-        Sound = "ambient/water/drip1.wav",
-        Duration = 7,
-        DelayNext = 4,
-    },
-    {
-        Message = "It makes less grenades, but it can be deadly if spaced right.",
-        Sound = "ambient/water/drip2.wav",
-        Duration = 7,
-        DelayNext = 0,
-    },
-}
+SWEP.ThrowCooldown = 0
 
-
-function SWEP:SetupDataTables()
-    BaseClass.SetupDataTables( self )
-
-    self:AddNetworkVar( "Bool", "MidAirSplit" )
-end
 
 function SWEP:Initialize()
     self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_cluster" )
 end
-
-function SWEP:Reload()
-    if CLIENT then return end
-
-    local nextReloadTime = self._getNextReloadTime or 0
-    local now = CurTime()
-    if nextReloadTime > now then return end
-
-    self._getNextReloadTime = now + 0.5
-
-    self:SetMidAirSplit( not self:GetMidAirSplit() )
-    sound.Play( "doors/handle_pushbar_locked1.wav", self:GetOwner():EyePos(), 75, 130, 1 )
-end
-
 
 if SERVER then
     function SWEP:CreateEntity()
@@ -107,30 +62,14 @@ if SERVER then
         ent:Spawn()
         ent:Activate()
 
-        if self:GetMidAirSplit() then
-            ent:SetTimer( self.Primary.SplitDelay )
+        ent:SetTimer( self.Primary.SplitDelay )
 
-            local entGrenadeParams = ent.GrenadeParams
+        local entGrenadeParams = ent.GrenadeParams
 
-            for k, v in pairs( self.Primary.GrenadeOverridesSplitMidAir ) do
-                entGrenadeParams[k] = v
-            end
-        else
-            local entGrenadeParams = ent.GrenadeParams
-
-            for k, v in pairs( self.Primary.GrenadeOverrides ) do
-                entGrenadeParams[k] = v
-            end
+        for k, v in pairs( self.Primary.GrenadeOverrides ) do
+            entGrenadeParams[k] = v
         end
 
         return ent
-    end
-else
-    function SWEP:CustomAmmoDisplay()
-        return {
-            Draw = true,
-            PrimaryClip = self:GetOwner():GetAmmoCount( self.Primary.Ammo ),
-            SecondaryAmmo = self:GetMidAirSplit() and 1 or nil,
-        }
     end
 end
