@@ -54,6 +54,8 @@ function ENT:Explode()
         local force = forceDir * dmgInfo:GetDamage() / self.Damage
 
         if victim:IsPlayer() then
+            if not victim:Alive() then return true end
+
             force = force * ( victim == attacker and playerSelfKnockback or playerKnockback )
 
             -- If the explosion was caused by an impact with the player, the movement caused by the collison overrides our :SetVelocity() call.

@@ -80,6 +80,7 @@ function ENT:Explode()
         if victim == self then return true end
         if not IsValid( victim ) then return end
         if not victim:IsPlayer() then return true end
+        if not victim:Alive() then return true end
 
         local effectData = CFCUlxCurse.GetRandomEffect( victim, BLACKLISTED_EFFECTS )
 
