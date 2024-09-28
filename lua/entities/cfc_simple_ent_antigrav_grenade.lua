@@ -12,7 +12,7 @@ ENT.BubbleGrowDuration = 0.25
 ENT.BubbleShrinkDuration = 0.25
 ENT.EffectLingerOutsideBubble = 0
 
-ENT.GravityMult = -1.5
+ENT.GravityMult = -2
 ENT.PushStrength = 260 -- Pushes the player up to get them off the ground.
 
 

@@ -23,7 +23,7 @@ SWEP.Primary = {
     LobAct = { ACT_VM_PULLBACK_LOW, ACT_VM_HAULBACK },
     RollAct = { ACT_VM_PULLBACK_LOW, ACT_VM_SECONDARYATTACK },
 
-    ChargeGap = 0.8, -- The gap between charge steps.
+    ChargeGap = 0.7, -- The gap between charge steps.
     ChargeStep = 1, -- Amount of charge to add per step. Must be an integer.
     ChargeMax = 5, -- Maximum charge.
 
@@ -38,13 +38,13 @@ SWEP.Primary = {
     ChargeStepPitchEase = function( x ) return x end, -- Use an easing function (e.g. math.ease.InCubic). Default is linear, which isn't in the ease library.
 
     GrenadeOverrides = {
-        Damage = 20,
-        Radius = 200,
+        Damage = 25,
+        Radius = 250,
         --ClusterAmount = 1, -- Dynamically set to the value of charge.
         ClusterAmountMult = 1,
         ExplodeOnSplit = false,
         SplitLimit = 2,
-        SplitSpeed = 350,
+        SplitSpeed = 300,
         SplitSpread = 50,
         SplitMoveAhead = 0,
         BaseVelMultOnImpact = 0.25,

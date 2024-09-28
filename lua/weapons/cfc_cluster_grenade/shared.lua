@@ -31,14 +31,14 @@ SWEP.Primary = {
 
     SplitDelay = 0.25, -- Splits early mid-air.
     GrenadeOverrides = {
-        Damage = 20,
-        Radius = 150,
-        ClusterAmount = 5,
+        Damage = 25,
+        Radius = 200,
+        ClusterAmount = 6,
         ClusterAmountMult = 0,
         ExplodeOnSplit = false,
         SplitLimit = false,
         SplitSpeed = 300,
-        SplitSpread = 60,
+        SplitSpread = 45,
         SplitMoveAhead = 0,
         BaseVelMultOnImpact = 0.25,
     },
