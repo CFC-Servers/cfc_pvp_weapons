@@ -35,6 +35,10 @@ function ENT:Initialize()
     end
 end
 
+function ENT:ACF_PreDamage()
+    return false
+end
+
 function ENT:Explode()
     self:Remove()
 end

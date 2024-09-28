@@ -33,3 +33,7 @@ function ENT:SetUpPhysics()
     self:SetNotSolid( true )
     self:GetPhysicsObject():EnableMotion( false )
 end
+
+function ENT:ACF_PreDamage()
+    return false
+end
