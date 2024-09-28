@@ -180,8 +180,8 @@ function ENT:Explode( splitDir, baseVelMult )
     end
 
     --sound.Play( "phx/epicmetal_hard5.wav", pos, 75, 100 ) -- Directionless sound :(
-    sound.Play( "weapons/crossbow/fire1.wav", pos, 75, 135 )
-    sound.Play( "weapons/crossbow/hit1.wav", pos, 75, 135 )
+    sound.Play( "weapons/crossbow/fire1.wav", pos, 85, 135 )
+    sound.Play( "weapons/crossbow/hit1.wav", pos, 85, 135 )
 
     self:Remove()
 end
