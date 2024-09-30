@@ -110,7 +110,7 @@ SWEP.Primary = {
     -- Graviton Gun settings:
     GravitonAimConeMin = 2, -- The starting total width of the aim cone, in degrees. The effective cone scales based on charge.
     GravitonAimConeMax = 20,
-    GravitonMaxRange = 10000, -- The maximum range of the graviton beam.
+    GravitonMaxRange = 15000, -- The maximum range of the graviton beam.
     GravitonDropProp = true, -- If the victim is physguning a prop, drop it.
     GravitonDropPropKnockback = 1000, -- If a physgunned prop is dropped by the graviton gun, how much velocity to use to push it away from the victim.
     GravitonHorizontalToDownwards = 0.5, -- Convert some of the victim's initial horizontal velocity to downwards velocity.
