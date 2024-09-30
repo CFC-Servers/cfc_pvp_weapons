@@ -14,6 +14,7 @@ ENT.EffectLingerOutsideBubble = 0
 
 ENT.GravityMult = -2
 ENT.PushStrength = 260 -- Pushes the player up to get them off the ground.
+ENT.FuseOnImpact = 1 -- On the first impact, shortens the remaining fuse time to this.
 
 
 function ENT:SetTimer( delay )
@@ -26,6 +27,28 @@ function ENT:Initialize()
     BaseClass.Initialize( self )
 
     self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_antigrav" )
+
+    local fuseOnImpact = self.FuseOnImpact
+
+    if SERVER and fuseOnImpact then
+        timer.Simple( 0, function()
+            if not IsValid( self ) then return end
+
+            local fuseShortened = false
+
+            function self:PhysicsCollide()
+                if fuseShortened then return end
+
+                fuseShortened = true
+
+                local fuseLeft = self._explodeDelay
+
+                if fuseLeft > fuseOnImpact then
+                    self:SetTimer( fuseOnImpact )
+                end
+            end
+        end )
+    end
 end
 
 function ENT:CreateBubble()
