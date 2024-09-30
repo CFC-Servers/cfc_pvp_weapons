@@ -6,13 +6,13 @@ ENT.Base = "cfc_simple_ent_bubble_grenade"
 
 ENT.Model = Model( "models/weapons/w_eq_fraggrenade.mdl" )
 
-ENT.BubbleRadius = 200
+ENT.BubbleRadius = 250
 ENT.BubbleDuration = 7
 ENT.BubbleGrowDuration = 0.25
 ENT.BubbleShrinkDuration = 0.25
 ENT.EffectLingerOutsideBubble = 0
 
-ENT.GravityMult = -2
+ENT.GravityMult = -2.5
 ENT.PushStrength = 260 -- Pushes the player up to get them off the ground.
 ENT.FuseOnImpact = 1 -- On the first impact, shortens the remaining fuse time to this.
 
