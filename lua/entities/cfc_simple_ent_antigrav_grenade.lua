@@ -37,11 +37,11 @@ function ENT:Initialize()
             local fuseShortened = false
 
             function self:PhysicsCollide()
+                local fuseLeft = self._explodeDelay
+                if not fuseLeft then return end
                 if fuseShortened then return end
 
                 fuseShortened = true
-
-                local fuseLeft = self._explodeDelay
 
                 if fuseLeft > fuseOnImpact then
                     self:SetTimer( fuseOnImpact )
