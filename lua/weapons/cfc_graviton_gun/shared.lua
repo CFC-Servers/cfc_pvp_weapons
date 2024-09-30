@@ -549,9 +549,11 @@ if SERVER then
         physgunProps[ply] = nil
     end )
 
+    --[[
     hook.Add( "CFC_Parachute_CanSpaceEquip", "CFC_PvPWeapons_GravitonGun_BlockParachute", function( ply )
         if ply._cfcPvPWeapons_GravitonGunStatus then return false end
     end )
+    --]]
 else
     function SWEP:DoDrawCrosshair( x, y )
         local coneDeg = self:GetGravitonAimCone( math.max( self:Clip1(), 1 ) )
