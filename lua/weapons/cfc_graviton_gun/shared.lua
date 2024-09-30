@@ -350,7 +350,7 @@ if SERVER then
     function SWEP:DoGravitonHit( owner, victim )
         local primary = self.Primary
 
-        if victim:Alive() then -- If the initial weapon damage was enough to kill the victim, don't apply the graviton status.
+        if victim:Alive() then --Only apply the graviton status if the initial damage wasn't enought ot kill them.
             local chute = victim.cfcParachuteChute
 
             if IsValid( chute ) then
@@ -383,6 +383,9 @@ if SERVER then
                 chuteSpeedReduction = primary.GravitonChuteSpeedReduction,
                 chuteAccelerationMult = primary.GravitonChuteAccelerationMult,
             }
+
+            victim:StopSound( "ambient/machines/city_ventpump_loop1.wav" )
+            victim:EmitSound( "ambient/machines/city_ventpump_loop1.wav", 90, 220, 1, CHAN_AUTO )
 
             self:DoGravitonDropProp( victim )
             self:DoGravitonHorizontalToDownwards( victim )
@@ -421,12 +424,7 @@ if SERVER then
         end
 
         -- Victim sounds
-        local rf = RecipientFilter()
-        rf:AddPAS( self:GetPos() )
-
-        victim:StopSound( "ambient/machines/city_ventpump_loop1.wav" )
-        victim:EmitSound( "ambient/levels/citadel/portal_beam_shoot2.wav", 90, 110, 1, CHAN_AUTO, nil, nil, rf )
-        victim:EmitSound( "ambient/machines/city_ventpump_loop1.wav", 90, 220, 1, CHAN_AUTO, nil, nil, rf )
+        victim:EmitSound( "ambient/levels/citadel/portal_beam_shoot2.wav", 90, 110, 1, CHAN_AUTO )
     end
 
     function SWEP:DoGravitonDropProp( victim )
