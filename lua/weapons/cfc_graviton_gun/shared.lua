@@ -46,7 +46,10 @@ SWEP.Primary = {
     BurstDelay = 0.075, -- Burst only: the delay between shots during a burst
     Cooldown = 3, -- Cooldown to apply once the charge is expended
     MovementMultWhenCharging = 0.75, -- Multiplier against movement speed when charging
-    OverchargeDelay = false, -- Once at full charge, it takes this long before overcharge occurs. False to disable overcharge.
+    OverchargeDelay = 4, -- Once at full charge, it takes this long before overcharge occurs. False to disable overcharge.
+    OverchargeKnockback = 1000, -- Overcharging blasts the player up and backwards with this much speed.
+    OverchargeExplosionDamage = 30, -- Damage dealt by the overcharge explosion.
+    OverchargeExplosionRadius = 150, -- Radius of the overcharge explosion.
 
     Range = 750, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
     Accuracy = 12, -- The reference value to use for the previous option, 12 = headshots, 24 = bodyshots
@@ -289,6 +292,45 @@ function SWEP:FireWeapon( charge )
             end
         end
     end
+end
+
+function SWEP:OnOvercharged()
+    self:SetNextFire( CurTime() + self.Primary.Cooldown )
+
+    if CLIENT then return end
+
+    local owner = self:GetOwner()
+    local recoil = self.Primary.Recoil
+    local recoilMin = recoil.MinAng
+    local recoilMax = recoil.MaxAng
+
+    owner:ViewPunch( Angle( -math.Rand( recoilMin.p, recoilMax.p ), math.Rand( recoilMin.y, recoilMax.y ), math.Rand( recoilMin.r, recoilMax.r ) ) )
+
+    local pos = owner:GetShootPos() + owner:GetAimVector() * 15
+
+    util.BlastDamage( self, owner, pos, self.Primary.OverchargeExplosionRadius, self.Primary.OverchargeExplosionDamage )
+
+    local eff = EffectData()
+    eff:SetOrigin( pos )
+    eff:SetMagnitude( 1 )
+    eff:SetScale( 1 )
+    util.Effect( "Explosion", eff, true, true )
+
+    owner:EmitSound( "ambient/explosions/explode_4.wav", 80, math.Rand( 110, 115 ), 1 )
+
+    local knockback = self.Primary.OverchargeKnockback
+
+    if knockback > 0 then
+        local eyeAng = owner:EyeAngles()
+        eyeAng.p = 0
+        eyeAng.r = 0
+
+        local vel = ( eyeAng:Up() - eyeAng:Forward() ):GetNormalized() * knockback
+
+        owner:SetVelocity( vel )
+    end
+
+    self:Remove()
 end
 
 
