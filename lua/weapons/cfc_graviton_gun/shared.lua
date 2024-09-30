@@ -388,7 +388,7 @@ if SERVER then
             net.WriteVector( endPos )
             net.WriteFloat( primary.GravitonBeamWidth )
             net.WriteFloat( primary.GravitonBeamDuration )
-            net.WriteColor( primary.GravitomBeamColor )
+            net.WriteColor( primary.GravitonBeamColor )
         net.Broadcast()
 
         -- A bunch of tracers that converge on the victim from random directions.
