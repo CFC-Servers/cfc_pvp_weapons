@@ -134,6 +134,7 @@ SWEP.Primary = {
     GravitonTrailSpeed = 1,
     GravitonTrailOffsetSpread = 30,
     GravitonTrailAmount = 5,
+    GravitonChuteSpeedReduction = 0.3, -- If the player is in a CFC parachute, reduce their horizontal speed by this much. (1 stops all horizontal movement)
 
     GravitonBeamWidth = 30,
     GravitonBeamDuration = 2,
@@ -370,6 +371,7 @@ if SERVER then
                 trailSpeed = primary.GravitonTrailSpeed,
                 trailOffsetSpread = primary.GravitonTrailOffsetSpread,
                 trailAmount = primary.GravitonTrailAmount,
+                chuteSpeedReduction = primary.GravitonChuteSpeedReduction,
             }
 
             self:DoGravitonDropProp( victim )
@@ -562,8 +564,17 @@ if SERVER then
             if not gravStatus then continue end
             if gravStatus.stale then continue end
 
-            -- Apply downwards acceleration.
-            ply:SetVelocity( Vector( 0, 0, -gravStatus.accel * dt ) )
+            local velToAdd = Vector( 0, 0, -gravStatus.accel * dt ) -- Apply downwards acceleration.
+            local chuteSpeedReduction = gravStatus.chuteSpeedReduction
+
+            if chuteSpeedReduction ~= 0 then
+                local velH = ply:GetVelocity()
+                velH.z = 0
+
+                velToAdd = velToAdd - velH * chuteSpeedReduction * dt
+            end
+
+            ply:SetVelocity( velToAdd )
 
             -- Make a trail or rushing wind effect from a bunch of short tracers that surround the victim.
             if gravStatus.nextTrailTime <= now then
