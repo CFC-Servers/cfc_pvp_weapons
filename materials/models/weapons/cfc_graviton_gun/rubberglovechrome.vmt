@@ -1,0 +1,6 @@
+"vertexlitgeneric"
+{
+	"$envmap" "models\weapons\cfc_graviton_gun\RubbergloveCHROME"
+	"$envmapsphere"			1
+	"$envmapmode" 1
+}

@@ -1,0 +1,19 @@
+"vertexlitgeneric"
+{
+	"$baseTexture" "models\weapons\cfc_graviton_gun\bigcynd"
+                     "$selfillum" "1"
+                     "$selfillummask" "models\weapons\cfc_graviton_gun\bigcynd_selfillum"
+
+	"$envmapcontrast" 1
+	"$envmap" "models\weapons\cfc_graviton_gun\back_chrome"
+	"$envmapsphere"			1
+	"$envmapmode" 1
+	"$multipass" 1
+
+	//"$phong"	"1"
+                    //"$basemapalphaphongmask" 1
+	//"$phongexponent" "15"
+	//"$phongboost"	"5"
+	//"$phongfresnelranges"	"[.1 0.4 2]"
+}
+
