@@ -120,6 +120,7 @@ SWEP.Primary = {
     GravitonAimConeMin = 2, -- The starting total width of the aim cone, in degrees. The effective cone scales based on charge.
     GravitonAimConeMax = 20,
     GravitonMaxRange = 15000, -- The maximum range of the graviton beam.
+    GravitonStackMult = 1, -- If the victim already has a graviton effect, multiply its acceleration by this much before adding the new effect to it.
     GravitonDropProp = true, -- If the victim is physguning a prop, drop it.
     GravitonDropPropKnockback = 1000, -- If a physgunned prop is dropped by the graviton gun, how much velocity to use to push it away from the victim.
     GravitonHorizontalToDownwards = 0.5, -- Convert some of the victim's initial horizontal velocity to downwards velocity.
@@ -355,12 +356,19 @@ if SERVER then
                 chute:Close()
             end
 
+            local accel = victim:GetVelocity():Length2D() * primary.GravitonAccelerationMult + primary.GravitonAccelerationAdd
+            local oldStatus = victim._cfcPvPWeapons_GravitonGunStatus
+
+            if oldStatus and not oldStatus.stale then
+                accel = accel + oldStatus.accel * primary.GravitonStackMult
+            end
+
             uniqueIncr = uniqueIncr + 1
             victim._cfcPvPWeapons_GravitonGunStatus = {
                 id = uniqueIncr,
                 attacker = owner,
                 wep = self,
-                accel = victim:GetVelocity():Length2D() * primary.GravitonAccelerationMult + primary.GravitonAccelerationAdd,
+                accel = accel,
                 fallDamageDiv = primary.GravitonFallDamageDiv,
                 fallDamageEase = primary.GravitonFallDamageEase,
                 fallDamageMult = primary.GravitonFallDamageMult,
