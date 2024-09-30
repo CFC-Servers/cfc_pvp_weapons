@@ -135,7 +135,8 @@ SWEP.Primary = {
     GravitonTrailSpeed = 1,
     GravitonTrailOffsetSpread = 30,
     GravitonTrailAmount = 5,
-    GravitonChuteSpeedReduction = 0.3, -- If the player is in a CFC parachute, reduce their horizontal speed by this much. (1 stops all horizontal movement)
+    GravitonChuteSpeedReduction = 0.3, -- If the victim is in a CFC parachute, reduce their horizontal speed by this much. (1 stops all horizontal movement)
+    GravitonChuteAccelerationMult = 1, -- If the victim is in a CFC parachute, the acceleration will get multiplied by this.
 
     GravitonBeamWidth = 30,
     GravitonBeamDuration = 2,
@@ -380,6 +381,7 @@ if SERVER then
                 trailOffsetSpread = primary.GravitonTrailOffsetSpread,
                 trailAmount = primary.GravitonTrailAmount,
                 chuteSpeedReduction = primary.GravitonChuteSpeedReduction,
+                chuteAccelerationMult = primary.GravitonChuteAccelerationMult,
             }
 
             self:DoGravitonDropProp( victim )
@@ -572,7 +574,13 @@ if SERVER then
             if not gravStatus then continue end
             if gravStatus.stale then continue end
 
-            local velToAdd = Vector( 0, 0, -gravStatus.accel * dt ) -- Apply downwards acceleration.
+            local accel = gravStatus.accel
+
+            if IsValid( ply.cfcParachuteChute ) then
+                accel = accel * gravStatus.chuteAccelerationMult
+            end
+
+            local velToAdd = Vector( 0, 0, -accel * dt ) -- Apply downwards acceleration.
             local chuteSpeedReduction = gravStatus.chuteSpeedReduction
 
             if chuteSpeedReduction ~= 0 then
