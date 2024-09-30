@@ -125,6 +125,10 @@ SWEP.Primary = {
     GravitonTrailSpeed = 1,
     GravitonTrailOffsetSpread = 30,
     GravitonTrailAmount = 5,
+
+    GravitonBeamWidth = 30,
+    GravitonBeamDuration = 2,
+    GravitonBeamColor = Color( 255, 150, 80 ),
 }
 
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
@@ -163,12 +167,14 @@ local bonusHints = {
 
 
 local physgunProps = {}
+local gravitonBeamMat = CLIENT and Material( "sprites/physbeama" )
 local BONUS_HINTS_UNDERSTOOD
 
 
 if SERVER then
     util.AddNetworkString( "CFC_PvPWeapons_GravitonGun_PlayBonusHints" )
     util.AddNetworkString( "CFC_PvPWeapons_GravitonGun_UnderstandBonusHints" )
+    util.AddNetworkString( "CFC_PvPWeapons_GravitonGun_MakeBeam" )
 else
     BONUS_HINTS_UNDERSTOOD = CreateClientConVar( "cfc_pvp_weapons_graviton_gun_bonus_hints_understood", "0", true, true, "", 0, 1 )
 end
@@ -291,8 +297,9 @@ if SERVER then
 
 
     function SWEP:DoGravitonHit( owner, victim )
+        local primary = self.Primary
+
         if victim:Alive() then -- If the initial weapon damage was enough to kill the victim, don't apply the graviton status.
-            local primary = self.Primary
             local chute = victim.cfcParachuteChute
 
             if IsValid( chute ) then
@@ -334,21 +341,16 @@ if SERVER then
 
         local endPos = victim:GetPos() + victim:OBBCenter()
 
-        local eff = EffectData()
-        eff:SetFlags( 1 )
-
-        -- Use multiple beams with random offsets to make it look thicker.
-        for _ = 1, 15 do
-            local offset = VectorRand( -2, 2 )
-
-            eff:SetStart( startPos + offset )
-            eff:SetOrigin( endPos + offset )
-
-            util.Effect( "HL1GaussBeamReflect", eff, true, true )
-        end
+        net.Start( "CFC_PvPWeapons_GravitonGun_MakeBeam" )
+            net.WriteVector( startPos )
+            net.WriteVector( endPos )
+            net.WriteFloat( primary.GravitonBeamWidth )
+            net.WriteFloat( primary.GravitonBeamDuration )
+            net.WriteColor( primary.GravitomBeamColor )
+        net.Broadcast()
 
         -- A bunch of tracers that converge on the victim from random directions.
-        eff = EffectData()
+        local eff = EffectData()
         eff:SetOrigin( endPos )
         eff:SetScale( 3000 )
         eff:SetFlags( 0 )
@@ -555,6 +557,9 @@ if SERVER then
     end )
     --]]
 else
+    local gravitonBeams = {}
+
+
     function SWEP:DoDrawCrosshair( x, y )
         local coneDeg = self:GetGravitonAimCone( math.max( self:Clip1(), 1 ) )
         local fov = self:GetFOV()
@@ -571,6 +576,32 @@ else
     end
 
 
+    hook.Add( "PostDrawTranslucentRenderables", "CFC_PvPWeapons_GravitonGun_DrawBeams", function( _, skybox, skybox3d )
+        if skybox or skybox3d then return end
+
+        for i = #gravitonBeams, 1, -1 do
+            local beam = gravitonBeams[i]
+            local elapsed = CurTime() - beam.startTime
+            local frac = elapsed / beam.duration
+
+            if frac >= 1 then
+                table.remove( gravitonBeams, i )
+                continue
+            end
+
+            local width = beam.width
+            local color = beam.color
+            local alpha = 255 - 255 * frac
+            color.a = alpha
+
+            local scroll = math.Rand( 0, 1 )
+
+            render.SetMaterial( gravitonBeamMat )
+            render.DrawBeam( beam.start, beam.endpos, width, scroll, scroll + 1, color )
+        end
+    end )
+
+
     net.Receive( "CFC_PvPWeapons_GravitonGun_PlayBonusHints", function()
         if BONUS_HINTS_UNDERSTOOD:GetBool() then return end
 
@@ -579,5 +610,24 @@ else
 
     net.Receive( "CFC_PvPWeapons_GravitonGun_UnderstandBonusHints", function()
         BONUS_HINTS_UNDERSTOOD:SetBool( true )
+    end )
+
+    net.Receive( "CFC_PvPWeapons_GravitonGun_MakeBeam", function()
+        local startPos = net.ReadVector()
+        local endPos = net.ReadVector()
+        local width = net.ReadFloat()
+        local duration = net.ReadFloat()
+        local color = net.ReadColor()
+
+        local beam = {
+            start = startPos,
+            endpos = endPos,
+            width = width,
+            duration = duration,
+            color = color,
+            startTime = CurTime(),
+        }
+
+        table.insert( gravitonBeams, beam )
     end )
 end
