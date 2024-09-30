@@ -9,6 +9,12 @@ SWEP.Base = "cfc_charge_gun_base"
 SWEP.PrintName = "Graviton Gun"
 SWEP.Category = "CFC"
 
+SWEP.DrawWeaponInfoBox = true
+SWEP.Author = "CFC"
+SWEP.Contact = "cfc.gg/discord"
+SWEP.Purpose = "Anti-propfly gun"
+SWEP.Instructions = "Shoot prop fliers out of the air\nCharge up for a bigger firing cone"
+
 SWEP.Slot = 4
 SWEP.Spawnable = true
 
