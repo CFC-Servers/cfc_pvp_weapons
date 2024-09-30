@@ -8,7 +8,8 @@ ENT.AutomaticFrameAdvance = true
 ENT.Model = Model( "models/weapons/w_npcnade.mdl" )
 
 function ENT:SetTimer( delay )
-    self.Detonate = CurTime() + delay
+    self._explodeTime = CurTime() + delay
+    self._explodeDelay = delay
 
     self:NextThink( CurTime() )
 end
@@ -21,7 +22,9 @@ function ENT:Initialize()
         self:SetMoveType( MOVETYPE_VPHYSICS )
         self:SetSolid( SOLID_VPHYSICS )
 
-        self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+        self:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
+        self:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_IMPACT_DMG )
+        self:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_NPC_IMPACT_DMG )
 
         local phys = self:GetPhysicsObject()
 
@@ -30,6 +33,10 @@ function ENT:Initialize()
             phys:SetMass( 5 ) -- Heavy enough to break windows
         end
     end
+end
+
+function ENT:ACF_PreDamage()
+    return false
 end
 
 function ENT:Explode()
@@ -41,7 +48,7 @@ function ENT:Think()
         return
     end
 
-    if self.Detonate and self.Detonate <= CurTime() then
+    if self._explodeTime and self._explodeTime <= CurTime() then
         self:Explode()
         self:NextThink( math.huge )
 
