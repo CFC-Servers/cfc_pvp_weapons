@@ -285,14 +285,6 @@ function SWEP:FireWeapon( charge )
     end
 end
 
-function SWEP:Think()
-    BaseClass.Think( self )
-
-    if self:Clip1() == 0 and not self:IsReloading() then
-        self:Reload()
-    end
-end
-
 
 if SERVER then
     local uniqueIncr = 0
