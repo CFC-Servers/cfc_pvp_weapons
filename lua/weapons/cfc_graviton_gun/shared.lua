@@ -120,6 +120,7 @@ SWEP.Primary = {
     GravitonAimConeMin = 2, -- The starting total width of the aim cone, in degrees. The effective cone scales based on charge.
     GravitonAimConeMax = 20,
     GravitonMaxRange = 15000, -- The maximum range of the graviton beam.
+    GravitonHeightThreshold = 100, -- If the victim is too close to the ground, don't hit them.
     GravitonStackMult = 1, -- If the victim already has a graviton effect, multiply its acceleration by this much before adding the new effect to it.
     GravitonDropProp = true, -- If the victim is physguning a prop, drop it.
     GravitonDropPropKnockback = 1000, -- If a physgunned prop is dropped by the graviton gun, how much velocity to use to push it away from the victim.
@@ -238,8 +239,9 @@ function SWEP:FireWeapon( charge )
             if groundEnt == world then continue end
             if IsValid( groundEnt ) and not groundEnt:IsPlayerHolding() then continue end
 
-            local plyPos = ply:GetPos() + ply:OBBCenter()
-            local toPly = plyPos - shootPos
+            local plyPos = ply:GetPos()
+            local plyCenter = plyPos + ply:OBBCenter()
+            local toPly = plyCenter - shootPos
             local toPlyLength = toPly:Length()
 
             if toPlyLength == 0 then continue end
@@ -251,19 +253,42 @@ function SWEP:FireWeapon( charge )
 
             local trace = util.TraceLine( {
                 start = shootPos,
-                endpos = plyPos,
+                endpos = plyCenter,
                 filter = { owner, physgunProps[ply] },
                 mask = MASK_SHOT,
             } )
 
             if trace.Hit and trace.Entity ~= ply then continue end
 
+            local hullRadius = ply:OBBMaxs()[1]
+            local groundTrace = util.TraceHull( {
+                start = plyPos,
+                endpos = plyPos - Vector( 0, 0, primary.GravitonHeightThreshold ),
+                mins = Vector( -hullRadius, -hullRadius, 0 ),
+                maxs = Vector( hullRadius, hullRadius, 0 ),
+                filter = function( ent )
+                    if ent == ply then return false end
+                    if ent == world then return true end
+                    if not IsValid( ent ) then return false end
+                    if ent:IsPlayerHolding() then return false end
+                    if ent:IsWeapon() then return false end
+
+                    local physObj = ent:GetPhysicsObject()
+                    if not IsValid( physObj ) then return false end
+                    if physObj:IsMotionEnabled() then return false end
+
+                    return true
+                end,
+            } )
+
+            if groundTrace.Hit then continue end
+
             local dmgInfo = DamageInfo()
             dmgInfo:SetAttacker( owner )
             dmgInfo:SetInflictor( self )
             dmgInfo:SetDamage( initialDamage )
             dmgInfo:SetDamageType( DMG_ENERGYBEAM + DMG_PREVENT_PHYSICS_FORCE )
-            dmgInfo:SetDamagePosition( plyPos )
+            dmgInfo:SetDamagePosition( plyCenter )
 
             ply:TakeDamageInfo( dmgInfo )
         end
