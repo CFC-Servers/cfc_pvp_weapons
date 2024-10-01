@@ -575,6 +575,12 @@ if SERVER then
         ply._cfcPvPWeapons_GravitonGunStatus = nil
     end )
 
+    hook.Add( "OnEntityWaterLevelChanged", "CFC_PvPWeapons_GravitonGun_EndStatus", function( ent, _, new )
+        if new < 2 then return end
+
+        ent._cfcPvPWeapons_GravitonGunStatus = nil
+    end )
+
     hook.Add( "DoPlayerDeath", "CFC_PvPWeapons_GravitonGun_UnderstandBonusHints", function( _, attacker, dmgInfo )
         if not IsValid( attacker ) then return end
         if not dmgInfo:IsDamageType( DMG_FALL ) then return end
