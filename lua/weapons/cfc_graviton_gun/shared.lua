@@ -124,7 +124,12 @@ SWEP.Primary = {
     GravitonStackMult = 1, -- If the victim already has a graviton effect, multiply its acceleration by this much before adding the new effect to it.
     GravitonDropProp = true, -- If the victim is physguning a prop, drop it.
     GravitonDropPropKnockback = 1000, -- If a physgunned prop is dropped by the graviton gun, how much velocity to use to push it away from the victim.
-    GravitonHorizontalToDownwards = 0.5, -- Convert some of the victim's initial horizontal velocity to downwards velocity.
+    GravitonHorizontalToDownwards = { -- Convert some of the victim's initial horizontal velocity to downwards velocity. Different factors for different distances.
+        { dist = 0, factor = 0.85, },
+        { dist = 5000, factor = 0.75, },
+        { dist = 10000, factor = 0.5, },
+        { dist = 15000, factor = 0.25, },
+    },
     GravitonAccelerationMult = 0.75, -- Take a portion of the victim's initial horizontal velocity and apply it as a downwards acceleration on top of normal gravity.
     GravitonAccelerationAdd = 300, -- Flat bonus acceleration to apply downwards.
     GravitonFallDamageDiv = 1900, -- Divides fall speed before going into the ease func.
@@ -490,8 +495,19 @@ if SERVER then
     function SWEP:DoGravitonHorizontalToDownwards( victim )
         local primary = self.Primary
 
-        local horizToDown = primary.GravitonHorizontalToDownwards
-        if horizToDown == 0 then return end
+        local horizToDownList = primary.GravitonHorizontalToDownwards
+        if not horizToDownList then return end
+
+        local dist = victim:GetPos():Distance( self:GetOwner():GetPos() )
+        local horizToDown = 0
+
+        for _, horizToDownListEntry in ipairs( horizToDownList ) do
+            if dist >= horizToDownListEntry.dist then
+                horizToDown = horizToDownListEntry.factor
+            else
+                break
+            end
+        end
 
         local velH = victim:GetVelocity()
         velH.z = 0
