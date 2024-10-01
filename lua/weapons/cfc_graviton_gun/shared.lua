@@ -236,6 +236,7 @@ function SWEP:FireWeapon( charge )
             if ply == owner then continue end
             if not ply:Alive() then continue end
             if ply:InVehicle() then continue end
+            if ply:WaterLevel() > 0 then continue end
 
             local groundEnt = ply:GetGroundEntity()
             if groundEnt == world then continue end
