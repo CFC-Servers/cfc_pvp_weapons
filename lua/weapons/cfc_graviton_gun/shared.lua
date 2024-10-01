@@ -126,9 +126,9 @@ SWEP.Primary = {
     GravitonDropPropKnockback = 1000, -- If a physgunned prop is dropped by the graviton gun, how much velocity to use to push it away from the victim.
     GravitonHorizontalToDownwards = { -- Convert some of the victim's initial horizontal velocity to downwards velocity. Different factors for different distances.
         { dist = 0, factor = 0.75, },
-        { dist = 5000, factor = 0.5, },
-        { dist = 10000, factor = 0.3, },
-        { dist = 15000, factor = 0.15, },
+        { dist = 3000, factor = 0.5, },
+        { dist = 7000, factor = 0.3, },
+        { dist = 12000, factor = 0.15, },
     },
     GravitonAccelerationMult = 0.75, -- Take a portion of the victim's initial horizontal velocity and apply it as a downwards acceleration on top of normal gravity.
     GravitonAccelerationAdd = 300, -- Flat bonus acceleration to apply downwards.
