@@ -136,8 +136,8 @@ SWEP.Primary = {
     GravitonTrailSpeed = 1,
     GravitonTrailOffsetSpread = 30,
     GravitonTrailAmount = 5,
-    GravitonChuteSpeedReduction = 0.3, -- If the victim is in a CFC parachute, reduce their horizontal speed by this much. (1 stops all horizontal movement)
-    GravitonChuteAccelerationMult = 1, -- If the victim is in a CFC parachute, the acceleration will get multiplied by this.
+    --GravitonChuteSpeedReduction = 0.3, -- If the victim is in a CFC parachute, reduce their horizontal speed by this much. (1 stops all horizontal movement)
+    --GravitonChuteAccelerationMult = 1, -- If the victim is in a CFC parachute, the acceleration will get multiplied by this.
 
     GravitonBeamWidth = 30,
     GravitonBeamDuration = 2,
@@ -408,8 +408,8 @@ if SERVER then
                 trailSpeed = primary.GravitonTrailSpeed,
                 trailOffsetSpread = primary.GravitonTrailOffsetSpread,
                 trailAmount = primary.GravitonTrailAmount,
-                chuteSpeedReduction = primary.GravitonChuteSpeedReduction,
-                chuteAccelerationMult = primary.GravitonChuteAccelerationMult,
+                --chuteSpeedReduction = primary.GravitonChuteSpeedReduction,
+                --chuteAccelerationMult = primary.GravitonChuteAccelerationMult,
             }
 
             victim:StopSound( GRAVITON_STATUS_LOOP_SOUND )
@@ -613,11 +613,15 @@ if SERVER then
 
             local accel = gravStatus.accel
 
+            --[[
             if IsValid( ply.cfcParachuteChute ) then
                 accel = accel * gravStatus.chuteAccelerationMult
             end
+            --]]
 
             local velToAdd = Vector( 0, 0, -accel * dt ) -- Apply downwards acceleration.
+
+            --[[
             local chuteSpeedReduction = gravStatus.chuteSpeedReduction
 
             if chuteSpeedReduction ~= 0 then
@@ -626,6 +630,7 @@ if SERVER then
 
                 velToAdd = velToAdd - velH * chuteSpeedReduction * dt
             end
+            --]]
 
             ply:SetVelocity( velToAdd )
 
@@ -663,11 +668,9 @@ if SERVER then
         physgunProps[ply] = nil
     end )
 
-    --[[
     hook.Add( "CFC_Parachute_CanSpaceEquip", "CFC_PvPWeapons_GravitonGun_BlockParachute", function( ply )
         if ply._cfcPvPWeapons_GravitonGunStatus then return false end
     end )
-    --]]
 else
     local gravitonBeams = {}
 
