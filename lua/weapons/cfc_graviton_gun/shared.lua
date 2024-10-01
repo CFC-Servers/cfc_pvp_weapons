@@ -179,6 +179,8 @@ local bonusHints = {
 }
 
 
+local GRAVITON_STATUS_LOOP_SOUND = "ambient/machines/city_ventpump_loop1.wav"
+
 local physgunProps = {}
 local gravitonBeamMat = CLIENT and Material( "sprites/physbeama" )
 local BONUS_HINTS_UNDERSTOOD
@@ -409,8 +411,8 @@ if SERVER then
                 chuteAccelerationMult = primary.GravitonChuteAccelerationMult,
             }
 
-            victim:StopSound( "ambient/machines/city_ventpump_loop1.wav" )
-            victim:EmitSound( "ambient/machines/city_ventpump_loop1.wav", 90, 220, 1, CHAN_AUTO )
+            victim:StopSound( GRAVITON_STATUS_LOOP_SOUND )
+            victim:EmitSound( GRAVITON_STATUS_LOOP_SOUND, 90, 220, 1, CHAN_AUTO )
 
             self:DoGravitonDropProp( victim )
             self:DoGravitonHorizontalToDownwards( victim )
@@ -557,7 +559,7 @@ if SERVER then
         local id = gravStatus.id
 
         gravStatus.stale = true
-        ply:StopSound( "ambient/machines/city_ventpump_loop1.wav" )
+        ply:StopSound( GRAVITON_STATUS_LOOP_SOUND )
 
         -- Delay by 1 tick because GetFallDamage runs after OnPlayerHitGround
         timer.Simple( 0, function()
@@ -572,12 +574,17 @@ if SERVER then
     end )
 
     hook.Add( "PlayerDeath", "CFC_PvPWeapons_GravitonGun_EndStatus", function( ply )
+        if not ply._cfcPvPWeapons_GravitonGunStatus then return end
+
+        ply:StopSound( GRAVITON_STATUS_LOOP_SOUND )
         ply._cfcPvPWeapons_GravitonGunStatus = nil
     end )
 
     hook.Add( "OnEntityWaterLevelChanged", "CFC_PvPWeapons_GravitonGun_EndStatus", function( ent, _, new )
         if new < 2 then return end
+        if not ent._cfcPvPWeapons_GravitonGunStatus then return end
 
+        ent:StopSound( GRAVITON_STATUS_LOOP_SOUND )
         ent._cfcPvPWeapons_GravitonGunStatus = nil
     end )
 
