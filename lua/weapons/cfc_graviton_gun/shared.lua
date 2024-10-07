@@ -703,8 +703,10 @@ else
 
     function SWEP:DoDrawCrosshair( x, y )
         local coneDeg = self:GetGravitonAimCone( math.max( self:Clip1(), 1 ) )
-        local fov = self:GetFOV()
-        local radius = 0.25 * ScrW() * coneDeg / ( fov - 15 )
+        local fov = self:GetFOV() - 15 -- Source Engine FOV is wacky
+        if fov == 0 then return true end -- Avoid divide by zero
+
+        local radius = 0.25 * ScrW() * coneDeg / fov
         radius = math.max( radius, 5 )
 
         if self:IsEmpty() or self:GetActivity() == ACT_VM_DRAW then
