@@ -702,7 +702,7 @@ else
 
 
     function SWEP:DoDrawCrosshair( x, y )
-        local coneDeg = self:GetGravitonAimCone( math.max( self:Clip1(), 1 ) )
+        local coneDeg = self:GetGravitonAimCone( math.Clamp( self:Clip1(), 1, self.Primary.ClipSize ) )
         local fov = self:GetFOV() - 15 -- Source Engine FOV is wacky
         if fov == 0 then return true end -- Avoid divide by zero
 
