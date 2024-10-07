@@ -548,8 +548,16 @@ if SERVER then
         if not IsValid( attacker ) then return damage end
 
         local dmgInfo = DamageInfo()
+        local wep = gravStatus.wep
+
+        -- Rarely, it's possible for the weapon to be dropped and cleaned up, or for the attacker to die, before the victim hits the ground.
+        -- We (probably) can't (and shouldn't) spawn a new weapon in time to use as a backup, so just don't set an inflictor.
+        -- Unfortunately will end up with the wrong killfeed icon, but it's better than halting from an error.
+        if IsValid( wep ) then
+            dmgInfo:SetInflictor( wep )
+        end
+
         dmgInfo:SetAttacker( attacker )
-        dmgInfo:SetInflictor( gravStatus.wep )
         dmgInfo:SetDamage( damage )
         dmgInfo:SetDamageType( DMG_FALL )
 
