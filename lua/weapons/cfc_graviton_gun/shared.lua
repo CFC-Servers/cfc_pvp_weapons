@@ -42,10 +42,6 @@ SWEP.Primary = {
     DefaultClip = 1000, -- How many rounds the player gets when picking up the weapon for the first time, excess ammo will be added to the player's reserves
 
     Damage = 10, -- Damage per shot
-    Count = 1, -- Optional: Shots fired per shot
-
-    PumpAction = false, -- Optional: Tries to pump the weapon between shots
-    PumpSound = "Weapon_Shotgun.Special1", -- Optional: Sound to play when pumping
 
     Delay = 2 / 50, -- Delay between each buildup of charge, use 60 / x for RPM (Rounds per minute) values
     BurstEnabled = false, -- When releasing the charge, decides whether to burst-fire the weapon once per unit ammo, or to expend the full charge in one fire call
@@ -56,14 +52,6 @@ SWEP.Primary = {
     OverchargeKnockback = 1000, -- Overcharging blasts the player up and backwards with this much speed.
     OverchargeExplosionDamage = 30, -- Damage dealt by the overcharge explosion.
     OverchargeExplosionRadius = 150, -- Radius of the overcharge explosion.
-
-    Range = 750, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
-    Accuracy = 12, -- The reference value to use for the previous option, 12 = headshots, 24 = bodyshots
-
-    UnscopedRange = 0, -- Scope base only, optional: The range to use when unscoped
-    UnscopedAccuracy = 0, -- Scope base only, optional: The accuracy reference to use when unscoped
-
-    RangeModifier = 0.85, -- The damage multiplier applied for every 1000 units a bullet travels, e.g. 0.85 for 2000 units = 0.85 * 0.85 = 72% of original damage
 
     Recoil = {
         MinAng = Angle( 0.5, -2, 0 ), -- The minimum amount of recoil punch per shot
@@ -86,9 +74,6 @@ SWEP.Primary = {
         Shotgun = false,
         Sound = ""
     },
-
-    Sound = "Weapon_Pistol.Single", -- Firing sound
-    TracerName = "Tracer", -- Tracer effect, leave blank for no tracer
 
     ChargeSound = "npc/combine_gunship/engine_whine_loop1.wav", -- Should be a looping sound
     ChargeVolume = 0.5,
@@ -117,25 +102,30 @@ SWEP.Primary = {
     },
 
     -- Graviton Gun settings:
-    GravitonAimConeMin = 2, -- The starting total width of the aim cone, in degrees. The effective cone scales based on charge.
-    GravitonAimConeMax = 20,
+    GravitonAimConeMin = 2, -- The minimum total width of the aim cone, in degrees. The effective cone scales based on charge.
+    GravitonAimConeMax = 20, -- The maximum total width of the aim cone, in degrees. The effective cone scales based on charge.
+
     GravitonMaxRange = 15000, -- The maximum range of the graviton beam.
     GravitonHeightThreshold = 100, -- If the victim is too close to the ground, don't hit them.
     GravitonStackMult = 1, -- If the victim already has a graviton effect, multiply its acceleration by this much before adding the new effect to it.
-    GravitonDropProp = true, -- If the victim is physguning a prop, drop it.
-    GravitonDropPropKnockback = 1000, -- If a physgunned prop is dropped by the graviton gun, how much velocity to use to push it away from the victim.
     GravitonHorizontalToDownwards = { -- Convert some of the victim's initial horizontal velocity to downwards velocity. Different factors for different distances.
         { dist = 0, factor = 0.75, },
         { dist = 3000, factor = 0.5, },
         { dist = 7000, factor = 0.3, },
         { dist = 12000, factor = 0.15, },
     },
+
+    GravitonDropProp = true, -- If the victim is physguning a prop, drop it.
+    GravitonDropPropKnockback = 1000, -- If a physgunned prop is dropped by the graviton gun, how much velocity to use to push it away from the victim.
+
     GravitonAccelerationMult = 0.75, -- Take a portion of the victim's initial horizontal velocity and apply it as a downwards acceleration on top of normal gravity.
     GravitonAccelerationAdd = 300, -- Flat bonus acceleration to apply downwards.
+
     GravitonFallDamageDiv = 1900, -- Divides fall speed before going into the ease func.
     GravitonFallDamageEase = math.ease.InQuart, -- Easing function to apply to fall damage.
     GravitonFallDamageMult = 80, -- Multiplies fall damage after ease func.
     GravitonFallDamageSpeedThreshdold = 1200, -- Speed at which fall damage starts to be applied.
+
     GravitonTrailInterval = 0.1,
     GravitonTrailLength = 2,
     GravitonTrailSpeed = 1,
@@ -145,6 +135,18 @@ SWEP.Primary = {
     GravitonBeamWidth = 30,
     GravitonBeamDuration = 2,
     GravitonBeamColor = Color( 255, 150, 80 ),
+
+    -- Superseeded by charge base or graviton gun, leave as-is:
+    Count = 1, -- Optional: Shots fired per shot
+    PumpAction = false, -- Optional: Tries to pump the weapon between shots
+    PumpSound = "Weapon_Shotgun.Special1", -- Optional: Sound to play when pumping
+    Range = 750,
+    Accuracy = 12,
+    UnscopedRange = 0,
+    UnscopedAccuracy = 0,
+    RangeModifier = 0.85,
+    Sound = "Weapon_Pistol.Single",
+    TracerName = "Tracer",
 }
 
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
