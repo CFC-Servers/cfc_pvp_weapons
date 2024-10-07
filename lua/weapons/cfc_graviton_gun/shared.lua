@@ -141,8 +141,6 @@ SWEP.Primary = {
     GravitonTrailSpeed = 1,
     GravitonTrailOffsetSpread = 30,
     GravitonTrailAmount = 5,
-    --GravitonChuteSpeedReduction = 0.3, -- If the victim is in a CFC parachute, reduce their horizontal speed by this much. (1 stops all horizontal movement)
-    --GravitonChuteAccelerationMult = 1, -- If the victim is in a CFC parachute, the acceleration will get multiplied by this.
 
     GravitonBeamWidth = 30,
     GravitonBeamDuration = 2,
@@ -385,7 +383,7 @@ if SERVER then
     function SWEP:DoGravitonHit( owner, victim )
         local primary = self.Primary
 
-        if victim:Alive() then --Only apply the graviton status if the initial damage wasn't enought ot kill them.
+        if victim:Alive() then -- Only apply the graviton status if the initial damage wasn't enough to kill them.
             local chute = victim.cfcParachuteChute
 
             if IsValid( chute ) then
@@ -415,8 +413,6 @@ if SERVER then
                 trailSpeed = primary.GravitonTrailSpeed,
                 trailOffsetSpread = primary.GravitonTrailOffsetSpread,
                 trailAmount = primary.GravitonTrailAmount,
-                --chuteSpeedReduction = primary.GravitonChuteSpeedReduction,
-                --chuteAccelerationMult = primary.GravitonChuteAccelerationMult,
             }
 
             victim:StopSound( GRAVITON_STATUS_LOOP_SOUND )
@@ -638,25 +634,7 @@ if SERVER then
             if gravStatus.stale then continue end
 
             local accel = gravStatus.accel
-
-            --[[
-            if IsValid( ply.cfcParachuteChute ) then
-                accel = accel * gravStatus.chuteAccelerationMult
-            end
-            --]]
-
             local velToAdd = Vector( 0, 0, -accel * dt ) -- Apply downwards acceleration.
-
-            --[[
-            local chuteSpeedReduction = gravStatus.chuteSpeedReduction
-
-            if chuteSpeedReduction ~= 0 then
-                local velH = ply:GetVelocity()
-                velH.z = 0
-
-                velToAdd = velToAdd - velH * chuteSpeedReduction * dt
-            end
-            --]]
 
             ply:SetVelocity( velToAdd )
 
