@@ -212,6 +212,8 @@ function SWEP:FireWeapon( charge )
     local owner = self:GetOwner()
     local primary = self.Primary
 
+    charge = math.min( charge, primary.ClipSize ) -- Just in case something forces a larger charge than the clip size (e.g. CFC Ammo powerup)
+
     if SERVER then
         local initialDamage = self:GetDamage()
         local maxRange = primary.GravitonMaxRange
