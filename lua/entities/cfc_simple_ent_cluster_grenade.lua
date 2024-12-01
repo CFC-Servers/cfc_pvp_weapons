@@ -157,9 +157,12 @@ function ENT:Explode( splitDir, baseVelMult )
         ent:SetMaterial( "" )
         ent:PhysicsInit( SOLID_VPHYSICS )
 
+        local physObj = ent:GetPhysicsObject()
+
         ent:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS )
-        ent:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_IMPACT_DMG )
-        ent:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_NPC_IMPACT_DMG )
+        physObj:AddGameFlag( FVPHYSICS_NO_IMPACT_DMG )
+        physObj:AddGameFlag( FVPHYSICS_NO_NPC_IMPACT_DMG )
+        physObj:SetVelocity( dir * splitSpeed + baseVel )
 
         local entGrenadeParams = ent.GrenadeParams
 
@@ -174,9 +177,6 @@ function ENT:Explode( splitDir, baseVelMult )
         if explodeDelay and nextClusterAmount ~= 0 and splitLimit ~= 0 then
             ent:SetTimer( explodeDelay )
         end
-
-        local physObj = ent:GetPhysicsObject()
-        physObj:SetVelocity( dir * splitSpeed + baseVel )
     end
 
     --sound.Play( "phx/epicmetal_hard5.wav", pos, 75, 100 ) -- Directionless sound :(
