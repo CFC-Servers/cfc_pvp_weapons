@@ -1,17 +1,18 @@
 CFCPvPWeapons = CFCPvPWeapons or {}
 
 
---[[
-    - util.BlastDamageInfo(), with damage callbacks.
-    - Do NOT call any damage-inflicting functions in the callbacks, it will cause feedback loops and/or misattribute the callback.
-        - If you need to inflict damage from the callbacks, use a timer, entity with a fuse, etc.
-
-    etdCallback: (optional) (function)
-        - A callback function that listens during EntityTakeDamage with HOOK_LOW.
-        - Whatever is returned by the function will be returned in the hook, if you need to block the normal damage event.
-    petdCallback: (optional) (function)
-        - A callback function that listens during PostEntityTakeDamage.
---]]
+--- Applies blast damage and optionally hooks into damage events.
+--- 
+--- @param dmgInfo CTakeDamageInfo The damage info object containing damage details.
+--- @param pos Vector The position where the blast damage originates.
+--- @param radius number The radius of the blast damage.
+--- @param etdCallback function? A callback function for the `EntityTakeDamage` hook with `HOOK_LOW` priority. 
+--- If the callback returns a value, it will be used in the hook, which can be used to block the normal damage event.
+--- Do NOT call any damage-inflicting functions in this callback to avoid feedback loops or misattribution.
+--- @param petdCallback? function A callback function for the `PostEntityTakeDamage` hook. 
+--- Similar to `etdCallback`, but triggered after the entity takes damage.
+---
+--- **Note:** If you need to inflict additional damage from the callback, use a timer, entity with a fuse, or similar workaround.
 function CFCPvPWeapons.BlastDamageInfo( dmgInfo, pos, radius, etdCallback, petdCallback )
     if etdCallback then
         hook.Add( "EntityTakeDamage", "CFC_PvPWeapons_BlastDamageInfo", etdCallback, HOOK_LOW )
