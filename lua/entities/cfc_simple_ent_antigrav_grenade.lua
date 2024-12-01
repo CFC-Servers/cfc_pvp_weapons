@@ -6,6 +6,11 @@ ENT.Base = "cfc_simple_ent_bubble_grenade"
 
 ENT.Model = Model( "models/weapons/w_eq_fraggrenade.mdl" )
 
+ENT.BeepEnabled = true
+ENT.BeepDelay = 1
+ENT.BeepDelayFast = 0.3
+ENT.BeepFastThreshold = 1.5
+
 ENT.BubbleRadius = 250
 ENT.BubbleDuration = 7
 ENT.BubbleGrowDuration = 0.25
@@ -16,12 +21,6 @@ ENT.GravityMult = -2.5
 ENT.PushStrength = 260 -- Pushes the player up to get them off the ground.
 ENT.FuseOnImpact = 1 -- On the first impact, shortens the remaining fuse time to this.
 
-
-function ENT:SetTimer( delay )
-    BaseClass.SetTimer( self, delay )
-
-    self.Beep = CurTime()
-end
 
 function ENT:Initialize()
     BaseClass.Initialize( self )
@@ -150,20 +149,6 @@ function ENT:BubbleEndEffect( ent )
     ent._cfcPvPWeapons_AntiGravityGrenade = nil
 end
 
-function ENT:Think()
-    if SERVER and self.Beep and self.Beep <= CurTime() then
-        self:EmitSound( "npc/scanner/combat_scan4.wav", 75, 120 )
-
-        local time = 1
-
-        if self._explodeTime and self._explodeTime - CurTime() <= 1.5 then
-            time = 0.3
-        end
-
-        self.Beep = CurTime() + time
-    end
-
-    BaseClass.Think( self )
-
-    return true
+function ENT:PlayBeep()
+    self:EmitSound( "npc/scanner/combat_scan4.wav", 75, 120 )
 end

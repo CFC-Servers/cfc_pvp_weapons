@@ -6,6 +6,11 @@ ENT.Base = "cfc_simple_ent_grenade_base"
 
 ENT.Model = Model( "models/weapons/w_eq_fraggrenade.mdl" )
 
+ENT.BeepEnabled = true
+ENT.BeepDelay = 0.5
+ENT.BeepDelayFast = 0.15
+ENT.BeepFastThreshold = 1.5
+
 ENT.Damage = 100 -- Doesn't actually deal damage, just used to compare against damage falloff for scaling the duration.
 ENT.Radius = 300
 ENT.Duration = 15
@@ -49,12 +54,6 @@ local BLACKLISTED_EFFECTS = {
     ["FilmDevelopment"] = true,
 }
 
-
-function ENT:SetTimer( delay )
-    BaseClass.SetTimer( self, delay )
-
-    self.Beep = CurTime()
-end
 
 function ENT:Initialize()
     BaseClass.Initialize( self )
@@ -110,20 +109,6 @@ function ENT:Explode()
     self:Remove()
 end
 
-function ENT:Think()
-    if SERVER and self.Beep and self.Beep <= CurTime() then
-        self:EmitSound( "buttons/button" .. math.random( 14, 19 ) .. ".wav", 75, 100 )
-
-        local time = 0.5
-
-        if self._explodeTime and self._explodeTime - CurTime() <= 1.5 then
-            time = 0.15
-        end
-
-        self.Beep = CurTime() + time
-    end
-
-    BaseClass.Think( self )
-
-    return true
+function ENT:PlayBeep()
+    self:EmitSound( "buttons/button" .. math.random( 14, 19 ) .. ".wav", 75, 100 )
 end
