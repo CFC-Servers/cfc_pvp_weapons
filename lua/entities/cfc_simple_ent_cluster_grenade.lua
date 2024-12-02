@@ -47,7 +47,8 @@ function ENT:Initialize()
     self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_cluster" )
 
     if SERVER then
-        timer.Simple( 0, function() -- A timer is needed to prevent :PhysicsCollide() from triggering on the prop's own physobj when being spawned.
+        -- A timer is needed to prevent :PhysicsCollide() from triggering on the sibling cluster grenades, as the collision group doesn't apply until the next tick.
+        timer.Simple( 0, function()
             if not IsValid( self ) then return end
 
             local exploded = false
