@@ -30,7 +30,7 @@ function ENT:Initialize()
     local fuseOnImpact = self.FuseOnImpact
 
     if SERVER and fuseOnImpact then
-        timer.Simple( 0, function()
+        timer.Simple( 0, function() -- A timer is needed to prevent :PhysicsCollide() from triggering on the prop's own physobj when being spawned.
             if not IsValid( self ) then return end
 
             local fuseShortened = false
