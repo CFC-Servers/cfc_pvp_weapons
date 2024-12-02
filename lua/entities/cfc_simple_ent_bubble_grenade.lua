@@ -141,8 +141,7 @@ function ENT:Explode()
     timer.Simple( bubbleDuration + engine.TickInterval(), function()
         local linger = selfObj.EffectLingerOutsideBubble
 
-        -- For in case an entity somehow doesn't trigger the bubble's :EndTouch() before the bubble gets removed.
-        -- May or may not be needed, but it's good to be thorough.
+        -- Start the EndEffectLinger for all ents currently in the bubble, as :Remove() won't trigger :EndTouch().
         for ent in pairs( touchedEnts ) do
             if IsValid( ent ) then
                 timer.Create( "CFC_PvPWeapons_BubbleGrenade_EndEffectLinger_" .. bubbleID .. "_" .. ent:EntIndex(), linger, 1, function()
@@ -165,6 +164,7 @@ function ENT:Explode()
         end
 
         -- Remove the grenade after enough time passes for all lingers to finish.
+        -- This is so the grenade can continue to handle the logic of effects as they linger.
         timer.Simple( linger + 0.25, function()
             if not IsValid( selfObj ) then return end
             selfObj.OnRemove = _OnRemove -- No need for the early-remove check anymore.
