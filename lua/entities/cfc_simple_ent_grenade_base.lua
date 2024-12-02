@@ -18,7 +18,7 @@ function ENT:SetTimer( delay )
     self._explodeDelay = delay
 
     if self.BeepEnabled then
-        self._nextBeepTime = CurTime() + self.BeepDelay
+        self._nextBeepTime = CurTime()
     end
 
     self:NextThink( CurTime() )
