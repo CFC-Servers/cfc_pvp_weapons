@@ -81,7 +81,7 @@ if SERVER then
 
         local entGrenadeParams = ent.GrenadeParams
         local grenadeOverrides = self.Primary.GrenadeOverrides
-        local charge = self:GetCharge()
+        local charge = math.Clamp( self:GetCharge(), 0, self.Primary.ChargeMax )
 
         grenadeOverrides.ClusterAmount = charge
 
