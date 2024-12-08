@@ -117,6 +117,7 @@ if CLIENT then
         BaseClass.FireWeapon( self )
     end
 
+    return
 end
 
 
