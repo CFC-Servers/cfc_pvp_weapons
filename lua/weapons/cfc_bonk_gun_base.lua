@@ -101,7 +101,23 @@ SWEP.Bonk = {
 }
 
 
-if CLIENT then return end
+if CLIENT then
+    function SWEP:FireWeapon()
+        local ply = self:GetOwner()
+
+        -- If in buildmode, do self-knockback and sounds, but no bullets
+        if ply.IsInBuild and ply:IsInBuild() then
+            self:EmitFireSound()
+            self:SendTranslatedWeaponAnim( ACT_VM_PRIMARYATTACK )
+            ply:SetAnimation( PLAYER_ATTACK1 )
+
+            return
+        end
+
+        BaseClass.FireWeapon( self )
+    end
+
+end
 
 
 function SWEP:FireWeapon()
@@ -130,5 +146,14 @@ function SWEP:FireWeapon()
         end
     end
 
-    return BaseClass.FireWeapon( self )
+    -- If in buildmode, do self-knockback and sounds, but no bullets
+    if ply.IsInBuild and ply:IsInBuild() then
+        self:EmitFireSound()
+        self:SendTranslatedWeaponAnim( ACT_VM_PRIMARYATTACK )
+        ply:SetAnimation( PLAYER_ATTACK1 )
+
+        return
+    end
+
+    BaseClass.FireWeapon( self )
 end
