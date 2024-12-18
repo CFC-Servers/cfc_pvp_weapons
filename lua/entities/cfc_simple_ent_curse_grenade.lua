@@ -145,6 +145,15 @@ end
 
 function ENT:PlayBeep()
     self:EmitSound( "buttons/button" .. math.random( 14, 19 ) .. ".wav", 75, 100 )
+
+    local effect = EffectData()
+    effect:SetOrigin( self:WorldSpaceCenter() )
+    effect:SetScale( 0.4 )
+    effect:SetRadius( 5 )
+    effect:SetMagnitude( 2 )
+    effect:SetColor( 2 )
+    effect:SetFlags( 0 )
+    util.Effect( "cfc_pvp_weapons_curse_explosion", effect, true, true )
 end
 
 
