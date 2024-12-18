@@ -167,7 +167,7 @@ if SERVER then
 
         for effectName, endTime in pairs( grenadeCurses ) do
             if endTime > now then
-                CFCUlxCurse.EndCurseEffect( ply, effectName )
+                CFCUlxCurse.StopCurseEffect( ply, effectName )
             end
         end
 
