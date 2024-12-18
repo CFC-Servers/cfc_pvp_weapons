@@ -124,6 +124,15 @@ function ENT:Explode()
     util.Effect( "Explosion", effect, true, true )
     util.Effect( "cball_explode", effect, true, true )
 
+    local radius = self.Radius
+
+    effect:SetScale( 1.5 )
+    effect:SetRadius( radius / 3 )
+    effect:SetMagnitude( math.Rand( radius * 30 / 300, radius * 40 / 300 ) )
+    effect:SetColor( 4 )
+    effect:SetFlags( 0 )
+    util.Effect( "cfc_pvp_weapons_curse_explosion", effect, true, true )
+
     sound.Play( "npc/assassin/ball_zap1.wav", pos, 90, 100 )
     sound.Play( "npc/roller/blade_out.wav", pos, 90, 100 )
     sound.Play( "npc/roller/mine/rmine_explode_shock1.wav", pos, 90, 100 )
