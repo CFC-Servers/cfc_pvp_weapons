@@ -28,10 +28,13 @@ local BLACKLISTED_EFFECTS = {
     ["NoclipSpam"] = true,
     ["DisableNoclip"] = true,
     ["TextScramble"] = true,
+    ["SeeingDouble"] = true,
 
     -- Too short of a duration to matter
     ["ColorModifyContinuous"] = true,
     ["TextureShuffleContinuous"] = true,
+    ["RollAimIncremental"] = true,
+    ["Schizophrenia"] = true,
 
     -- Not fun or too unfair
     ["JumpExplode"] = true,
@@ -42,6 +45,9 @@ local BLACKLISTED_EFFECTS = {
     ["Drunk"] = true,
     ["NoInteract"] = true,
     ["Lidar"] = true,
+    ["Ball"] = true,
+    ["DoNoHarm"] = true,
+    ["DoSomeHarm"] = true,
 
     -- Causes a big lagspike for the first time per session, and doesn't affect pvp a huge amount
     ["SoundShuffle"] = true,
@@ -52,6 +58,18 @@ local BLACKLISTED_EFFECTS = {
 
     -- Allow FilmDevelopmentNoClear, but not the regular one.
     ["FilmDevelopment"] = true,
+
+    -- Too much nausea
+    ["SanFransisco"] = true,
+
+    -- Too hard to notice or to realize what the source is
+    ["NoHud"] = true,
+    ["InputDrop"] = true,
+    ["Rubberband"] = true,
+    ["SpineBreak"] = true,
+    ["Butterfingers"] = true,
+    ["HealthDrain"] = true,
+    ["OffsetAim"] = true,
 }
 
 
@@ -85,8 +103,15 @@ function ENT:Explode()
 
         if effectData then
             local durationEff = math.max( duration * dmgInfo:GetDamage() / damage, durationMin )
+            local grenadeCurses = victim._cfcPvPWeapons_CurseGrenade_Curses
+
+            if not grenadeCurses then
+                grenadeCurses = {}
+                victim._cfcPvPWeapons_CurseGrenade_Curses = grenadeCurses
+            end
 
             CFCUlxCurse.ApplyCurseEffect( victim, effectData, durationEff )
+            grenadeCurses[effectData.name] = CurTime() + durationEff
         end
 
         return true
@@ -98,6 +123,15 @@ function ENT:Explode()
 
     util.Effect( "Explosion", effect, true, true )
     util.Effect( "cball_explode", effect, true, true )
+
+    local radius = self.Radius
+
+    effect:SetScale( 1.5 )
+    effect:SetRadius( radius / 3 )
+    effect:SetMagnitude( math.Rand( radius * 30 / 300, radius * 40 / 300 ) )
+    effect:SetColor( 4 )
+    effect:SetFlags( 0 )
+    util.Effect( "cfc_pvp_weapons_curse_explosion", effect, true, true )
 
     sound.Play( "npc/assassin/ball_zap1.wav", pos, 90, 100 )
     sound.Play( "npc/roller/blade_out.wav", pos, 90, 100 )
@@ -111,4 +145,32 @@ end
 
 function ENT:PlayBeep()
     self:EmitSound( "buttons/button" .. math.random( 14, 19 ) .. ".wav", 75, 100 )
+
+    local effect = EffectData()
+    effect:SetOrigin( self:WorldSpaceCenter() )
+    effect:SetScale( 0.4 )
+    effect:SetRadius( 5 )
+    effect:SetMagnitude( 2 )
+    effect:SetColor( 2 )
+    effect:SetFlags( 0 )
+    util.Effect( "cfc_pvp_weapons_curse_explosion", effect, true, true )
+end
+
+
+if SERVER then
+    -- Clear any unexpired cursed given by grenades when the player dies.
+    hook.Add( "PostPlayerDeath", "CFC_PvPWeapons_CurseGrenade_EndCursesOnDeath", function( ply )
+        local grenadeCurses = ply._cfcPvPWeapons_CurseGrenade_Curses
+        if not grenadeCurses then return end
+
+        local now = CurTime()
+
+        for effectName, endTime in pairs( grenadeCurses ) do
+            if endTime > now then
+                CFCUlxCurse.StopCurseEffect( ply, effectName )
+            end
+        end
+
+        ply._cfcPvPWeapons_CurseGrenade_Curses = nil
+    end )
 end
