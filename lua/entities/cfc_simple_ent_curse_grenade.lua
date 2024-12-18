@@ -103,8 +103,15 @@ function ENT:Explode()
 
         if effectData then
             local durationEff = math.max( duration * dmgInfo:GetDamage() / damage, durationMin )
+            local grenadeCurses = victim._cfcPvPWeapons_CurseGrenade_Curses
+
+            if not grenadeCurses then
+                grenadeCurses = {}
+                victim._cfcPvPWeapons_CurseGrenade_Curses = grenadeCurses
+            end
 
             CFCUlxCurse.ApplyCurseEffect( victim, effectData, durationEff )
+            grenadeCurses[effectData.name] = CurTime() + durationEff
         end
 
         return true
@@ -129,4 +136,23 @@ end
 
 function ENT:PlayBeep()
     self:EmitSound( "buttons/button" .. math.random( 14, 19 ) .. ".wav", 75, 100 )
+end
+
+
+if SERVER then
+    -- Clear any unexpired cursed given by grenades when the player dies.
+    hook.Add( "PostPlayerDeath", "CFC_PvPWeapons_CurseGrenade_EndCursesOnDeath", function( ply )
+        local grenadeCurses = ply._cfcPvPWeapons_CurseGrenade_Curses
+        if not grenadeCurses then return end
+
+        local now = CurTime()
+
+        for effectName, endTime in pairs( grenadeCurses ) do
+            if endTime > now then
+                CFCUlxCurse.EndCurseEffect( ply, effectName )
+            end
+        end
+
+        ply._cfcPvPWeapons_CurseGrenade_Curses = nil
+    end )
 end
