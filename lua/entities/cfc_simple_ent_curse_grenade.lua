@@ -28,10 +28,13 @@ local BLACKLISTED_EFFECTS = {
     ["NoclipSpam"] = true,
     ["DisableNoclip"] = true,
     ["TextScramble"] = true,
+    ["SeeingDouble"] = true,
 
     -- Too short of a duration to matter
     ["ColorModifyContinuous"] = true,
     ["TextureShuffleContinuous"] = true,
+    ["RollAimIncremental"] = true,
+    ["Schizophrenia"] = true,
 
     -- Not fun or too unfair
     ["JumpExplode"] = true,
@@ -42,6 +45,9 @@ local BLACKLISTED_EFFECTS = {
     ["Drunk"] = true,
     ["NoInteract"] = true,
     ["Lidar"] = true,
+    ["Ball"] = true,
+    ["DoNoHarm"] = true,
+    ["DoSomeHarm"] = true,
 
     -- Causes a big lagspike for the first time per session, and doesn't affect pvp a huge amount
     ["SoundShuffle"] = true,
@@ -52,6 +58,18 @@ local BLACKLISTED_EFFECTS = {
 
     -- Allow FilmDevelopmentNoClear, but not the regular one.
     ["FilmDevelopment"] = true,
+
+    -- Too much nausea
+    ["SanFransisco"] = true,
+
+    -- Too hard to notice or to realize what the source is
+    ["NoHud"] = true,
+    ["InputDrop"] = true,
+    ["Rubberband"] = true,
+    ["SpineBreak"] = true,
+    ["Butterfingers"] = true,
+    ["HealthDrain"] = true,
+    ["OffsetAim"] = true,
 }
 
 
