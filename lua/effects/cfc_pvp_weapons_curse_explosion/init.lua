@@ -62,7 +62,19 @@ function EFFECT:Init( data )
     local flags = data:GetFlags() -- Bitflags for various options.
 
     self.Emitter = ParticleEmitter( pos )
+    self:DoExplosion( pos, scale, radius, magnitude, speedMult, flags )
+end
 
+function EFFECT:Think()
+    self.Emitter:Finish()
+    return false
+end
+
+function EFFECT:Render()
+
+end
+
+function EFFECT:DoExplosion( pos, scale, radius, magnitude, speedMult, flags )
     local speedMin = SPEED_MIN * speedMult
     local speedMax = SPEED_MAX * speedMult
 
@@ -108,13 +120,4 @@ function EFFECT:Init( data )
             end
         end
     end
-end
-
-function EFFECT:Think()
-    self.Emitter:Finish()
-    return false
-end
-
-function EFFECT:Render()
-
 end
