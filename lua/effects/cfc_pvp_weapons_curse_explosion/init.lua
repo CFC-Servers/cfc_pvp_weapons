@@ -75,6 +75,7 @@ function EFFECT:Render()
 end
 
 function EFFECT:DoExplosion( pos, scale, radius, magnitude, speedMult, flags )
+    local emitter = self.Emitter
     local speedMin = SPEED_MIN * speedMult
     local speedMax = SPEED_MAX * speedMult
 
@@ -101,7 +102,7 @@ function EFFECT:DoExplosion( pos, scale, radius, magnitude, speedMult, flags )
         local colorB = color.b
 
         for _ = 1, math.ceil( magnitude * amountPerMagnitude ) do
-            local particle = self.Emitter:Add( mat, pos + VectorRand():GetNormalized() * math.Rand( 0, radius ) )
+            local particle = emitter:Add( mat, pos + VectorRand():GetNormalized() * math.Rand( 0, radius ) )
             if particle then
                 local colorIntensity = math.Rand( colorIntensityMin, colorIntensityMax )
 
