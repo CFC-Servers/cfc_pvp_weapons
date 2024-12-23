@@ -44,7 +44,7 @@ SWEP.Primary = {
     BurstDelay = 60 / 1200, -- Burst only: the delay between shots during a burst
     BurstEndDelay = 0.4, -- Burst only: the delay added after a burst
 
-    Range = 300, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
+    Range = 400, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
     Accuracy = 24, -- The reference value to use for the previous option, 12 = headshots, 24 = bodyshots
 
     RangeModifier = 1, -- The damage multiplier applied for every 1000 units a bullet travels, e.g. 0.85 for 2000 units = 0.85 * 0.85 = 72% of original damage
