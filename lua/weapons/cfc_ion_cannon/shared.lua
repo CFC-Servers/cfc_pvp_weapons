@@ -40,6 +40,9 @@ SWEP.Primary = {
     DamageEase = math.ease.InCubic, -- Easing function to use for the damage curve
     Count = 10, -- Optional: Shots fired per unit ammo
 
+    ExtraDamageMultAtFullCharge = 1, -- Extra multiplier against bullet damage when at exsactly 100% charge.
+    ExtraDamageExplosiveMultAtFullCharge = 1.5, -- Extra multiplier against explosive damage when at exsactly 100% charge.
+
     PumpAction = false, -- Optional: Tries to pump the weapon between shots
     PumpSound = "Weapon_Shotgun.Special1", -- Optional: Sound to play when pumping
 
@@ -154,10 +157,16 @@ function SWEP:FireWeapon( chargeAmount )
     local clipMax = primary.ClipSize
     local damageFrac = primary.DamageEase( chargeAmount / clipMax )
     local damage = math.max( 1, primary.Damage * damageFrac )
+    local damageExplosive = math.floor( primary.DamageExplosive * damageFrac )
     local selfObj = self
 
     if SERVER then
         self._hasDoneFirstBullet = false
+    end
+
+    if chargeAmount == clipMax then
+        damage = damage * primary.ExtraDamageMultAtFullCharge
+        damageExplosive = damageExplosive * primary.ExtraDamageExplosiveMultAtFullCharge
     end
 
     local bullet = {
@@ -178,8 +187,6 @@ function SWEP:FireWeapon( chargeAmount )
                 if selfObj._hasDoneFirstBullet then return end
 
                 selfObj._hasDoneFirstBullet = true
-
-                local damageExplosive = math.floor( primary.DamageExplosive * damageFrac )
 
                 if damageExplosive > 0 then
                     doExplosiveDamage( selfObj, owner, tr, damageExplosive, primary.DamageExplosiveRadius * damageFrac, damageFrac )
