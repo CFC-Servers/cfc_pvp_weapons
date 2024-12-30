@@ -95,6 +95,7 @@ SWEP.Bonk = {
         PlayerForceComboMult = 1.75, -- Multiplies against force strength if the victim is currently in a bonk state. Requires ImpactEnabled to be true.
         PlayerForceGroundPitchMin = 25, -- The minimum launch pitch when on the ground.
         PlayerForceGroundZAdd = 50, -- Adds to the z-component of launch force when on the ground.
+        PlayerForceGroundThreshold = 60, -- Count the victim as being grounded (minus the z-add) if they are within this many hmu of the ground.
         PlayerForceAirMult = 1.15, -- Multiplies against force strength if the victim is in the air when hit.
         PlayerForceCounteractMult = 0.8, -- How strongly (0-1) the victim's velocity will be counteracted by the launch, if they were moving opposite to it.
         PlayerForceIgnoreThreshold = 0.2, -- If the damage multiplier is below this, the player won't be launched.

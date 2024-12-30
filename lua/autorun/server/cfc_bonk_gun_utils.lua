@@ -110,10 +110,27 @@ local function getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGro
     if damageMult < wep.Bonk.PlayerForceIgnoreThreshold then return false end
 
     local dir = dmgForce:GetNormalized()
+    local groundThresh = wep.Bonk.PlayerForceGroundThreshold
+    local nearGround = false
 
-    -- Force the direction to have a significant upwards angle when on the ground.
-    -- Otherwise, it's a coin flip between barely any movement and way too much, because of Source shenanigans.
-    if fromGround then
+    if not fromGround and groundThresh > 0 then
+        local tr = util.TraceHull( {
+            start = victim:GetPos(),
+            endpos = victim:GetPos() - Vector( 0, 0, groundThresh ),
+            filter = victim,
+            mins = victim:OBBMins(),
+            maxs = victim:OBBMaxs(),
+            mask = MASK_PLAYERSOLID
+        } )
+
+        if tr.Hit then
+            nearGround = true
+        end
+    end
+
+    -- Force the direction to have a significant upwards angle when on or near the ground.
+    -- Otherwise, grounded players don't budge, and near-grounded players (i.e. jumping) immediately hit the ground with little impact.
+    if fromGround or nearGround then
         local ang = attacker:EyeAngles() -- damageinfo force direction is an absolute mess when the victim is on the ground, use eye angles instead
         local pitch = math.min( ang.p, -wep.Bonk.PlayerForceGroundPitchMin )
 
