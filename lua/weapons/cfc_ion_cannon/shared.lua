@@ -43,6 +43,11 @@ SWEP.Primary = {
     ExtraDamageMultAtFullCharge = 1, -- Extra multiplier against bullet damage when at exsactly 100% charge.
     ExtraDamageExplosiveMultAtFullCharge = 1.5, -- Extra multiplier against explosive damage when at exsactly 100% charge.
 
+    -- For cfc_pvp ACF damage conversion
+    ACFDamageMultMin = 1, -- Damagae multiplier against props when the distance is past ACFDamageMultRange.
+    ACFDamageMultMax = 3, -- Damagae multiplier against props when the distance is at 0.
+    ACFDamageMultRange = 1000, -- Falloff distance for the prop damage multiplier. 0 to disable.
+
     PumpAction = false, -- Optional: Tries to pump the weapon between shots
     PumpSound = "Weapon_Shotgun.Special1", -- Optional: Sound to play when pumping
 
@@ -169,6 +174,10 @@ function SWEP:FireWeapon( chargeAmount )
         damageExplosive = damageExplosive * primary.ExtraDamageExplosiveMultAtFullCharge
     end
 
+    local acfMultMin = primary.ACFDamageMultMin
+    local acfMultMax = primary.ACFDamageMultMax
+    local acfRange = primary.ACFDamageMultRange
+
     local bullet = {
         Num = primary.Count,
         Src = owner:GetShootPos(),
@@ -179,8 +188,21 @@ function SWEP:FireWeapon( chargeAmount )
         Force = damage * 0.25,
         Damage = damage,
         Callback = function( _attacker, tr, dmginfo )
-            dmginfo:ScaleDamage( self:GetDamageFalloff( tr.StartPos:Distance( tr.HitPos ) ) )
+            local dist = tr.StartPos:Distance( tr.HitPos )
+
+            dmginfo:ScaleDamage( self:GetDamageFalloff( dist ) )
             dmginfo:SetDamageType( DMG_BULLET + DMG_DISSOLVE )
+
+            -- Dynamically modify ACF_DamageMult
+            if SERVER and acfRange > 0 then
+                local acfMult = Lerp( math.Clamp( dist / acfRange, 0, 1 ), acfMultMax, acfMultMin )
+
+                -- Bullet callbacks that hit the same victim all run together, then (Post)EntityTakeDamage,
+                --  then the next group of bullet callbacks, etc.
+                -- So this will always apply to the correct damage events, in order.
+                -- This will also make the explosion's ACF damage get scaled by the first bullet, which is good.
+                self.ACF_DamageMult = acfMult
+            end
 
             -- Add explosion to the first bullet only
             if SERVER then
