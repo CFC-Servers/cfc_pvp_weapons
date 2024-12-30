@@ -64,7 +64,6 @@ end
 
 -- Refunds a single shot of ammo if the victim is in the air due to being bonked
 local function refundAirShot( attacker, victim, wep )
-    if not AIR_SHOTS_REFUND_AMMO then return end
     if attacker.cfc_bonkCannotRefund then return end
     if not IsValid( wep ) then return end
     if victim:IsOnGround() then return end
