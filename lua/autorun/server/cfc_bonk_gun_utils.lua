@@ -12,12 +12,6 @@ local IsValid = IsValid
 local VECTOR_ZERO = Vector( 0, 0, 0 )
 
 
-local function mathSign( x )
-    if x > 0 then return 1 end
-    if x < 0 then return -1 end
-    return 0
-end
-
 local function isBuildPlayer( ply )
     if not ply:IsPlayer() then return false end
     if not ply.IsInBuild then return false end
@@ -104,7 +98,7 @@ local function counteractOpposingVelocity( ply, forceDir )
     return -dot * forceDir
 end
 
-local function getBonkForce( victim, wep, dmgForce, dmgAmount, fromGround )
+local function getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGround )
     local maxDamage = wep.Primary.Damage * wep.Primary.Count
     local damageMult = math.min( dmgAmount / maxDamage, wep.Bonk.PlayerForceMultMax )
     local bonkInfo = victim.cfc_bonkInfo or {}
@@ -115,38 +109,32 @@ local function getBonkForce( victim, wep, dmgForce, dmgAmount, fromGround )
 
     if damageMult < wep.Bonk.PlayerForceIgnoreThreshold then return false end
 
-    dmgForce = dmgForce:GetNormalized() -- Normalize without modifying original argument
+    local dir = dmgForce:GetNormalized()
 
-    if victim:IsPlayer() then
-        if fromGround then
-            local z = dmgForce.z
-            z = z * wep.Bonk.PlayerForceGroundZMult + wep.Bonk.PlayerForceGroundZAdd
-            dmgForce.z = z
-            dmgForce:Normalize()
-        else
-            local z = dmgForce.z
-            z = z * wep.Bonk.PlayerForceAirZMult + mathSign( z ) * wep.Bonk.PlayerForceAirZAdd
-            dmgForce.z = z
-            dmgForce:Normalize()
+    -- Force the direction to have a significant upwards angle when on the ground.
+    -- Otherwise, it's a coin flip between barely any movement and way too much, because of Source shenanigans.
+    if fromGround then
+        local ang = attacker:EyeAngles() -- damageinfo force direction is an absolute mess when the victim is on the ground, use eye angles instead
+        local pitch = math.min( ang.p, -wep.Bonk.PlayerForceGroundPitchMin )
 
-            damageMult = damageMult * wep.Bonk.PlayerForceAirMult
-        end
+        ang.p = pitch
+        dir = ang:Forward()
     else
-        if fromGround then
-            dmgForce.z = math.abs( dmgForce.z )
-            dmgForce.x = dmgForce.x * wep.Bonk.NPCForceGroundHorizontalMult
-            dmgForce.y = dmgForce.y * wep.Bonk.NPCForceGroundHorizontalMult
-        end
-
-        dmgForce = dmgForce * wep.Bonk.NPCForceMult
+        damageMult = damageMult * wep.Bonk.PlayerForceAirMult
     end
 
-    local counterForce = counteractOpposingVelocity( victim, dmgForce ) * wep.Bonk.PlayerForceCounteractMult
+    local counterForce = counteractOpposingVelocity( victim, dir ) * wep.Bonk.PlayerForceCounteractMult
     local forceStrength = wep.Bonk.PlayerForce * damageMult + wep.Bonk.PlayerForceAdd
-    local force = dmgForce * forceStrength + counterForce
 
+    if not victim:IsPlayer() then
+        forceStrength = forceStrength * wep.Bonk.NPCForceMult
+    end
+
+    local force = dir * forceStrength + counterForce
+
+    -- Still need some flat z velocity to ensure they get off the ground
     if fromGround then
-        force.z = math.max( force.z, wep.Bonk.PlayerForceGroundZMin )
+        force.z = force.z + wep.Bonk.PlayerForceGroundZAdd
     end
 
     return force
@@ -234,7 +222,7 @@ local function bonkVictim( attacker, victim, dmg, wep )
             -- Death ragdoll only needs a force multiplier
             dmg:SetDamageForce( dmgForce * wep.Bonk.PlayerForceMultRagdoll )
         else
-            local force = getBonkForce( victim, wep, dmgForce, dmgAmount, fromGround )
+            local force = getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGround )
 
             bonkPlayerOrNPC( attacker, victim, wep, force )
         end
