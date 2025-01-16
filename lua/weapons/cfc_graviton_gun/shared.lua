@@ -46,9 +46,9 @@ SWEP.Primary = {
     Delay = 2 / 50, -- Delay between each buildup of charge, use 60 / x for RPM (Rounds per minute) values
     BurstEnabled = false, -- When releasing the charge, decides whether to burst-fire the weapon once per unit ammo, or to expend the full charge in one fire call
     BurstDelay = 0.075, -- Burst only: the delay between shots during a burst
-    Cooldown = 3, -- Cooldown to apply once the charge is expended
+    Cooldown = 1.5, -- Cooldown to apply once the charge is expended
     MovementMultWhenCharging = 0.75, -- Multiplier against movement speed when charging
-    OverchargeDelay = 4, -- Once at full charge, it takes this long before overcharge occurs. False to disable overcharge.
+    OverchargeDelay = 6, -- Once at full charge, it takes this long before overcharge occurs. False to disable overcharge.
     OverchargeKnockback = 1000, -- Overcharging blasts the player up and backwards with this much speed.
     OverchargeExplosionDamage = 30, -- Damage dealt by the overcharge explosion.
     OverchargeExplosionRadius = 150, -- Radius of the overcharge explosion.
@@ -109,17 +109,17 @@ SWEP.Primary = {
     GravitonHeightThreshold = 100, -- If the victim is too close to the ground, don't hit them.
     GravitonStackMult = 1, -- If the victim already has a graviton effect, multiply its acceleration by this much before adding the new effect to it.
     GravitonHorizontalToDownwards = { -- Convert some of the victim's initial horizontal velocity to downwards velocity. Different factors for different distances.
-        { dist = 0, factor = 0.75, },
-        { dist = 3000, factor = 0.5, },
-        { dist = 7000, factor = 0.3, },
-        { dist = 12000, factor = 0.15, },
+        { dist = 0, factor = 1, },
+        { dist = 4000, factor = 0.5, },
+        { dist = 6000, factor = 0.25, },
+        { dist = 10000, factor = 0.1, },
     },
 
     GravitonDropProp = true, -- If the victim is physguning a prop, drop it.
     GravitonDropPropKnockback = 1000, -- If a physgunned prop is dropped by the graviton gun, how much velocity to use to push it away from the victim.
 
-    GravitonAccelerationMult = 0.75, -- Take a portion of the victim's initial horizontal velocity and apply it as a downwards acceleration on top of normal gravity.
-    GravitonAccelerationAdd = 300, -- Flat bonus acceleration to apply downwards.
+    GravitonMinHorizontalVelocity = 200, -- Only apply extra force if player's horizontal velocity exceeds this.
+    GravitonAccelerationPow = 1.2, -- Use player's horizontal velocity against them, accelerate them downwards if they were going fast sideways
 
     GravitonFallDamageDiv = 1900, -- Divides fall speed before going into the ease func.
     GravitonFallDamageEase = math.ease.InQuart, -- Easing function to apply to fall damage.
@@ -244,6 +244,7 @@ function SWEP:FireWeapon( charge )
             if not ply:Alive() then continue end
             if ply:InVehicle() then continue end
             if ply:WaterLevel() > 0 then continue end
+            if ply.cfcParachuteChute and ply.cfcParachuteChute._chuteIsOpen then continue end -- cant graviton chuted targets
 
             local groundEnt = ply:GetGroundEntity()
             if groundEnt == world then continue end
@@ -386,13 +387,12 @@ if SERVER then
         local primary = self.Primary
 
         if victim:Alive() then -- Only apply the graviton status if the initial damage wasn't enough to kill them.
-            local chute = victim.cfcParachuteChute
 
-            if IsValid( chute ) then
-                chute:Close()
-            end
+            local horizontalVel = victim:GetVelocity():Length2D()
+            local addedVel = horizontalVel - primary.GravitonMinHorizontalVelocity
+            addedVel = math.Clamp( addedVel, 0, math.huge ) -- dont add extra vel if they're under the limit, it's an anti-propsurf gun, not an anti-in-the-air-gun
 
-            local accel = victim:GetVelocity():Length2D() * primary.GravitonAccelerationMult + primary.GravitonAccelerationAdd
+            local accel = addedVel ^ primary.GravitonAccelerationPow
             local oldStatus = victim._cfcPvPWeapons_GravitonGunStatus
 
             if oldStatus and not oldStatus.stale then
