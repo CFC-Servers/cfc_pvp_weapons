@@ -118,7 +118,7 @@ SWEP.Primary = {
     GravitonDropProp = true, -- If the victim is physguning a prop, drop it.
     GravitonDropPropKnockback = 1000, -- If a physgunned prop is dropped by the graviton gun, how much velocity to use to push it away from the victim.
 
-    GravitonMinHorizontalVelocity = 200, -- Only apply extra force if player's horizontal velocity exceeds this.
+    GravitonMinHorizontalVelocity = 150, -- Only apply extra force if player's horizontal velocity exceeds this.
     GravitonAccelerationPow = 1.2, -- Use player's horizontal velocity against them, accelerate them downwards if they were going fast sideways
 
     GravitonFallDamageDiv = 1900, -- Divides fall speed before going into the ease func.
@@ -176,7 +176,7 @@ SWEP.CFC_FirstTimeHints = {
 local bonusHintCooldown = 8
 local bonusHints = {
     {
-        Message = "The Graviton Gun only works on airborne targets. Try shooting someone high in the air.",
+        Message = "The Graviton Gun only works on fast-moving airborne targets. Try shooting someone high in the air.",
         Sound = "ambient/water/drip1.wav",
         Duration = 8,
         DelayNext = 0,
