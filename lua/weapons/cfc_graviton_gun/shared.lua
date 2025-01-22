@@ -118,8 +118,8 @@ SWEP.Primary = {
     GravitonDropProp = true, -- If the victim is physguning a prop, drop it.
     GravitonDropPropKnockback = 1000, -- If a physgunned prop is dropped by the graviton gun, how much velocity to use to push it away from the victim.
 
-    GravitonMinHorizontalVelocity = 150, -- Only apply extra force if player's horizontal velocity exceeds this.
-    GravitonAccelerationPow = 1.2, -- Use player's horizontal velocity against them, accelerate them downwards if they were going fast sideways
+    GravitonMinHorizontalVelocity = 300, -- Only apply extra force if player's horizontal velocity exceeds this.
+    GravitonAccelerationPow = 1.15, -- Use player's horizontal velocity against them, accelerate them downwards if they were going fast sideways
 
     GravitonFallDamageDiv = 1900, -- Divides fall speed before going into the ease func.
     GravitonFallDamageEase = math.ease.InQuart, -- Easing function to apply to fall damage.
