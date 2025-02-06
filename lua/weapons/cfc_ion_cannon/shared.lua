@@ -43,10 +43,10 @@ SWEP.Primary = {
     ExtraDamageMultAtFullCharge = 1, -- Extra multiplier against bullet damage when at exsactly 100% charge.
     ExtraDamageExplosiveMultAtFullCharge = 1.5, -- Extra multiplier against explosive damage when at exsactly 100% charge.
 
-    -- For cfc_pvp ACF damage conversion
-    ACFDamageMultMin = 1, -- Damagae multiplier against props when the distance is past ACFDamageMultRange.
-    ACFDamageMultMax = 3, -- Damagae multiplier against props when the distance is at 0.
-    ACFDamageMultRange = 1000, -- Falloff distance for the prop damage multiplier. 0 to disable.
+    -- For CFC damage conversion
+    PropDamageMultMin = 2, -- Damage multiplier against props when the distance is past PropDamageMultRange.
+    PropDamageMultMax = 5, -- Damage multiplier against props when the distance is at 0.
+    PropDamageMultRange = 1000, -- Falloff distance for the prop damage multiplier. 0 to disable.
 
     PumpAction = false, -- Optional: Tries to pump the weapon between shots
     PumpSound = "Weapon_Shotgun.Special1", -- Optional: Sound to play when pumping
@@ -174,9 +174,9 @@ function SWEP:FireWeapon( chargeAmount )
         damageExplosive = damageExplosive * primary.ExtraDamageExplosiveMultAtFullCharge
     end
 
-    local acfMultMin = primary.ACFDamageMultMin
-    local acfMultMax = primary.ACFDamageMultMax
-    local acfRange = primary.ACFDamageMultRange
+    local propDamageMultMin = primary.PropDamageMultMin
+    local propDamageMultMax = primary.PropDamageMultMax
+    local propDamageRange = primary.PropDamageMultRange
 
     local bullet = {
         Num = primary.Count,
@@ -193,15 +193,15 @@ function SWEP:FireWeapon( chargeAmount )
             dmginfo:ScaleDamage( self:GetDamageFalloff( dist ) )
             dmginfo:SetDamageType( DMG_BULLET + DMG_DISSOLVE )
 
-            -- Dynamically modify ACF_DamageMult
-            if SERVER and acfRange > 0 then
-                local acfMult = Lerp( math.Clamp( dist / acfRange, 0, 1 ), acfMultMax, acfMultMin )
+            -- Dynamically modify PropDamageMultiplier
+            if SERVER and propDamageRange > 0 then
+                local propDamageMult = Lerp( math.Clamp( dist / propDamageRange, 0, 1 ), propDamageMultMin, propDamageMultMax )
 
                 -- Bullet callbacks that hit the same victim all run together, then (Post)EntityTakeDamage,
                 --  then the next group of bullet callbacks, etc.
                 -- So this will always apply to the correct damage events, in order.
                 -- This will also make the explosion's ACF damage get scaled by the first bullet, which is good.
-                self.ACF_DamageMult = acfMult
+                self.PropDamageMultiplier = propDamageMult
             end
 
             -- Add explosion to the first bullet only
