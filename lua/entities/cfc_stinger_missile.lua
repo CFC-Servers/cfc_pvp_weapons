@@ -394,7 +394,7 @@ else -- client
         util.Effect( "cfc_stinger_trail", effectdata, true, true )
 
         self:SetHasTarget( true ) -- glide lockon sound hack that styled recommended
-        timer.Simple( 0.1, function()
+        timer.Simple( 0.5, function()
             if IsValid( self:GetLockOn() ) then return end
             self:SetHasTarget( false )
         end )
