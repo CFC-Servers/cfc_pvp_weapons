@@ -16,11 +16,10 @@ function ENT:SetupDataTables()
     self:NetworkVarNotify( "LockOn", self.OnLockOnChange )
 end
 
-function ENT:OnLockOnChange( _, _, new )
-    self:SetHasTarget( IsValid( new ) )
-end
-
 if SERVER then
+    function ENT:OnLockOnChange( _, _, new )
+        self:SetHasTarget( IsValid( new ) )
+    end
 
     local stingerDmgMulCVar = CreateConVar( "cfc_stinger_damage_mul", 1, FCVAR_ARCHIVE )
     local stingerMobilityMulCVar = CreateConVar( "cfc_stinger_mobility_mul", 1, FCVAR_ARCHIVE )
@@ -394,11 +393,6 @@ else -- client
         util.Effect( "cfc_stinger_trail", effectdata, true, true )
 
         self:SetHasTarget( true ) -- glide lockon sound hack that styled recommended
-        timer.Simple( 0.5, function()
-            if IsValid( self:GetLockOn() ) then return end
-            self:SetHasTarget( false )
-        end )
-
     end
 
     function ENT:Draw()
