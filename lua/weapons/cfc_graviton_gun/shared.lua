@@ -615,6 +615,7 @@ if SERVER then
 
     hook.Add( "DoPlayerDeath", "CFC_PvPWeapons_GravitonGun_UnderstandBonusHints", function( _, attacker, dmgInfo )
         if not IsValid( attacker ) then return end
+        if attacker:IsPlayer() then return end
         if not dmgInfo:IsDamageType( DMG_FALL ) then return end
         if attacker:GetInfoNum( "cfc_pvp_weapons_graviton_gun_bonus_hints_understood", 0 ) == 1 then return end
 
