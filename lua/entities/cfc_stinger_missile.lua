@@ -137,10 +137,13 @@ if SERVER then
         local myPos = self:GetPos()
         local targetPos
 
+        local loseTargAng = LOCKED_LOSE_TARGET_ANG
+
         if GetClosestFlare then -- glide flares do something
             local flare = GetClosestFlare( myPos, self:GetForward(), GLIDE_FLARE_YIELD_RADIUS )
             if IsValid( flare ) then
                 targetPos = flare:WorldSpaceCenter()
+                loseTargAng = loseTargAng / 6 -- it got fooled by a flare, lose target if it knocks us off enough
             end
         end
 
@@ -162,7 +165,7 @@ if SERVER then
         local targetdir = subtractionProduct:GetNormalized()
 
         local AF = self:WorldToLocalAngles( targetdir:Angle() )
-        local badAngles = AF.p > LOCKED_LOSE_TARGET_ANG or AF.y > LOCKED_LOSE_TARGET_ANG
+        local badAngles = AF.p > loseTargAng or AF.y > loseTargAng
 
         -- if you want to make a plane/vehicle not get targeted by the launcher then see CFC_Stinger_BlockLockon hook, in the launcher
 
@@ -213,6 +216,7 @@ if SERVER then
         if not self:GetDisabled() and IsValid( target ) then
             if not self.DoneMissileDanger then
                 self:HandleMissileDanger( target )
+                self.DoneMissileDanger = true
             end
 
             self:FollowTarget( target )
