@@ -204,8 +204,8 @@ function SWEP:Think()
             local toVehicle = vehicleCenter - eyePos
             local dist = toVehicle:Length()
 
-            local toVehicleN = toVehicle / dist
-            local ang = math.deg( math.acos( math.Clamp( eyeDir:Dot( toVehicleN ), -1, 1 ) ) )
+            local toVehicleNormalized = toVehicle / dist
+            local ang = math.deg( math.acos( math.Clamp( eyeDir:Dot( toVehicleNormalized ), -1, 1 ) ) )
 
             if vehicle == oldClosestEnt then
                 oldDist = dist
