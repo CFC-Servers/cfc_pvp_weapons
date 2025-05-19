@@ -183,9 +183,16 @@ function SWEP:Think()
         local eyeDir = owner:GetAimVector()
         local eyePos = owner:GetShootPos()
 
-        local closestEnt = NULL
-        local closestDist = GetGlobal2Int( "cfc_stinger_maxrange" )
-        local smallestAng = stingerLockAngleVar:GetFloat()
+        local maxRange = GetGlobal2Int( "cfc_stinger_maxrange" )
+        local lockAng = stingerLockAngleVar:GetFloat()
+
+        local oldClosestEnt = self:GetClosestEnt()
+        local oldDist = maxRange
+        local oldAng = lockAng
+
+        local newClosestEnt = NULL
+        local newClosestDist = maxRange
+        local newSmallestAng = lockAng
 
         for index, vehicle in pairs( vehicles ) do
             if not IsValid( vehicle ) then table.remove( vehicles, index ) continue end
@@ -196,30 +203,38 @@ function SWEP:Think()
             local vehicleCenter = vehicle:WorldSpaceCenter()
             local toVehicle = vehicleCenter - eyePos
             local dist = toVehicle:Length()
-            if dist >= closestDist then continue end
 
             local toVehicleN = toVehicle / dist
             local ang = math.deg( math.acos( math.Clamp( eyeDir:Dot( toVehicleN ), -1, 1 ) ) )
-            if ang >= smallestAng then continue end
+
+            if vehicle == oldClosestEnt then
+                oldDist = dist
+                oldAng = ang
+
+            end
+
+            if dist >= newClosestDist then continue end
+            if ang >= newSmallestAng then continue end
 
             if not self:CanSee( vehicle, owner ) then continue end
 
-            closestDist = dist
-            smallestTheta = theta
-            closestEnt = vehicle
+            newClosestDist = dist
+            newSmallestAng = ang
+            newClosestEnt = vehicle
         end
 
-        local entInSights = IsValid( closestEnt )
-        local anOldEntInSights = IsValid( self:GetClosestEnt() )
+        local newVehicleInSights = IsValid( newClosestEnt )
+        local oldVehicleInSights = IsValid( oldClosestEnt ) and oldDist < maxRange and oldAng < lockAng
         local lockingOnForOneFourthOfLockOnTime = ( findTime + ( lockOnTime / 4 ) ) < curtime
-        local lockingOnBlockSwitching = lockingOnForOneFourthOfLockOnTime and anOldEntInSights and entInSights
+        local lockingOnBlockSwitching = lockingOnForOneFourthOfLockOnTime and oldVehicleInSights and newVehicleInSights
 
         -- switch targets when not locking onto a target for more than 1/4th of the lockOnTime
         -- stops the rpg switching between really close targets, eg bunch of people in a simfphys, prop car, prop helicopter.
-        if self:GetClosestEnt() ~= closestEnt and not lockingOnBlockSwitching then
-            self:SetClosestEnt( closestEnt )
+        -- a bit buggy...
+        if oldClosestEnt ~= newClosestEnt and not lockingOnBlockSwitching then
+            self:SetClosestEnt( newClosestEnt )
 
-            if IsValid( closestEnt ) then
+            if IsValid( newClosestEnt ) then
                 self.findTime = curtime
                 self:SetLockedOnTime( curtime + lockOnTime )
                 self.TrackSND = CreateSound( owner, "weapons/cfc_stinger/radar_track.wav" )
@@ -231,13 +246,13 @@ function SWEP:Think()
             end
         end
 
-        if IsValid( closestEnt ) and Glide then
-            if closestEnt.IsGlideVehicle then
+        if IsValid( newClosestEnt ) and Glide then
+            if newClosestEnt.IsGlideVehicle then
                 -- If the target is a Glide vehicle, notify the passengers
-                Glide.SendLockOnDanger( closestEnt:GetAllPlayers() )
-            elseif closestEnt.GetDriver then
+                Glide.SendLockOnDanger( newClosestEnt:GetAllPlayers() )
+            elseif newClosestEnt.GetDriver then
                 -- If the target is another type of vehicle, notify the driver
-                local driver = closestEnt:GetDriver()
+                local driver = newClosestEnt:GetDriver()
 
                 if IsValid( driver ) then
                     Glide.SendLockOnDanger( driver )
@@ -245,7 +260,7 @@ function SWEP:Think()
             end
         end
 
-        if not IsValid( closestEnt ) and self.TrackSND then
+        if not IsValid( newClosestEnt ) and self.TrackSND then
             self.TrackSND:Stop()
             self.TrackSND = nil
         end
