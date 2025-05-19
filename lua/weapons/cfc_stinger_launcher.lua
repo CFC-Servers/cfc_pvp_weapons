@@ -187,8 +187,8 @@ function SWEP:Think()
         local lockAng = stingerLockAngleVar:GetFloat()
 
         local oldClosestEnt = self:GetClosestEnt()
-        local oldDist = maxRange
-        local oldAng = lockAng
+        local oldDist = math.huge
+        local oldAng = 180
 
         local newClosestEnt = NULL
         local newClosestDist = maxRange
