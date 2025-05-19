@@ -230,7 +230,6 @@ function SWEP:Think()
 
         -- switch targets when not locking onto a target for more than 1/4th of the lockOnTime
         -- stops the rpg switching between really close targets, eg bunch of people in a simfphys, prop car, prop helicopter.
-        -- a bit buggy...
         if oldClosestEnt ~= newClosestEnt and not lockingOnBlockSwitching then
             self:SetClosestEnt( newClosestEnt )
 
