@@ -69,7 +69,7 @@ local stingerLockTimeVar = CreateConVar( "cfc_stinger_locktime", 4, { FCVAR_ARCH
 local stingerLockAngleVar
 
 if SERVER then -- this mess stays because cvars.AddChangeCallback doesnt work with replicated convars
-    stingerLockAngleVar = CreateConVar( "cfc_stinger_lockangle", 9, FCVAR_ARCHIVE )
+    stingerLockAngleVar = CreateConVar( "cfc_stinger_lockangle", 10, FCVAR_ARCHIVE )
 
     local maxRangeVar = CreateConVar( "cfc_stinger_maxrange", 60000, { FCVAR_ARCHIVE } )
     local maxRange
@@ -175,62 +175,65 @@ function SWEP:Think()
             self.TrackSND:Stop()
             self.TrackSND = nil
         end
-
     elseif self.nextSortTargets < curtime then
         self.nextSortTargets = curtime + 0.25
-        self.foundVehicles = self.foundVehicles or {}
+        local vehicles = self.foundVehicles or {}
+        self.foundVehicles = vehicles
 
-        local AimForward = owner:GetAimVector()
-        local startpos = owner:GetShootPos()
+        local eyeDir = owner:GetAimVector()
+        local eyePos = owner:GetShootPos()
 
-        local maxDist = GetGlobal2Int( "cfc_stinger_maxrange" )
-        local lockOnAng = stingerLockAngleVar:GetInt()
+        local maxRange = GetGlobal2Int( "cfc_stinger_maxrange" )
+        local lockAng = stingerLockAngleVar:GetFloat()
 
-        local vehicles = {}
-        local closestEnt = NULL
-        local closestDist = math.huge
-        local smallestAng = math.huge
+        local oldClosestEnt = self:GetClosestEnt()
+        local oldDist = math.huge
+        local oldAng = 180
 
-        for index, vehicle in pairs( self.foundVehicles ) do
-            if not IsValid( vehicle ) then table.remove( self.foundVehicles, index ) continue end
+        local newClosestEnt = NULL
+        local newClosestDist = maxRange
+        local newSmallestAng = lockAng
+
+        for index, vehicle in pairs( vehicles ) do
+            if not IsValid( vehicle ) then table.remove( vehicles, index ) continue end
 
             local hookResult = hook.Run( "CFC_Stinger_BlockLockon", self, vehicle )
-            if hookResult == true then table.remove( self.foundVehicles, index ) continue end
+            if hookResult == true then table.remove( vehicles, index ) continue end
 
-            local sub = ( vehicle:GetPos() - startpos )
-            local toEnt = sub:GetNormalized()
-            local ang = math.acos( math.Clamp( AimForward:Dot( toEnt ), -1, 1 ) ) * ( 180 / math.pi )
+            local vehicleCenter = vehicle:WorldSpaceCenter()
+            local toVehicle = vehicleCenter - eyePos
+            local dist = toVehicle:Length()
 
-            if ang >= lockOnAng or not self:CanSee( vehicle, owner ) then continue end
+            local toVehicleNormalized = toVehicle / dist
+            local ang = math.deg( math.acos( math.Clamp( eyeDir:Dot( toVehicleNormalized ), -1, 1 ) ) )
 
-            table.insert( vehicles, vehicle )
+            if vehicle == oldClosestEnt then
+                oldDist = dist
+                oldAng = ang
 
-            local stuff = WorldToLocal( vehicle:GetPos(), Angle( 0, 0, 0 ), startpos, owner:EyeAngles() + Angle( 90, 0, 0 ) )
-            local dist = stuff:Length()
-
-            if dist > maxDist then continue end
-
-             -- only switch when much closer!
-            if dist < closestDist and ang < smallestAng then
-                closestDist = dist
-                smallestAng = ang
-                if closestEnt ~= vehicle then
-                    closestEnt = vehicle
-                end
             end
+
+            if dist >= newClosestDist then continue end
+            if ang >= newSmallestAng then continue end
+
+            if not self:CanSee( vehicle, owner ) then continue end
+
+            newClosestDist = dist
+            newSmallestAng = ang
+            newClosestEnt = vehicle
         end
 
-        local entInSights = IsValid( closestEnt )
-        local anOldEntInSights = IsValid( self:GetClosestEnt() )
+        local newVehicleInSights = IsValid( newClosestEnt )
+        local oldVehicleInSights = IsValid( oldClosestEnt ) and oldDist < maxRange and oldAng < lockAng
         local lockingOnForOneFourthOfLockOnTime = ( findTime + ( lockOnTime / 4 ) ) < curtime
-        local lockingOnBlockSwitching = lockingOnForOneFourthOfLockOnTime and anOldEntInSights and entInSights
+        local lockingOnBlockSwitching = lockingOnForOneFourthOfLockOnTime and oldVehicleInSights and newVehicleInSights
 
         -- switch targets when not locking onto a target for more than 1/4th of the lockOnTime
         -- stops the rpg switching between really close targets, eg bunch of people in a simfphys, prop car, prop helicopter.
-        if self:GetClosestEnt() ~= closestEnt and not lockingOnBlockSwitching then
-            self:SetClosestEnt( closestEnt )
+        if oldClosestEnt ~= newClosestEnt and not lockingOnBlockSwitching then
+            self:SetClosestEnt( newClosestEnt )
 
-            if IsValid( closestEnt ) then
+            if IsValid( newClosestEnt ) then
                 self.findTime = curtime
                 self:SetLockedOnTime( curtime + lockOnTime )
                 self.TrackSND = CreateSound( owner, "weapons/cfc_stinger/radar_track.wav" )
@@ -242,13 +245,13 @@ function SWEP:Think()
             end
         end
 
-        if IsValid( closestEnt ) and Glide then
-            if closestEnt.IsGlideVehicle then
+        if IsValid( newClosestEnt ) and Glide then
+            if newClosestEnt.IsGlideVehicle then
                 -- If the target is a Glide vehicle, notify the passengers
-                Glide.SendLockOnDanger( closestEnt:GetAllPlayers() )
-            elseif closestEnt.GetDriver then
+                Glide.SendLockOnDanger( newClosestEnt:GetAllPlayers() )
+            elseif newClosestEnt.GetDriver then
                 -- If the target is another type of vehicle, notify the driver
-                local driver = closestEnt:GetDriver()
+                local driver = newClosestEnt:GetDriver()
 
                 if IsValid( driver ) then
                     Glide.SendLockOnDanger( driver )
@@ -256,13 +259,14 @@ function SWEP:Think()
             end
         end
 
-        if not IsValid( closestEnt ) and self.TrackSND then
+        if not IsValid( newClosestEnt ) and self.TrackSND then
             self.TrackSND:Stop()
             self.TrackSND = nil
         end
     end
 end
 
+-- let us lock onto seats deep inside custom vehicles
 function SWEP:CanSee( entity, owner )
     local pos = entity:GetPos()
 
@@ -272,11 +276,14 @@ function SWEP:CanSee( entity, owner )
         start = owner:GetShootPos(),
         endpos = pos,
         filter = owner,
+        mask = MASK_SOLID,
     }
 
     local trResult = util.TraceLine( trStruc )
 
-    return ( trResult.HitPos - pos ):Length() < 500
+    if trResult.HitWorld then return false end -- not behind the world tho
+
+    return trResult.HitPos:Distance( pos ) < 500
 end
 
 function SWEP:PrimaryAttack()
@@ -299,7 +306,6 @@ function SWEP:PrimaryAttack()
     ent:SetPos( startpos )
     ent:SetAngles( ( owner:GetEyeTrace().HitPos - startpos ):Angle() )
     ent:SetOwner( owner )
-    ent.Attacker = owner
     ent:Spawn()
     ent:Activate()
 
@@ -365,10 +371,6 @@ function SWEP:Reload()
 end
 
 function SWEP:UnLock()
-    self:StopSounds()
-end
-
-function SWEP:StopSounds()
     if self.TrackSND then
         self.TrackSND:Stop()
         self.TrackSND = nil
@@ -384,17 +386,21 @@ function SWEP:StopSounds()
 end
 
 function SWEP:Holster()
-    self:StopSounds()
+    self:UnLock()
 
     return true
 end
 
 function SWEP:OnDrop()
-    self:StopSounds()
+    self:UnLock()
+end
+
+function SWEP:OnRemove()
+    self:UnLock()
 end
 
 function SWEP:OwnerChanged()
-    self:StopSounds()
+    self:UnLock()
 end
 
 if not CLIENT then return end
