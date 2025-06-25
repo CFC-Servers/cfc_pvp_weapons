@@ -1,3 +1,5 @@
+CFCPvPWeapons = CFCPvPWeapons or {}
+
 util.AddNetworkString( "CFC_BonkGun_PlayTweakedSound" )
 
 
@@ -220,12 +222,12 @@ local function bonkPlayerOrNPC( attacker, victim, wep, force )
     end )
 end
 
-local function bonkVictim( attacker, victim, dmg, wep )
+local function processDamage( attacker, victim, wep, dmg, fromGround )
     local dmgForce = dmg:GetDamageForce()
 
     if IsValid( victim ) and ( victim:IsPlayer() or victim:IsNPC() ) then
+        fromGround = fromGround or victim:IsOnGround() -- If was from ground, then always from ground, in case the game moves players off the ground inbetween split damage events.
         local dmgAmount = dmg:GetDamage()
-        local fromGround = victim:IsOnGround()
 
         -- When the victim is on the ground, dmgForce is pointed downwards, which makes the launch weak
         if fromGround then
@@ -237,14 +239,20 @@ local function bonkVictim( attacker, victim, dmg, wep )
         if enoughToKill( victim, dmgAmount ) then
             -- Death ragdoll only needs a force multiplier
             dmg:SetDamageForce( dmgForce * wep.Bonk.PlayerForceMultRagdoll )
-        else
-            local force = getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGround )
 
-            bonkPlayerOrNPC( attacker, victim, wep, force )
+            return false -- No need for a manual bonk.
         end
-    else
-        dmg:SetDamageForce( dmgForce * wep.Bonk.PropForceMult )
+
+        --local force = getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGround )
+
+        --bonkPlayerOrNPC( attacker, victim, wep, force )
+
+        return true, fromGround, dmgForce
     end
+
+    dmg:SetDamageForce( dmgForce * wep.Bonk.PropForceMult )
+
+    return false -- No need for a manual bonk.
 end
 
 local function handleImpact( ent, accel )
@@ -330,6 +338,22 @@ local function detectImpact( ent, dt )
 end
 
 
+-- Should not be called manually.
+function CFCPvPWeapons.ApplyBonkHits( wep )
+    local bonkHits = wep._bonkHits
+    if not bonkHits then return end
+
+    for victim, hit in pairs( bonkHits ) do
+        if not victim:Alive() then continue end
+
+        local force = getBonkForce( hit.attacker, victim, wep, hit.force, hit.damage, hit.fromGround )
+        bonkPlayerOrNPC( hit.attacker, victim, wep, force )
+
+        bonkHits[victim] = nil
+    end
+end
+
+
 hook.Add( "EntityTakeDamage", "CFC_BonkGun_YeetVictim", function( victim, dmg )
     if not IsValid( victim ) then return end
     if isBuildPlayer( victim ) then return end
@@ -345,8 +369,35 @@ hook.Add( "EntityTakeDamage", "CFC_BonkGun_YeetVictim", function( victim, dmg )
     if not IsValid( wep ) then return end
     if not wep.Bonk or not wep.Bonk.Enabled then return end
 
-    bonkVictim( attacker, victim, dmg, wep )
+    local bonkHits = wep._bonkHits
+    local hit = bonkHits and bonkHits[victim]
+
+    local needsManualBonk, fromGround, dmgForce = processDamage( attacker, victim, wep, dmg, hit and hit.fromGround )
+    if not needsManualBonk then return end
+
+    -- Not collecting for some reason, so just bonk immediately.
+    if not bonkHits then
+        local force = getBonkForce( attacker, victim, wep, dmgForce, dmg:GetDamage(), fromGround )
+        bonkPlayerOrNPC( attacker, victim, wep, force )
+
+        return
+    end
+
+    -- Collect hits together.
+    if not hit then
+        hit = {
+            damage = 0,
+            force = Vector( 0, 0, 0 ),
+            fromGround = fromGround,
+            attacker = attacker,
+        }
+        bonkHits[victim] = hit
+    end
+
+    hit.damage = hit.damage + dmg:GetDamage()
+    hit.force = hit.force + dmg:GetDamageForce()
 end )
+
 
 hook.Add( "Think", "CFC_BonkGun_DetectImpact", function()
     local dt = FrameTime()

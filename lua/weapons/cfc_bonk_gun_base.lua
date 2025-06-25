@@ -118,6 +118,17 @@ if CLIENT then
 end
 
 
+-- Call immediately before firing bullets.
+-- Collects separate damage events together, to fix a source bug that sometimes splits multi-bullet shots into multiple damage events.
+function SWEP:CollectBonkHits()
+    self._bonkHits = self._bonkHits or {}
+end
+
+-- Call immedaitely after firing bullets, dealing damage, etc.
+function SWEP:ApplyBonkHits()
+    CFCPvPWeapons.ApplyBonkHits( self )
+end
+
 function SWEP:FireWeapon()
     local selfForce = self.Bonk.SelfForce
     if not selfForce then return BaseClass.FireWeapon( self ) end
@@ -153,5 +164,7 @@ function SWEP:FireWeapon()
         return
     end
 
+    self:CollectBonkHits()
     BaseClass.FireWeapon( self )
+    self:ApplyBonkHits()
 end
