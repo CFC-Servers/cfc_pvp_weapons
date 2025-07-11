@@ -42,6 +42,15 @@ SWEP.Primary.ThrowAct = { ACT_VM_PULLBACK_HIGH, ACT_VM_THROW }
 SWEP.Primary.LobAct = { ACT_VM_PULLBACK_LOW, ACT_VM_HAULBACK }
 SWEP.Primary.RollAct = { ACT_VM_PULLBACK_LOW, ACT_VM_SECONDARYATTACK }
 
+SWEP.CFC_FirstTimeHints = {
+    {
+        Message = "Cinder blocks do more damage if thrown at a high speed.",
+        Sound = "ambient/water/drip1.wav",
+        Duration = 6,
+        DelayNext = 0,
+    },
+}
+
 function SWEP:CreateEntity()
     local ent = ents.Create( self.ProjectileClass )
     ent:SetThrower( self:GetOwner() )
