@@ -397,6 +397,16 @@ function SWEP:Think()
     if CLIENT then
         self:SetupViewModel()
     end
+
+    -- Queue up the next attack if they player is holding down an attack key, otherwise their input may get eaten.
+    if idle > 0 or reload > 0 or throw > 0 then return end
+    if not IsValid( owner ) or not owner:IsPlayer() then return end
+
+    if owner:KeyDown( IN_ATTACK ) then
+        self:PrimaryAttack()
+    elseif owner:KeyDown( IN_ATTACK2 ) then
+        self:SecondaryAttack()
+    end
 end
 
 function SWEP:OnReloaded()
