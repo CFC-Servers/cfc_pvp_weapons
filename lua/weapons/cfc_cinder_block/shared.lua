@@ -17,7 +17,7 @@ SWEP.Slot = 1
 SWEP.ViewModel = Model( "models/weapons/c_grenade.mdl" )
 SWEP.Spawnable = true
 SWEP.Purpose = "Throw bricks at people!"
-SWEP.Instructions = "More speed = more damage."
+SWEP.Instructions = "Heavy object, get a running start to make it hurt more!"
 
 SWEP.IdleHoldType = "slam"
 SWEP.ThrowingHoldType = "melee"
@@ -44,7 +44,13 @@ SWEP.Primary.RollAct = { ACT_VM_PULLBACK_LOW, ACT_VM_SECONDARYATTACK }
 
 SWEP.CFC_FirstTimeHints = {
     {
-        Message = "Cinder blocks do more damage if thrown at a high speed.",
+        Message = "Get a running start! Faster cinderblocks hurt more!",
+        Sound = "ambient/water/drip1.wav",
+        Duration = 6,
+        DelayNext = 10,
+    },
+    {
+        Message = "Drop a cinderblock from a building!",
         Sound = "ambient/water/drip1.wav",
         Duration = 6,
         DelayNext = 0,
