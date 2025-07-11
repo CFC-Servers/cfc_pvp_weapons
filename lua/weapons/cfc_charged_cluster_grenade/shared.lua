@@ -19,7 +19,7 @@ SWEP.ThrowingHoldType = "melee"
 
 SWEP.Primary = {
     Ammo = "cfc_cluster_grenade",
-    DefaultClip = 1,
+    DefaultClip = 50,
 
     ThrowAct = { ACT_VM_PULLBACK_HIGH, ACT_VM_THROW },
     LobAct = { ACT_VM_PULLBACK_LOW, ACT_VM_HAULBACK },
