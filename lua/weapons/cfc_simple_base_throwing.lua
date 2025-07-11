@@ -227,7 +227,7 @@ if SERVER then
 
             ent:SetPos( self:GetThrowPosition( pos ) )
 
-            local vel = ply:GetVelocity() + ( ply:GetForward() + Vector( 0, 0, 0.1 ) ) * 1200 * self.ThrowVelMul
+            local vel = ply:GetVelocity() + ( ply:GetForward() + Vector( 0, 0, 0.05 ) ) * 1200 * self.ThrowVelMul
             local angVel = Vector( 600, math.random( -1200, 1200 ), 0 )
 
             self:DoVel( phys, ent, moveType, vel, angVel )
