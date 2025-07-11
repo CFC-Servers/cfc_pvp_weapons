@@ -67,15 +67,16 @@ function SWEP:SetupDataTables()
     self:AddNetworkVar( "Float", "NextIdle" )
     self:AddNetworkVar( "Float", "FinishThrow" )
     self:AddNetworkVar( "Float", "FinishReload" )
-
 end
 
 function SWEP:Initialize()
     self:SetHoldType( self.IdleHoldType )
     self:SetThrowableInHand( true )
+
     if self.ModelMaterial then
         self:SetMaterial( self.ModelMaterial )
     end
+
     if CLIENT and self.HeldModel then
         self.MyHeldModel = ClientsideModel( self.HeldModel )
         self.MyHeldModel:SetMaterial( self.ModelMaterial )
@@ -106,8 +107,8 @@ end
 function SWEP:Holster()
     if CLIENT and IsFirstTimePredicted() then
         self:TearDownViewModel()
-
     end
+
     -- Cancel throw
     if self:GetFinishThrow() > 0 then
         self:SetFinishThrow( 0 )
@@ -146,9 +147,7 @@ function SWEP:EmitThrowSound()
 end
 
 function SWEP:PrimaryAttack()
-    if not self:CanThrow() then
-        return
-    end
+    if not self:CanThrow() then return end
 
     self:SetHoldType( self.ThrowingHoldType )
 
@@ -157,22 +156,21 @@ function SWEP:PrimaryAttack()
     self:SetFinishThrow( CurTime() + throwDelay )
     self:SetNextIdle( 0 )
 
-    if not self:GetOwner():IsPlayer() then -- barebones term support
-        timer.Simple( throwDelay + 0.1, function()
-            if not IsValid( self ) then return end
-            local owner = self:GetOwner()
+    if self:GetOwner():IsPlayer() then return end
 
-            if not IsValid( owner ) then return end
-            self:Throw()
-        end )
-        return
-    end
+    -- Barebones terminator support
+    timer.Simple( throwDelay + 0.1, function()
+        if not IsValid( self ) then return end
+
+        local owner = self:GetOwner()
+        if not IsValid( owner ) then return end
+
+        self:Throw()
+    end )
 end
 
 function SWEP:SecondaryAttack()
-    if not self:CanThrow() then
-        return
-    end
+    if not self:CanThrow() then return end
 
     local duration = 0
     self:SetHoldType( self.ThrowingHoldType )
@@ -187,7 +185,6 @@ function SWEP:SecondaryAttack()
 
     self:SetFinishThrow( CurTime() + duration )
     self:SetNextIdle( 0 )
-
 end
 
 function SWEP:Throw()
@@ -229,11 +226,14 @@ function SWEP:Throw()
     self:TakePrimaryAmmo( 1 )
 
     if self:GetOwner():IsPlayer() then return end
-    timer.Simple( reloadDur + 0.1, function() -- more barebones term support
-        if not IsValid( self ) then return end
-        local owner = self:GetOwner()
 
+    -- Barebones terminator support
+    timer.Simple( reloadDur + 0.1, function()
+        if not IsValid( self ) then return end
+
+        local owner = self:GetOwner()
         if not IsValid( owner ) then return end
+
         self:FinishReload()
     end )
 end
@@ -256,12 +256,10 @@ if SERVER then
     end
 
     function SWEP:ThrowEntity( mode )
-        local ply = self:GetOwner()
         local ent = self:CreateEntity()
+        if not IsValid( ent ) then return end
 
-        if not IsValid( ent ) then
-            return
-        end
+        local ply = self:GetOwner()
 
         ent:SetOwner( ply )
         ent:SetCreator( ply )
@@ -270,7 +268,6 @@ if SERVER then
 
         if self.ModelMaterial then
             ent:SetMaterial( self.ModelMaterial )
-
         end
 
         local moveType = ent:GetMoveType()
@@ -287,7 +284,6 @@ if SERVER then
             local angVel = Vector( 600, math.random( -1200, 1200 ), 0 )
 
             self:DoVel( phys, ent, moveType, vel, angVel )
-
         elseif mode == 3 then
             local pos = ply:GetPos() + Vector( 0, 0, 4 )
             local facing = ply:GetAimVector()
@@ -315,8 +311,7 @@ if SERVER then
             local vel = ply:GetVelocity() + ply:GetForward() * 700 * self.ThrowVelMul
             local angVel = Vector( 0, 0, 720 )
 
-            self:DoVel( phys, ent,  moveType, vel, angVel )
-
+            self:DoVel( phys, ent, moveType, vel, angVel )
         elseif mode == 2 then
             local pos = LocalToWorld( Vector( 18, -8, 0 ), angle_zero, ply:GetShootPos(), ply:GetAimVector():Angle() )
 
@@ -325,7 +320,7 @@ if SERVER then
             local vel = ply:GetVelocity() + ( ply:GetForward() * 350 * self.ThrowVelMul ) + Vector( 0, 0, 50 )
             local angVel = Vector( 200, math.random( -600, 600 ), 0 )
 
-            self:DoVel( phys, ent,  moveType, vel, angVel )
+            self:DoVel( phys, ent, moveType, vel, angVel )
         end
     end
 
@@ -346,10 +341,7 @@ end
 
 function SWEP:SendTranslatedWeaponAnim( act )
     act = self:TranslateWeaponAnim( act )
-
-    if not act then
-        return
-    end
+    if not act then return end
 
     self:SendWeaponAnim( act )
 
@@ -370,13 +362,10 @@ function SWEP:FinishReload()
     local time = CurTime() + self:SendTranslatedWeaponAnim( ACT_VM_DRAW )
 
     self:SetNextIdle( time )
-
     self:SetThrowableInHand( true )
-
     self:SetNextPrimaryFire( time )
     self:SetNextSecondaryFire( time )
     self:SetHoldType( self.IdleHoldType )
-
     self:SetFinishReload( 0 )
 
     return true
@@ -388,7 +377,6 @@ function SWEP:Think()
 
     if idle > 0 and idle <= CurTime() then
         self:SendTranslatedWeaponAnim( ACT_VM_IDLE )
-
         self:SetNextIdle( 0 )
     end
 
@@ -405,9 +393,9 @@ function SWEP:Think()
     end
 
     self.oldOwner = owner
+
     if CLIENT then
         self:SetupViewModel()
-
     end
 end
 
@@ -448,64 +436,70 @@ end
 
 function SWEP:DrawWorldModel( flags )
     local owner = self:GetOwner()
+
     if IsValid( owner ) and self.OffsetWorldModel then
         if not self:GetThrowableInHand() then return end -- they just threw it, it's in the air, not their hand, duh!
 
         local attachId = owner:LookupAttachment( "anim_attachment_RH" )
         if attachId <= 0 then return end
+
         local attachTbl = owner:GetAttachment( attachId )
         local posOffsetW, angOffsetW = LocalToWorld( self.WMPosOffset, self.WMAngOffset, attachTbl.Pos, attachTbl.Ang )
+
         self:SetPos( posOffsetW )
         self:SetAngles( angOffsetW )
-
         self:SetupBones()
     end
+
     self:SetModelScale( self.ModelScale )
     self:DrawModel( flags )
 end
 
 function SWEP:SetupViewModel()
     if not self.HeldModel then return end
+    if self.ViewModelSetup then return end
 
-    if not self.ViewModelSetup then
-        local vm = self:GetOwner():GetViewModel( 0 )
-        vm:SetupBones()
+    local vm = self:GetOwner():GetViewModel( 0 )
+    vm:SetupBones()
 
-        local nadeBone = vm:LookupBone( "ValveBiped.Grenade_body" )
-        if not nadeBone then return end -- just in case someone has a really screwed up custom model
+    local nadeBone = vm:LookupBone( "ValveBiped.Grenade_body" )
+    if not nadeBone then return end -- just in case someone has a really screwed up custom model
 
-        self.MyHeldModel:FollowBone( vm, nadeBone )
-        local bonePos, boneAng = vm:GetBonePosition( nadeBone )
-        local offsettedPos, offsettedAng = LocalToWorld( self.HeldModelPosOffset, self.HeldModelAngOffset, bonePos, boneAng )
-        self.MyHeldModel:SetPos( offsettedPos )
-        self.MyHeldModel:SetAngles( offsettedAng )
+    self.MyHeldModel:FollowBone( vm, nadeBone )
 
-        self.MyHeldModel:SetModelScale( self.ModelScale )
+    local bonePos, boneAng = vm:GetBonePosition( nadeBone )
+    local offsettedPos, offsettedAng = LocalToWorld( self.HeldModelPosOffset, self.HeldModelAngOffset, bonePos, boneAng )
+    self.MyHeldModel:SetPos( offsettedPos )
+    self.MyHeldModel:SetAngles( offsettedAng )
+    self.MyHeldModel:SetModelScale( self.ModelScale )
 
-        self:CallOnRemove( "remove_extramodel", function( me ) me:TearDownViewModel() end, me )
-        self.ViewModelSetup = true
-    end
+    self:CallOnRemove( "remove_extramodel", function( me ) me:TearDownViewModel() end, me )
+    self.ViewModelSetup = true
 end
 
 function SWEP:TearDownViewModel( owner )
     owner = owner or self:GetOwner()
     if not IsValid( owner ) then return end
-    self.ViewModelSetup = nil
-    if not IsValid( self.MyHeldModel ) then return end
-    self.MyHeldModel:SetParent( self )
 
+    self.ViewModelSetup = nil
+
+    if IsValid( self.MyHeldModel ) then
+        self.MyHeldModel:SetParent( self )
+    end
 end
 
 local invisMat = Material( "models/blackout/blackout" )
 
 function SWEP:PreDrawViewModel()
     local mdlBroke = not self.ViewModelSetup or ( self.HeldModel and not IsValid( self.MyHeldModel:GetParent() ) )
+
     if mdlBroke then
         self.ViewModelSetup = false
         self:SetupViewModel()
-        return
 
+        return
     end
+
     self.MyHeldModel:DrawModel()
 
     render.MaterialOverrideByIndex( 0, invisMat )
@@ -513,5 +507,4 @@ function SWEP:PreDrawViewModel()
     render.MaterialOverrideByIndex( 2, invisMat )
     render.MaterialOverrideByIndex( 3, invisMat )
     render.MaterialOverrideByIndex( 4, invisMat )
-
 end
