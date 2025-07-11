@@ -7,8 +7,19 @@ ENT.AutomaticFrameAdvance = true
 
 ENT.Model = Model( "models/weapons/w_npcnade.mdl" )
 
+ENT.BeepEnabled = true
+ENT.BeepDelay = 1
+ENT.BeepDelayFast = 0.3
+ENT.BeepFastThreshold = 1.5
+
+
 function ENT:SetTimer( delay )
-    self.Detonate = CurTime() + delay
+    self._explodeTime = CurTime() + delay
+    self._explodeDelay = delay
+
+    if self.BeepEnabled then
+        self._nextBeepTime = CurTime()
+    end
 
     self:NextThink( CurTime() )
 end
@@ -21,7 +32,9 @@ function ENT:Initialize()
         self:SetMoveType( MOVETYPE_VPHYSICS )
         self:SetSolid( SOLID_VPHYSICS )
 
-        self:SetCollisionGroup( COLLISION_GROUP_WEAPON )
+        self:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
+        self:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_IMPACT_DMG )
+        self:GetPhysicsObject():AddGameFlag( FVPHYSICS_NO_NPC_IMPACT_DMG )
 
         local phys = self:GetPhysicsObject()
 
@@ -32,16 +45,20 @@ function ENT:Initialize()
     end
 end
 
+function ENT:ACF_PreDamage()
+    return false
+end
+
 function ENT:Explode()
     self:Remove()
 end
 
 function ENT:Think()
-    if CLIENT then
-        return
-    end
+    if CLIENT then return end
 
-    if self.Detonate and self.Detonate <= CurTime() then
+    self:BeepThink()
+
+    if self._explodeTime and self._explodeTime <= CurTime() then
         self:Explode()
         self:NextThink( math.huge )
 
@@ -51,4 +68,32 @@ function ENT:Think()
     self:NextThink( CurTime() + 0.1 )
 
     return true
+end
+
+function ENT:BeepThink()
+    local nextBeepTime = self._nextBeepTime
+    if not nextBeepTime then return end
+
+    local now = CurTime()
+    if nextBeepTime > now then return end
+
+    self:PlayBeep()
+
+    local delay
+    local explodeTime = self._explodeTime
+
+    if explodeTime and explodeTime - now <= self.BeepFastThreshold then
+        delay = self.BeepDelayFast
+    else
+        delay = self.BeepDelay
+    end
+
+    self._nextBeepTime = now + delay
+end
+
+
+----- OVERRIDABLE FUNCTIONS -----
+
+function ENT:PlayBeep()
+    self:EmitSound( "Grenade.Blip" )
 end

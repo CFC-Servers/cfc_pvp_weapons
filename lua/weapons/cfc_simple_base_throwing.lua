@@ -42,6 +42,12 @@ SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = 0
 SWEP.Secondary.Automatic = false
 
+SWEP.ThrowCooldown = 0
+
+
+local cooldownEndTimesPerClass = {}
+
+
 function SWEP:SetupDataTables()
     self._NetworkVars = {
         ["String"] = 0,
@@ -89,6 +95,7 @@ end
 
 function SWEP:Deploy()
     self:SetNextIdle( CurTime() + self:SendTranslatedWeaponAnim( ACT_VM_DRAW ) )
+    self:SetHoldType( self.HoldType )
 
     return true
 end
@@ -98,10 +105,29 @@ function SWEP:Holster()
         self:TearDownViewModel()
 
     end
+    -- Cancel throw
+    if self:GetFinishThrow() > 0 then
+        self:SetFinishThrow( 0 )
+    end
+
+    -- Force finish reload so it doesn't doesn't play the anim or strip the weapon once re-deployed
+    if self:GetFinishReload() > 0 then
+        self:FinishReload()
+        self:SetFinishReload( 0 )
+    end
+
     return true
 end
 
 function SWEP:CanThrow()
+    local class = self:GetClass()
+    local cooldownEndTimes = cooldownEndTimesPerClass[class]
+
+    if cooldownEndTimes then
+        local endTime = cooldownEndTimes[self:GetOwner()] or 0
+        if endTime > CurTime() then return false end
+    end
+
     if self:GetFinishThrow() > 0 then
         return false
     end
@@ -173,6 +199,16 @@ function SWEP:Throw()
     elseif mode == 3 then
         act = self.Primary.RollAct[2]
     end
+
+    local class = self:GetClass()
+    local cooldownEndTimes = cooldownEndTimesPerClass[class]
+
+    if not cooldownEndTimes then
+        cooldownEndTimes = {}
+        cooldownEndTimesPerClass[class] = cooldownEndTimes
+    end
+
+    cooldownEndTimes[ply] = CurTime() + ( self.ThrowCooldown or 0 )
 
     self:SetFinishReload( CurTime() + self:SendTranslatedWeaponAnim( act ) )
     self:TakePrimaryAmmo( 1 )

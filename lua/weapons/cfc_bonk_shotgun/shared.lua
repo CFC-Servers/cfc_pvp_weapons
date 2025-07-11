@@ -34,8 +34,8 @@ SWEP.Primary = {
     ClipSize = 2, -- The amount of ammo per magazine, -1 to have no magazine (pull from reserves directly)
     DefaultClip = 1000, -- How many rounds the player gets when picking up the weapon for the first time, excess ammo will be added to the player's reserves
 
-    Damage = 3, -- Damage per shot
-    Count = 10, -- Optional: Shots fired per shot
+    Damage = 2, -- Damage per shot
+    Count = 20, -- Optional: Shots fired per shot
 
     PumpAction = false, -- Optional: Tries to pump the weapon between shots
     PumpSound = "", -- Optional: Sound to play when pumping
@@ -44,7 +44,7 @@ SWEP.Primary = {
     BurstDelay = 60 / 1200, -- Burst only: the delay between shots during a burst
     BurstEndDelay = 0.4, -- Burst only: the delay added after a burst
 
-    Range = 300, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
+    Range = 400, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
     Accuracy = 24, -- The reference value to use for the previous option, 12 = headshots, 24 = bodyshots
 
     RangeModifier = 1, -- The damage multiplier applied for every 1000 units a bullet travels, e.g. 0.85 for 2000 units = 0.85 * 0.85 = 72% of original damage
@@ -93,16 +93,13 @@ SWEP.Bonk = {
         PlayerForceAdd = 100, -- Flat addition to the launch strength, after the multiplier is applied.
         PlayerForceMultMax = 0.6, -- Damage mult (normal is 1) cannot exceed this value. Divide PlayerForce by this amount to make it easier to reach the max.
         PlayerForceComboMult = 1.75, -- Multiplies against force strength if the victim is currently in a bonk state. Requires ImpactEnabled to be true.
-        PlayerForceGroundZMult = 0.9, -- Makes ground launches be more vertical, proportionally.
-        PlayerForceGroundZAdd = 0.3, -- Makes ground launches be more vertical, additively.
-        PlayerForceGroundZMin = 250, -- Minimim z-component of launch force when on the ground. Gmod keeps players grounded unless the the z-vel is ~248.13 or above.
+        PlayerForceGroundPitchMin = 25, -- The minimum launch pitch when on the ground.
+        PlayerForceGroundZAdd = 50, -- Adds to the z-component of launch force when on the ground.
+        PlayerForceGroundThreshold = 60, -- Count the victim as being grounded (minus the z-add) if they are within this many hmu of the ground.
         PlayerForceAirMult = 1.15, -- Multiplies against force strength if the victim is in the air when hit.
-        PlayerForceAirZMult = 1, -- Makes air launches be more vertical, proportionally.
-        PlayerForceAirZAdd = 0.1, -- Makes air launches be more vertical, additively.
         PlayerForceCounteractMult = 0.8, -- How strongly (0-1) the victim's velocity will be counteracted by the launch, if they were moving opposite to it.
         PlayerForceIgnoreThreshold = 0.2, -- If the damage multiplier is below this, the player won't be launched.
         NPCForceMult = 1.75, -- Multiplies against launch strength for NPCs.
-        NPCForceGroundHorizontalMult = 3, -- Multiplies against horizontal launch strength for NPCs when on the ground.
     PlayerForceMultRagdoll = 300, -- When the shot is enough to kill, the above values are ignored and this is used instead as a multiplier against dmgForce.
     PropForceMult = 30, -- Multiplier against dmgForce when shooting props.
     AirShotsRefundAmmo = 0, -- Ammo refunded when shooting a midair, currently bonked target. Requires ImpactEnabled to be true.
