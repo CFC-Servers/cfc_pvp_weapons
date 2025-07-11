@@ -50,7 +50,13 @@ SWEP.CFC_FirstTimeHints = {
         DelayNext = 10,
     },
     {
-        Message = "Drop a cinderblock from a building!",
+        Message = "Or drop a cinderblock from a building!",
+        Sound = "ambient/water/drip1.wav",
+        Duration = 6,
+        DelayNext = 10,
+    },
+    {
+        Message = "A real cinderblock master never leaves their trusty roof!",
         Sound = "ambient/water/drip1.wav",
         Duration = 6,
         DelayNext = 0,
