@@ -6,13 +6,13 @@ ENT.Base = "cfc_simple_ent_grenade_base"
 
 ENT.Model = Model( "models/weapons/w_npcnade.mdl" )
 
+ENT.BeepEnabled = true
+ENT.BeepDelay = 1
+ENT.BeepDelayFast = 0.3
+ENT.BeepFastThreshold = 1.5
+
 ENT.Damage = 100
 
-function ENT:SetTimer( delay )
-    BaseClass.SetTimer( self, delay )
-
-    self.Beep = CurTime()
-end
 
 function ENT:Initialize()
     BaseClass.Initialize( self )
@@ -71,20 +71,6 @@ function ENT:Explode()
     self:Remove()
 end
 
-function ENT:Think()
-    if SERVER and self.Beep and self.Beep <= CurTime() then
-        self:EmitSound( "Grenade.Blip" )
-
-        local time = 1
-
-        if self.Detonate and self.Detonate - CurTime() <= 1.5 then
-            time = 0.3
-        end
-
-        self.Beep = CurTime() + time
-    end
-
-    BaseClass.Think( self )
-
-    return true
+function ENT:PlayBeep()
+    self:EmitSound( "Grenade.Blip" )
 end

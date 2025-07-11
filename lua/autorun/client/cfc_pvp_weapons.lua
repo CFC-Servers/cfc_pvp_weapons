@@ -1,28 +1,34 @@
-local hintConvars = {}
+CFCPvPWeapons = CFCPvPWeapons or {}
 
+local hintConvars = {}
 
 list.Set( "ContentCategoryIcons", "CFC", "icon16/star.png" )
 
 
--- Most reliable way on client to listen when a weapon is equipped without using net messages.
--- Only misses if the weapon is given via initial loadout on spawn, which is fine in this case.
-hook.Add( "HUDWeaponPickedUp", "CFC_PvPWeapons_FirstTimeHints", function( wep )
-    if not IsValid( wep ) then return end
+--[[
+    - Plays a set of hints.
 
-    local hints = wep.CFC_FirstTimeHints
-    if not hints then return end
+    hints: (table or string)
+        - If a string, provide the class of a SWEP that has a CFC_FirstTimeHints table.
+        - If a table, use the following format:
+            {
+                {
+                    Message = STRING,
+                    Sound = STRING,
+                    Duration = NUMBER,
+                    DelayNext = NUMBER,
+                },
+                (...)
+            }
+--]]
+function CFCPvPWeapons.PlayHints( hints )
+    if type( hints ) == "string" then
+        local swep = weapons.GetStored( hints )
+        if not swep then return end
 
-    local class = wep:GetClass()
-    local convar = hintConvars[class]
-
-    if not convar then
-        convar = CreateClientConVar( "cfc_pvp_weapons_hint_seen_" .. class, "0", true, false )
-        hintConvars[class] = convar
+        hints = swep.CFC_FirstTimeHints
+        if not hints then return end
     end
-
-    if convar:GetInt() == 1 then return end
-
-    convar:SetInt( 1 )
 
     local hintInd = 1
 
@@ -51,4 +57,28 @@ hook.Add( "HUDWeaponPickedUp", "CFC_PvPWeapons_FirstTimeHints", function( wep )
     end
 
     showHint()
+end
+
+
+-- Most reliable way on client to listen when a weapon is equipped without using net messages.
+-- Only misses if the weapon is given via initial loadout on spawn, which is fine in this case.
+hook.Add( "HUDWeaponPickedUp", "CFC_PvPWeapons_FirstTimeHints", function( wep )
+    if not IsValid( wep ) then return end
+
+    local hints = wep.CFC_FirstTimeHints
+    if not hints then return end
+
+    local class = wep:GetClass()
+    local convar = hintConvars[class]
+
+    if not convar then
+        convar = CreateClientConVar( "cfc_pvp_weapons_hint_seen_" .. class, "0", true, false )
+        hintConvars[class] = convar
+    end
+
+    if convar:GetInt() == 1 then return end
+
+    convar:SetInt( 1 )
+
+    CFCPvPWeapons.PlayHints( hints )
 end )

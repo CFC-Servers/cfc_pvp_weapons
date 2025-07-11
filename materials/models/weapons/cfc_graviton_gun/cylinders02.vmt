@@ -1,0 +1,6 @@
+"vertexlitgeneric"
+{
+	"$baseTexture" "models\weapons\cfc_graviton_gun\cylinders"
+                    "$selfillum" "1"
+                    "$selfillummask" "models\weapons\cfc_graviton_gun\cylinders_selfillum"
+}

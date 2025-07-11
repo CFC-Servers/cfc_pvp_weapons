@@ -1,0 +1,10 @@
+"vertexlitgeneric"
+{
+	"$baseTexture" "models\weapons\cfc_graviton_gun\cylinders"
+                    "$selfillum" "1"
+                    "$selfillummask" "models\weapons\cfc_graviton_gun\cylinders_selfillum"
+
+	"$envmap" "models\weapons\cfc_graviton_gun\greensteelchrome"
+	"$envmapsphere" 1
+	"$envmapmode" 1
+}
