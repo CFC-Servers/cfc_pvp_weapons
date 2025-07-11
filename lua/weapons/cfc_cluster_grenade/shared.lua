@@ -1,14 +1,14 @@
 AddCSLuaFile()
 
-DEFINE_BASECLASS( "cfc_simple_base_throwing" )
-
 if CLIENT then
     language.Add( "cfc_cluster_grenade_ammo", "Cluster Grenades" )
 end
 
 game.AddAmmoType( { name = "cfc_cluster_grenade", maxcarry = 5 } )
 
+DEFINE_BASECLASS( "cfc_simple_base_throwing" )
 SWEP.Base = "cfc_simple_base_throwing"
+
 SWEP.PrintName = "'Nade (Cluster)"
 SWEP.Category = "CFC"
 
@@ -20,7 +20,8 @@ SWEP.ViewModelFOV = 54
 SWEP.ViewModel = Model( "models/weapons/cstrike/c_eq_fraggrenade.mdl" )
 SWEP.WorldModel = Model( "models/weapons/w_eq_fraggrenade.mdl" )
 
-SWEP.HoldType = "melee"
+SWEP.IdleHoldType = "slam"
+SWEP.ThrowingHoldType = "melee"
 
 SWEP.Primary = {
     Ammo = "cfc_cluster_grenade",
@@ -48,6 +49,7 @@ SWEP.ThrowCooldown = 0
 
 
 function SWEP:Initialize()
+    BaseClass.Initialize( self )
     self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_cluster" )
 end
 

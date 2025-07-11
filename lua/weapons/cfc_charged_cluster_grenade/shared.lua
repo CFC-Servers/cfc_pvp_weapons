@@ -1,8 +1,8 @@
 AddCSLuaFile()
 
 DEFINE_BASECLASS( "cfc_charged_throwable" )
-
 SWEP.Base = "cfc_charged_throwable"
+
 SWEP.PrintName = "'Nade (Charged Cluster)"
 SWEP.Category = "CFC"
 
@@ -14,7 +14,8 @@ SWEP.ViewModelFOV = 54
 SWEP.ViewModel = Model( "models/weapons/cstrike/c_eq_fraggrenade.mdl" )
 SWEP.WorldModel = Model( "models/weapons/w_eq_fraggrenade.mdl" )
 
-SWEP.HoldType = "melee"
+SWEP.IdleHoldType = "slam"
+SWEP.ThrowingHoldType = "melee"
 
 SWEP.Primary = {
     Ammo = "cfc_cluster_grenade",

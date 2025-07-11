@@ -10,10 +10,14 @@ ENT.Purpose         = "Look out below!."
 ENT.Instructions    = "Drop off of buildings."
 ENT.Spawnable       = false
 
+if CLIENT then -- killicon, and language 'translation'
+    CFCPvPWeapons.CL_SetupSent( ENT, "cfc_cinderblock_projectile", "materials/vgui/hud/cfc_cinder_block.png" )
+end
+
 ENT.Model = Model( "models/props_debris/concrete_cynderblock001.mdl" )
 ENT.ModelScale = 1
 
-ENT.BaseDamage = 25
+ENT.BaseDamage = 35
 ENT.AdditionalDamageStartingVel = 500
 ENT.VelocityForOneDamage = 8
 
@@ -32,10 +36,14 @@ end
 local vec_up = Vector( 0, 0, 1 )
 
 function ENT:PostHitEnt( hitEnt, damageDealt )
-    local critical = damageDealt >= 100
+    local critical = damageDealt >= 50
 
     util.ScreenShake( self:WorldSpaceCenter(), 5 + ( damageDealt * 0.5 ), 20, 0.5, 500 + damageDealt * 2 )
     util.ScreenShake( self:WorldSpaceCenter(), 5, 20, 0.1, 1500 + damageDealt )
+
+    if hitEnt:IsPlayer() and self:WorldSpaceCenter():Distance( hitEnt:GetShootPos() ) < 25 then -- easy headshot check
+        self:DoMotionBlur( hitEnt, damageDealt )
+    end
 
     local gib = ents.Create( "prop_physics" )
 
@@ -45,6 +53,7 @@ function ENT:PostHitEnt( hitEnt, damageDealt )
         gib:SetAngles( self:GetAngles() )
         gib:SetModel( self.Model )
         gib:SetMaterial( self:GetMaterial() )
+        gib:SetModelScale( self.ModelScale, 0 )
         gib:Spawn()
 
         local gibsObj = gib:GetPhysicsObject()
@@ -64,4 +73,43 @@ function ENT:PostHitEnt( hitEnt, damageDealt )
         self:EmitSound( "Flesh.ImpactHard", 90, 70, 1, CHAN_STATIC )
         self:EmitSound( "Breakable.MatFlesh", 90, 70, 1, CHAN_STATIC )
     end
+end
+
+-- concussion
+function ENT:DoMotionBlur( hitEnt, damageDealt )
+    delay = damageDealt / 50
+
+    if delay < 0.05 then
+        return
+    end
+
+    alphaAdd = 0.5
+
+    hitEnt:ConCommand( "pp_motionblur 1" )
+    hitEnt:ConCommand( "pp_motionblur_addalpha" .. alphaAdd )
+    hitEnt:ConCommand( "pp_motionblur_drawalpha" .. alphaAdd )
+    hitEnt:ConCommand( "pp_motionblur_delay" .. delay )
+
+    -- ramp down the delay and disable the effect when it runs out
+    timerName = "cfc_cinderblock_concussioncleanup_" .. hitEnt:GetCreationID()
+    timer.Create( timerName, 0.25, 0, function()
+        if not IsValid( hitEnt ) then
+            timer.Remove( timerName )
+            return
+        end
+
+        delay = delay - 0.05
+        alphaAdd = alphaAdd - 0.05
+
+        if delay <= 0 or not hitEnt:Alive() then
+            hitEnt:ConCommand( "pp_motionblur 0" )
+            hitEnt:ConCommand( "pp_motionblur_delay " .. 0 )
+            timer.Remove( timerName )
+            return
+        end
+
+        hitEnt:ConCommand( "pp_motionblur_addalpha " .. alphaAdd )
+        hitEnt:ConCommand( "pp_motionblur_drawalpha " .. alphaAdd )
+        hitEnt:ConCommand( "pp_motionblur_delay " .. delay )
+    end )
 end

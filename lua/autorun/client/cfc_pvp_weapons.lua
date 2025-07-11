@@ -82,3 +82,53 @@ hook.Add( "HUDWeaponPickedUp", "CFC_PvPWeapons_FirstTimeHints", function( wep )
 
     CFCPvPWeapons.PlayHints( hints )
 end )
+
+
+-- override baseclass DrawWeaponSelection to accept actual materials instead of texids, so it can handle pngs with no bs
+local function drawTexOverride( self, x, y, wide, tall, alpha )
+
+    -- Set us up the texture
+    surface.SetDrawColor( 255, 255, 255, alpha )
+    surface.SetMaterial( self.glee_WepSelectIcon )
+
+    -- Lets get a sin wave to make it bounce
+    local fsin = 0
+
+    if ( self.BounceWeaponIcon == true ) then
+        fsin = math.sin( CurTime() * 10 ) * 5
+    end
+
+    -- Borders
+    y = y + 10
+    x = x + 10
+    wide = wide - 20
+
+    -- Draw that mother
+    surface.DrawTexturedRect( x + fsin, y - fsin,  wide - fsin * 2 , ( wide / 2 ) + fsin )
+
+    -- Draw weapon info box
+    self:PrintWeaponInfo( x + wide + 20, y + tall * 0.95, alpha )
+end
+
+local white = Color( 255, 255, 255 )
+
+-- function that setups the weapon's PrintName translation, select icon. and killicon, all in one place
+-- from glee!
+-- not useful for stuff with special icons like the stinger
+function CFCPvPWeapons.CL_SetupSwep( SWEP, class, texture )
+    language.Add( class, SWEP.PrintName )
+    killicon.Add( class, texture, white )
+
+    local mat = Material( texture, "alphatest" )
+    if not mat:IsError() then
+        SWEP.glee_WepSelectIcon = mat
+        SWEP.DrawWeaponSelection = drawTexOverride
+    else
+        error( "Error loading weapon icon texture for " .. class .. "\n" .. mat:GetName() .. "\n" .. texture )
+    end
+end
+
+function CFCPvPWeapons.CL_SetupSent( ENT, class, texture )
+    language.Add( class, ENT.PrintName )
+    killicon.Add( class, texture, white )
+end

@@ -10,12 +10,17 @@ ENT.Purpose         = "Look out below!."
 ENT.Instructions    = "Drop off of buildings."
 ENT.Spawnable       = false
 
+if CLIENT then -- killicon, and language 'translation'
+    CFCPvPWeapons.CL_SetupSent( ENT, "cfc_super_cinderblock_projectile", "materials/vgui/hud/cfc_super_cinder_block.png" )
+end
+
 ENT.Model = Model( "models/props_debris/concrete_cynderblock001.mdl" )
 ENT.ModelScale = 1
 
-ENT.BaseDamage = 100
+ENT.BaseDamage = 200
 ENT.AdditionalDamageStartingVel = 500
 ENT.VelocityForOneDamage = 8
+ENT.DamageForceMul = 10
 
 ENT.HullSize = 10
 

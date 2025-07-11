@@ -9,7 +9,3 @@ killicon.Add( "cfc_simple_ent_cluster_grenade", "vgui/hud/cfc_simple_ent_cluster
 
 killicon.Add( "cfc_stinger_launcher", "vgui/hud/cfc_stinger_launcher", icolOrange )
 killicon.Add( "cfc_stinger_missile", "vgui/hud/cfc_stinger_launcher", icolOrange ) -- missile/launcher share killicon
-
-killicon.Add( "cfc_rotten_tomato_projectile", "vgui/hud/cfc_rotten_tomato_killicon.png", icol )
-killicon.Add( "cfc_cinderblock_projectile", "vgui/hud/cfc_cinderblock_killicon.png", icol )
-killicon.Add( "cfc_super_cinderblock_projectile", "vgui/hud/cfc_super_cinderblock_killicon.png", icol )

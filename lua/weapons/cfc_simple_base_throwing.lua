@@ -21,6 +21,7 @@ SWEP.ModelScale = 1
 SWEP.ModelMaterial = nil
 
 SWEP.WorldModel = "models/weapons/w_grenade.mdl"
+SWEP.OffsetWorldModel = nil
 SWEP.WMPosOffset = Vector( 0, 0, 0 )
 SWEP.WMAngOffset = Angle( 0, 0, 0 )
 
@@ -59,6 +60,8 @@ function SWEP:SetupDataTables()
         ["Entity"] = 0
     }
 
+    self:AddNetworkVar( "Bool", "ThrowableInHand" )
+
     self:AddNetworkVar( "Int", "ThrowMode" )
 
     self:AddNetworkVar( "Float", "NextIdle" )
@@ -69,7 +72,7 @@ end
 
 function SWEP:Initialize()
     self:SetHoldType( self.IdleHoldType )
-    self:SetNW2Bool( "ThrowableInHand", true )
+    self:SetThrowableInHand( true )
     if self.ModelMaterial then
         self:SetMaterial( self.ModelMaterial )
     end
@@ -95,7 +98,7 @@ end
 
 function SWEP:Deploy()
     self:SetNextIdle( CurTime() + self:SendTranslatedWeaponAnim( ACT_VM_DRAW ) )
-    self:SetHoldType( self.HoldType )
+    self:SetHoldType( self.IdleHoldType )
 
     return true
 end
@@ -113,7 +116,6 @@ function SWEP:Holster()
     -- Force finish reload so it doesn't doesn't play the anim or strip the weapon once re-deployed
     if self:GetFinishReload() > 0 then
         self:FinishReload()
-        self:SetFinishReload( 0 )
     end
 
     return true
@@ -150,10 +152,21 @@ function SWEP:PrimaryAttack()
 
     self:SetHoldType( self.ThrowingHoldType )
 
+    local throwDelay = self:SendTranslatedWeaponAnim( self.Primary.ThrowAct[1] )
     self:SetThrowMode( 1 )
-    self:SetFinishThrow( CurTime() + self:SendTranslatedWeaponAnim( self.Primary.ThrowAct[1] ) )
+    self:SetFinishThrow( CurTime() + throwDelay )
     self:SetNextIdle( 0 )
 
+    if not self:GetOwner():IsPlayer() then -- barebones term support
+        timer.Simple( throwDelay + 0.1, function()
+            if not IsValid( self ) then return end
+            local owner = self:GetOwner()
+
+            if not IsValid( owner ) then return end
+            self:Throw()
+        end )
+        return
+    end
 end
 
 function SWEP:SecondaryAttack()
@@ -210,8 +223,19 @@ function SWEP:Throw()
 
     cooldownEndTimes[ply] = CurTime() + ( self.ThrowCooldown or 0 )
 
-    self:SetFinishReload( CurTime() + self:SendTranslatedWeaponAnim( act ) )
+    local reloadDur = self:SendTranslatedWeaponAnim( act )
+    self:SetFinishReload( CurTime() + reloadDur )
+    self:SetFinishThrow( 0 )
     self:TakePrimaryAmmo( 1 )
+
+    if self:GetOwner():IsPlayer() then return end
+    timer.Simple( reloadDur + 0.1, function() -- more barebones term support
+        if not IsValid( self ) then return end
+        local owner = self:GetOwner()
+
+        if not IsValid( owner ) then return end
+        self:FinishReload()
+    end )
 end
 
 if SERVER then
@@ -240,13 +264,9 @@ if SERVER then
         end
 
         ent:SetOwner( ply )
-        timer.Simple( 0.25, function()
-            if not IsValid( ent ) then return end
-            ent:SetOwner()
+        ent:SetCreator( ply )
 
-        end )
-
-        self:SetNW2Bool( "ThrowableInHand", false )
+        self:SetThrowableInHand( false )
 
         if self.ModelMaterial then
             ent:SetMaterial( self.ModelMaterial )
@@ -351,11 +371,13 @@ function SWEP:FinishReload()
 
     self:SetNextIdle( time )
 
-    self:SetNW2Bool( "ThrowableInHand", true )
+    self:SetThrowableInHand( true )
 
     self:SetNextPrimaryFire( time )
     self:SetNextSecondaryFire( time )
     self:SetHoldType( self.IdleHoldType )
+
+    self:SetFinishReload( 0 )
 
     return true
 end
@@ -374,16 +396,12 @@ function SWEP:Think()
 
     if reload > 0 and reload <= CurTime() then
         self:FinishReload()
-
-        self:SetFinishReload( 0 )
     end
 
     local throw = self:GetFinishThrow()
 
     if throw > 0 and throw <= CurTime() and not owner:KeyDown( self:GetThrowMode() == 1 and IN_ATTACK or IN_ATTACK2 ) then
         self:Throw()
-
-        self:SetFinishThrow( 0 )
     end
 
     self.oldOwner = owner
@@ -428,9 +446,11 @@ function SWEP:OwnerChanged()
     end
 end
 
-function SWEP:DrawWorldModel()
+function SWEP:DrawWorldModel( flags )
     local owner = self:GetOwner()
-    if IsValid( owner ) then
+    if IsValid( owner ) and self.OffsetWorldModel then
+        if not self:GetThrowableInHand() then return end -- they just threw it, it's in the air, not their hand, duh!
+
         local attachId = owner:LookupAttachment( "anim_attachment_RH" )
         if attachId <= 0 then return end
         local attachTbl = owner:GetAttachment( attachId )
@@ -438,10 +458,10 @@ function SWEP:DrawWorldModel()
         self:SetPos( posOffsetW )
         self:SetAngles( angOffsetW )
 
+        self:SetupBones()
     end
-    if not self:GetNW2Bool( "ThrowableInHand" ) then return end
     self:SetModelScale( self.ModelScale )
-    self:DrawModel()
+    self:DrawModel( flags )
 end
 
 function SWEP:SetupViewModel()
@@ -471,6 +491,7 @@ function SWEP:TearDownViewModel( owner )
     owner = owner or self:GetOwner()
     if not IsValid( owner ) then return end
     self.ViewModelSetup = nil
+    if not IsValid( self.MyHeldModel ) then return end
     self.MyHeldModel:SetParent( self )
 
 end
@@ -478,7 +499,9 @@ end
 local invisMat = Material( "models/blackout/blackout" )
 
 function SWEP:PreDrawViewModel()
-    if not self.ViewModelSetup then
+    local mdlBroke = not self.ViewModelSetup or ( self.HeldModel and not IsValid( self.MyHeldModel:GetParent() ) )
+    if mdlBroke then
+        self.ViewModelSetup = false
         self:SetupViewModel()
         return
 

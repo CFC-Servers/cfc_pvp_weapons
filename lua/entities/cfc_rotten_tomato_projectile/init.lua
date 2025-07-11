@@ -13,7 +13,13 @@ function ENT:Initialize()
     self:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
 
     -- don't hit the world, frozen props until this much time has passed
-    self.NextHitTime = CurTime() + 0.5
+    local nextHitTime = 0.5
+    self.NextHitTime = CurTime() + nextHitTime
+
+    timer.Simple( nextHitTime, function() -- so we can land back on the owner
+        if not IsValid( self ) then return end
+        self:SetOwner()
+    end )
 end
 
 function ENT:HitEffects( pos, normal, _ ) -- pos, normal, speed
@@ -74,9 +80,16 @@ function ENT:Touch( ent )
     -- only hit static stuff early IF it's directly in our way
     if hitStaticTooEarly and not util.QuickTrace( pos, normal * 25, self ).Hit then return end
 
+    -- let the damage decide if we should do special PostHitEnt stuff
+    hook.Add( "PostEntityTakeDamage", self, function( projectile, victim, dmgInfo )
+        projectile:PostHitEnt( victim, dmgInfo:GetDamage() )
+        SafeRemoveEntity( projectile )
+
+    end )
+
     self.Projectile_Hit = true
 
-    local attacker = self:GetCreator()
+    local attacker = IsValid( self:GetThrower() ) and self:GetThrower() or self:GetCreator()
     if not IsValid( attacker ) then
         attacker = self
 
@@ -91,7 +104,7 @@ function ENT:Touch( ent )
 
     local damageAdded = damageSpeed / self.VelocityForOneDamage
     local damageDealt = 0
-    local force = self.BaseDamage * speed
+    local force = self.BaseDamage * self.DamageForceMul * speed
 
     -- if the ent has npc/player hitbox properties, do a quick FireBullets to take advantage of it's headshot calculations
     if ent:IsPlayer() or ent:IsNPC() then
@@ -132,7 +145,7 @@ function ENT:Touch( ent )
 
     end
 
-    self:PostHitEnt( hitEnt, damageDealt )
+    -- the PostEntityTakeDamage hook is then called above
 
-    SafeRemoveEntity( self )
+    SafeRemoveEntityDelayed( self, 0.1 )
 end
