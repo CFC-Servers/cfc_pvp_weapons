@@ -17,7 +17,7 @@ SWEP.Slot = 1
 SWEP.ViewModel = Model( "models/weapons/c_grenade.mdl" )
 SWEP.Spawnable = true
 SWEP.Purpose = "Throw bricks at people!"
-SWEP.Instructions = "Look out below!"
+SWEP.Instructions = "More speed = more damage."
 
 SWEP.IdleHoldType = "slam"
 SWEP.ThrowingHoldType = "melee"
