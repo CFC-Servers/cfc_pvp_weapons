@@ -149,8 +149,8 @@ function ENT:Touch( ent )
     end
 
     -- the PostEntityTakeDamage hook is then called above
-    if not caughtDamage then -- if damage was somehow blocked, fallback to hitting the world
-        self:PostHitEnt( game.GetWorld(), damageDealt )
+    if not caughtDamage then -- if damage was somehow blocked, fallback to dealing 0 damage
+        self:PostHitEnt( hitEnt, damageDealt, 0 )
     end
 
     SafeRemoveEntityDelayed( self, 0.1 )
