@@ -80,8 +80,11 @@ function ENT:Touch( ent )
     -- only hit static stuff early IF it's directly in our way
     if hitStaticTooEarly and not util.QuickTrace( pos, normal * 25, self ).Hit then return end
 
+    local caughtDamage
+
     -- let the damage decide if we should do special PostHitEnt stuff
     hook.Add( "PostEntityTakeDamage", self, function( projectile, victim, dmgInfo )
+        caughtDamage = true
         projectile:PostHitEnt( victim, dmgInfo:GetDamage() )
         SafeRemoveEntity( projectile )
 
@@ -146,6 +149,9 @@ function ENT:Touch( ent )
     end
 
     -- the PostEntityTakeDamage hook is then called above
+    if not caughtDamage then -- if damage was somehow blocked, fallback to hitting the world
+        self:PostHitEnt( game.GetWorld(), damageDealt )
+    end
 
     SafeRemoveEntityDelayed( self, 0.1 )
 end
