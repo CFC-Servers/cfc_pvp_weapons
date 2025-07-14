@@ -338,8 +338,46 @@ local function detectImpact( ent, dt )
 end
 
 
+function CFCPvPWeapons.CollectBonkHits( wep )
+    local bonkHits = {}
+    wep._bonkHits = bonkHits
+
+    hook.Add( "EntityTakeDamage", "CFC_BonkGun_CollectBonkHits", function( victim, dmg )
+        if not IsValid( victim ) then return end
+        if isBuildPlayer( victim ) then return end
+
+        local attacker = dmg:GetAttacker()
+        if not IsValid( attacker ) then return end
+        if not attacker.GetActiveWeapon then return end
+        if victim:IsNPC() then return end
+
+        if dmg:GetInflictor() ~= attacker then return end -- Prevent turrets and etc from bonking.
+        if attacker:GetActiveWeapon() ~= wep then return end -- Only collect hits for the current weapon.
+
+        local hit = bonkHits[victim]
+        local needsManualBonk, fromGround, dmgForce = processDamage( attacker, victim, wep, dmg, hit and hit.fromGround )
+        if not needsManualBonk then return end
+
+        -- Collect hits together.
+        if not hit then
+            hit = {
+                damage = 0,
+                force = Vector( 0, 0, 0 ),
+                fromGround = fromGround,
+                attacker = attacker,
+            }
+            bonkHits[victim] = hit
+        end
+
+        hit.damage = hit.damage + dmg:GetDamage()
+        hit.force = hit.force + dmgForce
+    end )
+end
+
 -- Should not be called manually.
 function CFCPvPWeapons.ApplyBonkHits( wep )
+    hook.Remove( "EntityTakeDamage", "CFC_BonkGun_CollectBonkHits" )
+
     local bonkHits = wep._bonkHits
     if not bonkHits then return end
 
@@ -351,52 +389,9 @@ function CFCPvPWeapons.ApplyBonkHits( wep )
 
         bonkHits[victim] = nil
     end
+
+    wep._bonkHits = nil
 end
-
-
-hook.Add( "EntityTakeDamage", "CFC_BonkGun_YeetVictim", function( victim, dmg )
-    if not IsValid( victim ) then return end
-    if isBuildPlayer( victim ) then return end
-
-    local attacker = dmg:GetAttacker()
-    if not IsValid( attacker ) then return end
-    if not attacker:IsPlayer() then return end
-    if victim:IsNPC() then return end
-
-    if dmg:GetInflictor() ~= attacker then return end -- Prevent turrets and etc from bonking.
-
-    local wep = attacker:GetActiveWeapon()
-    if not IsValid( wep ) then return end
-    if not wep.Bonk or not wep.Bonk.Enabled then return end
-
-    local bonkHits = wep._bonkHits
-    local hit = bonkHits and bonkHits[victim]
-
-    local needsManualBonk, fromGround, dmgForce = processDamage( attacker, victim, wep, dmg, hit and hit.fromGround )
-    if not needsManualBonk then return end
-
-    -- Not collecting for some reason, so just bonk immediately.
-    if not bonkHits then
-        local force = getBonkForce( attacker, victim, wep, dmgForce, dmg:GetDamage(), fromGround )
-        bonkPlayerOrNPC( attacker, victim, wep, force )
-
-        return
-    end
-
-    -- Collect hits together.
-    if not hit then
-        hit = {
-            damage = 0,
-            force = Vector( 0, 0, 0 ),
-            fromGround = fromGround,
-            attacker = attacker,
-        }
-        bonkHits[victim] = hit
-    end
-
-    hit.damage = hit.damage + dmg:GetDamage()
-    hit.force = hit.force + dmg:GetDamageForce()
-end )
 
 
 hook.Add( "Think", "CFC_BonkGun_DetectImpact", function()

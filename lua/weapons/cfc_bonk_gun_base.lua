@@ -119,12 +119,12 @@ end
 
 
 -- Call immediately before firing bullets.
--- Collects separate damage events together, to fix a source bug that sometimes splits multi-bullet shots into multiple damage events.
+-- Collects separate damage events together.
 function SWEP:CollectBonkHits()
-    self._bonkHits = self._bonkHits or {}
+    CFCPvPWeapons.CollectBonkHits( self )
 end
 
--- Call immedaitely after firing bullets, dealing damage, etc.
+-- Call immediately after firing bullets, dealing damage, etc. If you delay by even one tick, it'll break things!
 function SWEP:ApplyBonkHits()
     CFCPvPWeapons.ApplyBonkHits( self )
 end
