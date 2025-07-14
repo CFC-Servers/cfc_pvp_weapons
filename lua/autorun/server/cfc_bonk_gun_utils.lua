@@ -252,10 +252,6 @@ local function processDamage( attacker, victim, wep, dmg, fromGround )
             return false -- No need for a manual bonk.
         end
 
-        --local force = getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGround )
-
-        --bonkPlayerOrNPC( attacker, victim, wep, force )
-
         return true, fromGround, dmgForce
     end
 
