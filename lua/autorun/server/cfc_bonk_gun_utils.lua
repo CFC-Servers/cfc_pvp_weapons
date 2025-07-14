@@ -113,8 +113,9 @@ local function getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGro
     local dir = dmgForce:GetNormalized()
     local groundThresh = wep.Bonk.PlayerForceGroundThreshold
     local nearGround = false
+    local isPly = victim:IsPlayer() -- NPCs don't seem to be quite as ground-sticky as players.
 
-    if not fromGround and groundThresh > 0 then
+    if isPly and not fromGround and groundThresh > 0 then
         local tr = util.TraceHull( {
             start = victim:GetPos(),
             endpos = victim:GetPos() - Vector( 0, 0, groundThresh ),
@@ -131,7 +132,7 @@ local function getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGro
 
     -- Force the direction to have a significant upwards angle when on or near the ground.
     -- Otherwise, grounded players don't budge, and near-grounded players (i.e. jumping) immediately hit the ground with little impact.
-    if fromGround or nearGround then
+    if isPly and fromGround or nearGround then
         local ang = attacker:EyeAngles() -- damageinfo force direction is an absolute mess when the victim is on the ground, use eye angles instead
         local pitch = math.min( ang.p, -wep.Bonk.PlayerForceGroundPitchMin )
 
@@ -194,6 +195,14 @@ local function bonkPlayerOrNPC( attacker, victim, wep, force )
         victim:SetVelocity( force )
         disableMovement( victim, wep )
     else
+        local physObj = victim:GetPhysicsObject()
+
+        if victim:GetClass() == "npc_strider" then
+            force = force * 0.001 -- Striders don't have a physobj and state a really tiny OBB size despite how big they are. Just make the force negligable.
+        elseif IsValid( physObj ) then
+            force = force * 100 / physObj:GetMass() -- Don't affect heavy NPCs too much
+        end
+
         victim:SetVelocity( victim:GetVelocity() + force )
     end
 
@@ -349,7 +358,6 @@ function CFCPvPWeapons.CollectBonkHits( wep )
         local attacker = dmg:GetAttacker()
         if not IsValid( attacker ) then return end
         if not attacker.GetActiveWeapon then return end
-        if victim:IsNPC() then return end
 
         if dmg:GetInflictor() ~= attacker then return end -- Prevent turrets and etc from bonking.
         if attacker:GetActiveWeapon() ~= wep then return end -- Only collect hits for the current weapon.
