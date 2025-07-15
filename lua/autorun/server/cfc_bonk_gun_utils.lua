@@ -375,7 +375,7 @@ function CFCPvPWeapons.CollectBonkHits( wep )
 
         hit.damage = hit.damage + dmg:GetDamage()
         hit.force = hit.force + dmgForce
-    end )
+    end, HOOK_LOW )
 end
 
 -- Should not be called manually.
