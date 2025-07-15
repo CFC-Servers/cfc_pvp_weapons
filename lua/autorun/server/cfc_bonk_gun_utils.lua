@@ -1,3 +1,5 @@
+CFCPvPWeapons = CFCPvPWeapons or {}
+
 util.AddNetworkString( "CFC_BonkGun_PlayTweakedSound" )
 
 
@@ -111,8 +113,9 @@ local function getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGro
     local dir = dmgForce:GetNormalized()
     local groundThresh = wep.Bonk.PlayerForceGroundThreshold
     local nearGround = false
+    local isPly = victim:IsPlayer() -- NPCs don't seem to be quite as ground-sticky as players.
 
-    if not fromGround and groundThresh > 0 then
+    if isPly and not fromGround and groundThresh > 0 then
         local tr = util.TraceHull( {
             start = victim:GetPos(),
             endpos = victim:GetPos() - Vector( 0, 0, groundThresh ),
@@ -129,7 +132,7 @@ local function getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGro
 
     -- Force the direction to have a significant upwards angle when on or near the ground.
     -- Otherwise, grounded players don't budge, and near-grounded players (i.e. jumping) immediately hit the ground with little impact.
-    if fromGround or nearGround then
+    if isPly and fromGround or nearGround then
         local ang = attacker:EyeAngles() -- damageinfo force direction is an absolute mess when the victim is on the ground, use eye angles instead
         local pitch = math.min( ang.p, -wep.Bonk.PlayerForceGroundPitchMin )
 
@@ -192,6 +195,14 @@ local function bonkPlayerOrNPC( attacker, victim, wep, force )
         victim:SetVelocity( force )
         disableMovement( victim, wep )
     else
+        local physObj = victim:GetPhysicsObject()
+
+        if victim:GetClass() == "npc_strider" then
+            force = force * 0.001 -- Striders don't have a physobj and state a really tiny OBB size despite how big they are. Just make the force negligable.
+        elseif IsValid( physObj ) then
+            force = force * 100 / physObj:GetMass() -- Don't affect heavy NPCs too much
+        end
+
         victim:SetVelocity( victim:GetVelocity() + force )
     end
 
@@ -220,12 +231,12 @@ local function bonkPlayerOrNPC( attacker, victim, wep, force )
     end )
 end
 
-local function bonkVictim( attacker, victim, dmg, wep )
+local function processDamage( attacker, victim, wep, dmg, fromGround )
     local dmgForce = dmg:GetDamageForce()
 
     if IsValid( victim ) and ( victim:IsPlayer() or victim:IsNPC() ) then
+        fromGround = fromGround or victim:IsOnGround() -- If was from ground, then always from ground, in case the game moves players off the ground inbetween split damage events.
         local dmgAmount = dmg:GetDamage()
-        local fromGround = victim:IsOnGround()
 
         -- When the victim is on the ground, dmgForce is pointed downwards, which makes the launch weak
         if fromGround then
@@ -237,14 +248,16 @@ local function bonkVictim( attacker, victim, dmg, wep )
         if enoughToKill( victim, dmgAmount ) then
             -- Death ragdoll only needs a force multiplier
             dmg:SetDamageForce( dmgForce * wep.Bonk.PlayerForceMultRagdoll )
-        else
-            local force = getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGround )
 
-            bonkPlayerOrNPC( attacker, victim, wep, force )
+            return false -- No need for a manual bonk.
         end
-    else
-        dmg:SetDamageForce( dmgForce * wep.Bonk.PropForceMult )
+
+        return true, fromGround, dmgForce
     end
+
+    dmg:SetDamageForce( dmgForce * wep.Bonk.PropForceMult )
+
+    return false -- No need for a manual bonk.
 end
 
 local function handleImpact( ent, accel )
@@ -330,23 +343,60 @@ local function detectImpact( ent, dt )
 end
 
 
-hook.Add( "EntityTakeDamage", "CFC_BonkGun_YeetVictim", function( victim, dmg )
-    if not IsValid( victim ) then return end
-    if isBuildPlayer( victim ) then return end
+function CFCPvPWeapons.CollectBonkHits( wep )
+    local bonkHits = {}
+    wep._bonkHits = bonkHits
 
-    local attacker = dmg:GetAttacker()
-    if not IsValid( attacker ) then return end
-    if not attacker:IsPlayer() then return end
-    if victim:IsNPC() then return end
+    hook.Add( "EntityTakeDamage", "CFC_BonkGun_CollectBonkHits", function( victim, dmg )
+        if not IsValid( victim ) then return end
+        if isBuildPlayer( victim ) then return end
 
-    if dmg:GetInflictor() ~= attacker then return end -- Prevent turrets and etc from bonking.
+        local attacker = dmg:GetAttacker()
+        if not IsValid( attacker ) then return end
+        if not attacker.GetActiveWeapon then return end
 
-    local wep = attacker:GetActiveWeapon()
-    if not IsValid( wep ) then return end
-    if not wep.Bonk or not wep.Bonk.Enabled then return end
+        if dmg:GetInflictor() ~= attacker then return end -- Prevent turrets and etc from bonking.
+        if attacker:GetActiveWeapon() ~= wep then return end -- Only collect hits for the current weapon.
 
-    bonkVictim( attacker, victim, dmg, wep )
-end )
+        local hit = bonkHits[victim]
+        local needsManualBonk, fromGround, dmgForce = processDamage( attacker, victim, wep, dmg, hit and hit.fromGround )
+        if not needsManualBonk then return end
+
+        -- Collect hits together.
+        if not hit then
+            hit = {
+                damage = 0,
+                force = Vector( 0, 0, 0 ),
+                fromGround = fromGround,
+                attacker = attacker,
+            }
+            bonkHits[victim] = hit
+        end
+
+        hit.damage = hit.damage + dmg:GetDamage()
+        hit.force = hit.force + dmgForce
+    end, HOOK_LOW )
+end
+
+-- Should not be called manually.
+function CFCPvPWeapons.ApplyBonkHits( wep )
+    hook.Remove( "EntityTakeDamage", "CFC_BonkGun_CollectBonkHits" )
+
+    local bonkHits = wep._bonkHits
+    if not bonkHits then return end
+
+    for victim, hit in pairs( bonkHits ) do
+        if not victim:Alive() then continue end
+
+        local force = getBonkForce( hit.attacker, victim, wep, hit.force, hit.damage, hit.fromGround )
+        bonkPlayerOrNPC( hit.attacker, victim, wep, force )
+
+        bonkHits[victim] = nil
+    end
+
+    wep._bonkHits = nil
+end
+
 
 hook.Add( "Think", "CFC_BonkGun_DetectImpact", function()
     local dt = FrameTime()

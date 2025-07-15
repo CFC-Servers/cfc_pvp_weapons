@@ -118,6 +118,17 @@ if CLIENT then
 end
 
 
+-- Call immediately before firing bullets.
+-- Collects separate damage events together.
+function SWEP:CollectBonkHits()
+    CFCPvPWeapons.CollectBonkHits( self )
+end
+
+-- Call immediately after firing bullets, dealing damage, etc. If you delay by even one tick, it'll break things!
+function SWEP:ApplyBonkHits()
+    CFCPvPWeapons.ApplyBonkHits( self )
+end
+
 function SWEP:FireWeapon()
     local selfForce = self.Bonk.SelfForce
     if not selfForce then return BaseClass.FireWeapon( self ) end
@@ -153,5 +164,7 @@ function SWEP:FireWeapon()
         return
     end
 
+    self:CollectBonkHits()
     BaseClass.FireWeapon( self )
+    self:ApplyBonkHits()
 end
