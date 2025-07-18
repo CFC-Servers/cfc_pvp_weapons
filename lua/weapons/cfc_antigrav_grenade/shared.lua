@@ -6,7 +6,9 @@ end
 
 game.AddAmmoType( { name = "cfc_antigrav_grenade", maxcarry = 5 } )
 
+DEFINE_BASECLASS( "cfc_simple_base_throwing" )
 SWEP.Base = "cfc_simple_base_throwing"
+
 SWEP.PrintName = "'Nade (Anti-Gravity)"
 SWEP.Category = "CFC"
 
@@ -18,10 +20,12 @@ SWEP.ViewModelFOV = 54
 SWEP.ViewModel = Model( "models/weapons/cstrike/c_eq_fraggrenade.mdl" ) -- Funnily enough, both of these are in the gmod vpk.
 SWEP.WorldModel = Model( "models/weapons/w_eq_fraggrenade.mdl" ) -- However, the worldmodel's material is not packed, while the viewmodel's material is. Hence it being set in Initialize.
 
-SWEP.HoldType = "melee"
+SWEP.IdleHoldType = "slam"
+SWEP.ThrowingHoldType = "melee"
 
 SWEP.Primary = {
     Ammo = "cfc_antigrav_grenade",
+    DefaultClip = 1,
 
     ThrowAct = { ACT_VM_PULLBACK_HIGH, ACT_VM_THROW },
     LobAct = { ACT_VM_PULLBACK_LOW, ACT_VM_HAULBACK },
@@ -32,6 +36,7 @@ SWEP.ThrowCooldown = 3
 
 
 function SWEP:Initialize()
+    BaseClass.Initialize( self )
     self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_antigrav" )
 end
 
