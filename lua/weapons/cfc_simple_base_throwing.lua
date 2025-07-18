@@ -447,7 +447,7 @@ end
 function SWEP:DrawWorldModel( flags )
     local owner = self:GetOwner()
 
-    if IsValid( owner ) and self.OffsetWorldModel then
+    if IsValid( owner ) and self.OffsetWorldModel and owner:GetActiveWeapon() == self then
         if not self:GetThrowableInHand() then return end -- they just threw it, it's in the air, not their hand, duh!
 
         local attachId = owner:LookupAttachment( "anim_attachment_RH" )
