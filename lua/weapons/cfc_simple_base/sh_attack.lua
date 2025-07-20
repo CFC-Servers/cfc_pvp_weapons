@@ -94,14 +94,16 @@ end
 
 function SWEP:FireWeapon()
     local ply = self:GetOwner()
-    local primary = self.Primary
 
     self:EmitFireSound()
-
     self:SendTranslatedWeaponAnim( ACT_VM_PRIMARYATTACK )
-
     ply:SetAnimation( PLAYER_ATTACK1 )
+    self:HandleBullets()
+end
 
+function SWEP:HandleBullets()
+    local ply = self:GetOwner()
+    local primary = self.Primary
     local damage = self:GetDamage()
 
     local bullet = {
