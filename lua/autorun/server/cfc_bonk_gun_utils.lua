@@ -247,14 +247,12 @@ local function bonkPlayerOrNPC( attacker, victim, wep, force, wasBonked )
     if wasBonked then
         playBonkComboSound( attacker )
 
+        local radius = 24
         local eff = EffectData()
-        eff:SetOrigin( victim:WorldSpaceCenter() )
+        eff:SetOrigin( Vector( 0, 0, victim:OBBMaxs()[3] + radius + 10 ) )
         eff:SetEntity( victim )
-        eff:SetScale( 1 )
-        eff:SetMagnitude( 3 )
-        eff:SetRadius( 1 )
-        eff:SetNormal( force:GetNormalized() )
-        util.Effect( "ElectricSpark", eff, true, true ) -- TODO: Make this use a custom effect + image, similar to double donk from TF2
+        eff:SetRadius( radius )
+        util.Effect( "cfc_double_bonk", eff, true, true )
     end
 
     if not wep.Bonk.ImpactEnabled then return end
