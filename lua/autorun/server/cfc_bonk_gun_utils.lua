@@ -372,6 +372,19 @@ local function detectImpact( ent, dt )
         return
     end
 
+    local pos = ent:GetPos()
+    local tr = util.TraceHull( {
+        start = pos,
+        endpos = pos + prevVel * dt * 3,
+        filter = ent,
+        mins = ent:OBBMins(),
+        maxs = ent:OBBMaxs(),
+        mask = MASK_SOLID,
+        collisiongroup = ent:GetCollisionGroup(),
+    } )
+
+    if not tr.Hit then return end -- Didn't hit a wall, don't count as an impact, keep bonk status.
+
     handleImpact( ent, accel )
 end
 
