@@ -52,7 +52,7 @@ local function enoughToKill( ply, dmgAmount )
     local armor = ply:IsPlayer() and ply:Armor() or 0
 
     -- Note: this currently doesn't check for godmode
-    if dmgAmount >= health + armor then
+    if dmgAmount >= health + armor or health == 1 and dmgAmount > 0 then
         return true
     end
 
