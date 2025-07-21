@@ -63,6 +63,40 @@ SWEP.Primary = {
         Sound = "" -- Optional: Sound to play when starting a reload
     },
 
+    SpreadPattern = {
+        Type = "rings",
+        Rings = {
+            {
+                Count = 1,
+                SpreadX = 0,
+                SpreadY = 0,
+                ThetaMult = 1,
+                ThetaAdd = math.rad( 0 ),
+            },
+            {
+                Count = 3,
+                SpreadX = 0.01,
+                SpreadY = 0.01,
+                ThetaMult = 1,
+                ThetaAdd = math.rad( -30 ),
+            },
+            {
+                Count = 6,
+                SpreadX = 0.01 * 2,
+                SpreadY = 0.01 * 2,
+                ThetaMult = 1,
+                ThetaAdd = math.rad( 0 ),
+            },
+            {
+                Count = 10,
+                SpreadX = 0.01 * 3,
+                SpreadY = 0.01 * 3,
+                ThetaMult = 1,
+                ThetaAdd = math.rad( 0 ),
+            },
+        }
+    },
+
     Sound = "CFCBonkShotgun.Single", -- Firing sound
     TracerName = "Tracer", -- Tracer effect, leave blank for no tracer
 }
