@@ -72,6 +72,58 @@ SWEP.Primary = {
 
     Sound = "Weapon_Pistol.Single", -- Firing sound
     TracerName = "Tracer", -- Tracer effect, leave blank for no tracer
+
+    --[[
+        - Fixed spread patterns (Range and Accuracy will be ignored):
+
+        - Grid pattern:
+        SpreadPattern = {
+            Type = "grid",
+            RowCount = 5, -- Ideal number of rows. Number of columns will be auto-calculated based off Primary.Count.
+            SpreadX = 0.04, -- Horizontal spread, in radians. Similar to the Spread compnent of the Bullet structure.
+            SpreadY = 0.02, -- Vertical spread. Defaults to the value of SpreadX.
+        },
+
+        - Ring pattern:
+        SpreadPattern = {
+            Type = "rings",
+            Rings = {
+                {
+                    Count = 4, -- How many bullets to put in this ring. Note that the bullet total will be clamped by Primary.Count.
+                    SpreadX = 0.01, -- Horizontal spread of this ring, in radians.
+                    SpreadY = 0.01, -- Vertical spread of this ring, in radians. Defaults to SpreadX.
+                    ThetaMult = 1, -- Set to a value between 0 and 1 for a semicircular ring. Defaults to 1.
+                    ThetaAdd = 0, -- Rotates the ring. Defaults to 0.
+                },
+                {
+                    Count = 6,
+                    SpreadX = 0.01 * 2,
+                    SpreadY = 0.01 * 2,
+                    ThetaMult = 1,
+                    ThetaAdd = 0,
+                },
+                {
+                    Count = 10,
+                    SpreadX = 0.01 * 3,
+                    SpreadY = 0.01 * 3,
+                    ThetaMult = 1,
+                    ThetaAdd = 0,
+                },
+                -- etc
+            }
+        },
+
+        - Custom pattern:
+        SpreadPattern = {
+            Type = "custom",
+            Func = function( count, spreadInfo, wep )
+                -- A function which should return xs, ys; a pair of tables of the x and y spreads for each bullet, in radians.
+                -- count: The number of bullets to fire.
+                -- spreadInfo: The SpreadPattern table itself.
+                -- wep: The weapon instance.
+            end,
+        }
+    --]]
 }
 
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
