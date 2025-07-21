@@ -474,6 +474,11 @@ hook.Add( "Think", "CFC_BonkGun_DetectImpact", function()
     end
 end )
 
+hook.Add( "PlayerDeath", "CFC_BonkGun_ClearBonksOnDeath", function( ply )
+    bonkedEnts[ply] = nil
+    ply.cfc_bonkInfo = nil
+end )
+
 
 local function initSetup()
     local hitgroupMults =
