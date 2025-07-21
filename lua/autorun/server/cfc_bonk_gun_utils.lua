@@ -83,6 +83,14 @@ local function playBonkSound( victim )
     playTweakedSound( victim, "physics/glass/glass_sheet_impact_hard1.wav", 1.25, 1.8 + pitchOffset )
 end
 
+local function playBonkComboSound( attacker )
+    local rf = RecipientFilter()
+    rf:AddPlayer( attacker )
+
+    attacker:EmitSound( "garrysmod/content_downloaded.wav", 100, 130, 1, CHAN_AUTO, 0, 0, rf )
+    attacker:EmitSound( "garrysmod/balloon_pop_cute.wav", 100, 130, 0.35, CHAN_AUTO, 0, 0, rf )
+end
+
 local function playBonkImpactSound( attacker, victim )
     playTweakedSound( victim, "physics/flesh/flesh_impact_bullet" .. math.random( 1, 5 ) .. ".wav", 1.25, 1 )
 
@@ -130,12 +138,13 @@ local function getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGro
     local maxDamage = wep.Primary.Damage * wep.Primary.Count
     local damageMult = math.min( dmgAmount / maxDamage, wep.Bonk.PlayerForceMultMax )
     local bonkInfo = victim.cfc_bonkInfo or {}
+    local wasBonked = bonkInfo.IsBonked or false
 
-    if bonkInfo.IsBonked then
+    if wasBonked then
         damageMult = damageMult * wep.Bonk.PlayerForceComboMult
     end
 
-    if damageMult < wep.Bonk.PlayerForceIgnoreThreshold then return false end
+    if damageMult < wep.Bonk.PlayerForceIgnoreThreshold then return false, wasBonked end
 
     local dir = dmgForce:GetNormalized()
     local groundThresh = wep.Bonk.PlayerForceGroundThreshold
@@ -183,7 +192,7 @@ local function getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGro
         force.z = force.z + wep.Bonk.PlayerForceGroundZAdd
     end
 
-    return force
+    return force, wasBonked
 end
 
 -- Disable victim's movement temporarily so they can't immediately cancel out the bonk effect.
@@ -215,7 +224,7 @@ local function enableMovement( victim )
     hook.Remove( "SetupMove", hookName )
 end
 
-local function bonkPlayerOrNPC( attacker, victim, wep, force )
+local function bonkPlayerOrNPC( attacker, victim, wep, force, wasBonked )
     if not force then return end
 
     if victim:IsPlayer() then
@@ -234,6 +243,19 @@ local function bonkPlayerOrNPC( attacker, victim, wep, force )
     end
 
     playBonkSound( victim )
+
+    if wasBonked then
+        playBonkComboSound( attacker )
+
+        local eff = EffectData()
+        eff:SetOrigin( victim:WorldSpaceCenter() )
+        eff:SetEntity( victim )
+        eff:SetScale( 1 )
+        eff:SetMagnitude( 3 )
+        eff:SetRadius( 1 )
+        eff:SetNormal( force:GetNormalized() )
+        util.Effect( "ElectricSpark", eff, true, true ) -- TODO: Make this use a custom effect + image, similar to double donk from TF2
+    end
 
     if not wep.Bonk.ImpactEnabled then return end
     local wepClass = wep:GetClass()
@@ -434,8 +456,8 @@ function CFCPvPWeapons.ApplyBonkHits( wep )
     for victim, hit in pairs( bonkHits ) do
         if not victim:Alive() then continue end
 
-        local force = getBonkForce( hit.attacker, victim, wep, hit.force, hit.strength, hit.fromGround )
-        bonkPlayerOrNPC( hit.attacker, victim, wep, force )
+        local force, wasBonked = getBonkForce( hit.attacker, victim, wep, hit.force, hit.strength, hit.fromGround )
+        bonkPlayerOrNPC( hit.attacker, victim, wep, force, wasBonked )
 
         bonkHits[victim] = nil
     end
