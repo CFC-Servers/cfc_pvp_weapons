@@ -97,7 +97,7 @@ SWEP.Primary = {
         }
     },
 
-    Sound = "CFCBonkShotgun.Single", -- Firing sound
+    Sound = "CFCBonkShotgun.Single", -- Firing sound (OVERRIDDEN BY SWEP:EmitFireSound)
     TracerName = "Tracer", -- Tracer effect, leave blank for no tracer
 }
 
@@ -146,3 +146,9 @@ SWEP.Bonk = {
         SelfForceOnGround = false, -- If true, will apply self force even while on the ground.
     DisableMovementDuration = 0.7, -- How long to disable movement for when bonked. Ends early on impact. 0 to disable.
 }
+
+
+function SWEP:EmitFireSound()
+    self:EmitSound( "weapons/cfc_bonk_shotgun/m3-1.wav", 75, 100, 0.5, CHAN_WEAPON )
+    self:EmitSound( "npc/scanner/scanner_nearmiss1.wav", 75, 110, 0.8, CHAN_AUTO )
+end
