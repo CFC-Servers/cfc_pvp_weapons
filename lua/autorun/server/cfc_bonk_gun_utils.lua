@@ -4,6 +4,7 @@ util.AddNetworkString( "CFC_BonkGun_PlayTweakedSound" )
 
 
 local bonkedEnts = {}
+local hitgroupNormalizers = {} -- Used for making bonk weapons ignore hitgroup damage scaling when calculating bonk force.
 
 local IMPACT_ACCELERATION_THRESHOLD = 7000
 local IMPACT_START_DELAY = 0.07
@@ -12,6 +13,32 @@ local AIR_SHOT_REFUND_COOLDOWN = 0.01
 
 local IsValid = IsValid
 local VECTOR_ZERO = Vector( 0, 0, 0 )
+
+local HITGROUP_MULTS_PER_GAMEMODE = {
+    ["sandbox"] = { -- Also the fallback.
+        [HITGROUP_GENERIC] = 1,
+        [HITGROUP_HEAD] = 2,
+        [HITGROUP_CHEST] = 1,
+        [HITGROUP_STOMACH] = 1,
+        [HITGROUP_LEFTARM] = 0.25,
+        [HITGROUP_RIGHTARM] = 0.25,
+        [HITGROUP_LEFTLEG] = 0.25,
+        [HITGROUP_RIGHTLEG] = 0.25,
+        [HITGROUP_GEAR] = 0.01,
+    },
+    ["terrortown"] = {
+        [HITGROUP_GENERIC] = 1,
+        [HITGROUP_HEAD] = 2,
+        [HITGROUP_CHEST] = 1,
+        [HITGROUP_STOMACH] = 1,
+        [HITGROUP_LEFTARM] = 0.55,
+        [HITGROUP_RIGHTARM] = 0.55,
+        [HITGROUP_LEFTLEG] = 0.55,
+        [HITGROUP_RIGHTLEG] = 0.55,
+        [HITGROUP_GEAR] = 0.55,
+    },
+}
+local DEFAULT_HITGROUP_MULTS = HITGROUP_MULTS_PER_GAMEMODE["sandbox"]
 
 
 local function isBuildPlayer( ply )
@@ -252,7 +279,13 @@ local function processDamage( attacker, victim, wep, dmg, fromGround )
             return false -- No need for a manual bonk.
         end
 
-        return true, fromGround, dmgForce
+        -- Undo the effects of hitgroup multipliers.
+        if victim:IsPlayer() then
+            local norm = hitgroupNormalizers[victim:LastHitGroup()] or 1
+            dmgAmount = dmgAmount * norm
+        end
+
+        return true, fromGround, dmgForce, dmgAmount
     end
 
     dmg:SetDamageForce( dmgForce * wep.Bonk.PropForceMult )
@@ -359,13 +392,13 @@ function CFCPvPWeapons.CollectBonkHits( wep )
         if attacker:GetActiveWeapon() ~= wep then return end -- Only collect hits for the current weapon.
 
         local hit = bonkHits[victim]
-        local needsManualBonk, fromGround, dmgForce = processDamage( attacker, victim, wep, dmg, hit and hit.fromGround )
+        local needsManualBonk, fromGround, dmgForce, dmgStrength = processDamage( attacker, victim, wep, dmg, hit and hit.fromGround )
         if not needsManualBonk then return end
 
         -- Collect hits together.
         if not hit then
             hit = {
-                damage = 0,
+                strength = 0, -- Damage after undoing the effects of hitgroup multipliers.
                 force = Vector( 0, 0, 0 ),
                 fromGround = fromGround,
                 attacker = attacker,
@@ -373,7 +406,7 @@ function CFCPvPWeapons.CollectBonkHits( wep )
             bonkHits[victim] = hit
         end
 
-        hit.damage = hit.damage + dmg:GetDamage()
+        hit.strength = hit.strength + dmgStrength
         hit.force = hit.force + dmgForce
     end, HOOK_LOW )
 end
@@ -388,7 +421,7 @@ function CFCPvPWeapons.ApplyBonkHits( wep )
     for victim, hit in pairs( bonkHits ) do
         if not victim:Alive() then continue end
 
-        local force = getBonkForce( hit.attacker, victim, wep, hit.force, hit.damage, hit.fromGround )
+        local force = getBonkForce( hit.attacker, victim, wep, hit.force, hit.strength, hit.fromGround )
         bonkPlayerOrNPC( hit.attacker, victim, wep, force )
 
         bonkHits[victim] = nil
@@ -405,3 +438,25 @@ hook.Add( "Think", "CFC_BonkGun_DetectImpact", function()
         detectImpact( ent, dt )
     end
 end )
+
+
+local function initSetup()
+    local hitgroupMults =
+        hook.Run( "CFC_PvPWeapons_BonkGun_GetHitgroupMultipliers" ) or
+        HITGROUP_MULTS_PER_GAMEMODE[engine.ActiveGamemode()] or
+        DEFAULT_HITGROUP_MULTS
+
+    for hitgroup, defaultMult in pairs( DEFAULT_HITGROUP_MULTS ) do
+        local mult = hitgroupMults[hitgroup] or defaultMult
+        local norm = 1 / mult
+
+        if norm ~= norm then
+            norm = 1 -- NaN
+        end
+
+        hitgroupNormalizers[hitgroup] = norm
+    end
+end
+
+hook.Add( "InitPostEntity", "CFC_PvPWeapons_BonkGun_InitSetup", initSetup )
+if CurTime() > 500 then initSetup() end -- Also run if script is changed mid-session, for testing purposes.
