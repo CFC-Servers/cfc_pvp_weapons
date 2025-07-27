@@ -247,7 +247,7 @@ local function bonkPlayerOrNPC( attacker, victim, wep, force, wasBonked )
     if wasBonked then
         playBonkComboSound( attacker )
 
-        local radius = 24
+        local radius = 32
         local eff = EffectData()
         eff:SetOrigin( Vector( 0, 0, victim:OBBMaxs()[3] + radius + 10 ) )
         eff:SetEntity( victim )
