@@ -87,8 +87,7 @@ local function playBonkComboSound( attacker )
     local rf = RecipientFilter()
     rf:AddPlayer( attacker )
 
-    attacker:EmitSound( "garrysmod/content_downloaded.wav", 100, 130, 1, CHAN_AUTO, 0, 0, rf )
-    attacker:EmitSound( "garrysmod/balloon_pop_cute.wav", 100, 130, 0.35, CHAN_AUTO, 0, 0, rf )
+    attacker:EmitSound( "weapons/cfc_pvp_bonk/double_bonk.wav", 100, 100, 1, CHAN_AUTO, 0, 0, rf )
 end
 
 local function playBonkImpactSound( attacker, victim )
