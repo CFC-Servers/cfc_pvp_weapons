@@ -111,7 +111,13 @@ SWEP.CFC_FirstTimeHints = {
     {
         Message = "The Bonk Shotgun can also launch your enemies into walls to deal extra damage.",
         Sound = "ambient/water/drip2.wav",
-        Duration = 8,
+        Duration = 10,
+        DelayNext = 7,
+    },
+    {
+        Message = "Try hitting your enemies twice in a row for a devastating double bonk!",
+        Sound = "ambient/water/drip1.wav",
+        Duration = 10,
         DelayNext = 0,
     },
 }
