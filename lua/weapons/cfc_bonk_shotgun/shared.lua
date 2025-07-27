@@ -149,10 +149,9 @@ SWEP.Bonk = {
 
 
 function SWEP:EmitFireSound()
-    self:EmitSound( "npc/scanner/scanner_nearmiss1.wav", 80, 110, 1, CHAN_AUTO )
-
     self:EmitSound( "weapons/shotgun/shotgun_fire6.wav", 80, 105, 0.6, CHAN_WEAPON )
     self:EmitSound( "weapons/shotgun/shotgun_fire6.wav", 80, 110, 0.6, CHAN_AUTO )
+    self:EmitSound( "npc/scanner/scanner_nearmiss1.wav", 80, 110, 1, CHAN_AUTO )
 
     timer.Create( "CFCBonkShotgun_CockSound_" .. self:EntIndex(), 0.3, 1, function()
         if not IsValid( self ) then return end
