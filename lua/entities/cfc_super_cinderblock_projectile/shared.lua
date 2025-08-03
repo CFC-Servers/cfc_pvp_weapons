@@ -27,13 +27,6 @@ ENT.HullSize = 10
 -- just a cache
 ENT.HullVec = Vector( ENT.HullSize, ENT.HullSize, ENT.HullSize )
 
-function ENT:HitEffects( _, _, speed )
-    local pitch = 180 - ( speed / 30 )
-
-    self:EmitSound( "Concrete_Block.ImpactHard", 70, pitch, 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
-    self:EmitSound( "physics/concrete/concrete_impact_hard3.wav", 70, 40, 1, CHAN_STATIC )
-end
-
 local vec_up = Vector( 0, 0, 1 )
 local criticalDamage = 100
 
@@ -51,7 +44,7 @@ function ENT:PostHitEnt( hitEnt, damageDealt )
     end
 end
 
-function ENT:PostHit( hitEnt, _pos, _normal, _speed, damageDealt, actuallyDidDamage )
+function ENT:PostHit( hitEnt, _pos, _normal, speed, damageDealt, _actuallyDidDamage )
     local block = ents.Create( "cfc_super_cinder_block" )
 
     if IsValid( block ) then
@@ -83,4 +76,12 @@ function ENT:PostHit( hitEnt, _pos, _normal, _speed, damageDealt, actuallyDidDam
 
         end
     end
+    self:HitEffects( speed )
+end
+
+function ENT:HitEffects( speed )
+    local pitch = 180 - ( speed / 30 )
+
+    self:EmitSound( "Concrete_Block.ImpactHard", 70, pitch, 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
+    self:EmitSound( "physics/concrete/concrete_impact_hard3.wav", 70, 40, 1, CHAN_STATIC )
 end

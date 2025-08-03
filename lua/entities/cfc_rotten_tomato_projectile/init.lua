@@ -22,7 +22,7 @@ function ENT:Initialize()
     end )
 end
 
-function ENT:PostHit( _hitEnt, pos, normal, _speed, _damageDealt ) -- always runs when it hits something
+function ENT:PostHit( _hitEnt, pos, normal, _speed, _damageDealt, _actuallyDidDamage ) -- always runs when it hits something
     local effOne = EffectData()
     effOne:SetOrigin( pos )
     effOne:SetScale( 2 )
@@ -47,7 +47,7 @@ function ENT:PostHit( _hitEnt, pos, normal, _speed, _damageDealt ) -- always run
     self:EmitSound( "npc/antlion_grub/squashed.wav", 70, 180, 1, CHAN_STATIC )
 end
 
-function ENT:PostHitEnt( hitEnt, _damageDealt ) -- for doing something to whatever we hit, called inside PostEntityTakeDamage to respect hooks
+function ENT:PostHitEnt( hitEnt, _damageDealt, _actuallyDidDamage ) -- for doing something to whatever we hit, called inside PostEntityTakeDamage to respect hooks
     if not hitEnt:IsPlayer() then return end
     if self:WorldSpaceCenter():Distance( hitEnt:GetShootPos() ) > 30 then return end
     net.Start( "cfc_weapons_tomato_screentomato", false )

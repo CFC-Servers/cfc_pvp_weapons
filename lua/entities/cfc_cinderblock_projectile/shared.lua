@@ -30,7 +30,7 @@ ENT.HullVec = Vector( ENT.HullSize, ENT.HullSize, ENT.HullSize )
 local vec_up = Vector( 0, 0, 1 )
 local criticalDamage = 50
 
-function ENT:PostHitEnt( hitEnt, damageDealt )
+function ENT:PostHitEnt( hitEnt, damageDealt, _actuallyDidDamage )
 
     util.ScreenShake( self:WorldSpaceCenter(), 5 + ( damageDealt * 0.5 ), 20, 0.5, 500 + damageDealt * 2 )
     util.ScreenShake( self:WorldSpaceCenter(), 5, 20, 0.1, 1500 + damageDealt )
@@ -46,7 +46,7 @@ function ENT:PostHitEnt( hitEnt, damageDealt )
     end
 end
 
-function ENT:PostHit( _hitEnt, _pos, _normal, speed, damageDealt )
+function ENT:PostHit( _hitEnt, _pos, _normal, speed, damageDealt, _actuallyDidDamage )
     if not IsValid( self ) then return end
 
     local pitch = 180 - ( speed / 25 )
