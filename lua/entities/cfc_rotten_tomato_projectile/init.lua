@@ -22,7 +22,7 @@ function ENT:Initialize()
     end )
 end
 
-function ENT:HitEffects( pos, normal, _ ) -- pos, normal, speed
+function ENT:PostHit( _hitEnt, pos, normal, _speed, _damageDealt ) -- always runs when it hits something
     local effOne = EffectData()
     effOne:SetOrigin( pos )
     effOne:SetScale( 2 )
@@ -47,9 +47,8 @@ function ENT:HitEffects( pos, normal, _ ) -- pos, normal, speed
     self:EmitSound( "npc/antlion_grub/squashed.wav", 70, 180, 1, CHAN_STATIC )
 end
 
-function ENT:PostHitEnt( hitEnt )
+function ENT:PostHitEnt( hitEnt, _damageDealt ) -- for doing something to whatever we hit, called inside PostEntityTakeDamage to respect hooks
     if not hitEnt:IsPlayer() then return end
-    if damage < 10 then return end -- don't do this if we didn't do enough damage
     if self:WorldSpaceCenter():Distance( hitEnt:GetShootPos() ) > 30 then return end
     net.Start( "cfc_weapons_tomato_screentomato", false )
     net.Send( hitEnt )
@@ -80,16 +79,6 @@ function ENT:Touch( ent )
     -- only hit static stuff early IF it's directly in our way
     if hitStaticTooEarly and not util.QuickTrace( pos, normal * 25, self ).Hit then return end
 
-    local caughtDamage
-
-    -- let the damage decide if we should do special PostHitEnt stuff
-    hook.Add( "PostEntityTakeDamage", self, function( projectile, victim, dmgInfo )
-        caughtDamage = true
-        projectile:PostHitEnt( victim, dmgInfo:GetDamage() )
-        SafeRemoveEntity( projectile )
-
-    end )
-
     self.Projectile_Hit = true
 
     local attacker = IsValid( self:GetThrower() ) and self:GetThrower() or self:GetCreator()
@@ -100,13 +89,25 @@ function ENT:Touch( ent )
 
     local speed = self:GetVelocity():Length()
 
-    self:HitEffects( pos, normal, speed )
+    local caughtDamage
+    local damageDealt = 0
+    local hookName = "cfc_throwable_projectile_damagecatch_" .. self:GetCreationID()
+
+    -- do anything that needs to respect hooks, in PostHitEnt
+    hook.Add( "PostEntityTakeDamage", hookName, function( victim, dmgInfo )
+        local inflictor = dmgInfo:GetInflictor()
+        if inflictor ~= self then return end
+        hook.Remove( "PostEntityTakeDamage", hookName ) -- remove the hook so only gets called once
+        caughtDamage = true
+        damageDealt = dmgInfo:GetDamage()
+        self:PostHitEnt( victim, damageDealt )
+
+    end )
 
     local damageSpeed = speed + -self.AdditionalDamageStartingVel
     damageSpeed = math.Clamp( damageSpeed, 0, math.huge )
 
     local damageAdded = damageSpeed / self.VelocityForOneDamage
-    local damageDealt = 0
     local force = self.BaseDamage * self.DamageForceMul * speed
 
     -- if the ent has npc/player hitbox properties, do a quick FireBullets to take advantage of it's headshot calculations
@@ -148,16 +149,17 @@ function ENT:Touch( ent )
 
     end
 
-    -- the PostEntityTakeDamage hook is then called above
+    -- the PostEntityTakeDamage above has now called PostHitEnt, or it didn't
 
-    -- if the damage never happened, call posthit with no damage
-    timer.Simple( 0, function()
-        if not IsValid( self ) then return end
-        if not IsValid( hitEnt ) then return end
-        if caughtDamage then return end
+    if not IsValid( self ) then return end -- we were removed in PostHitEnt?
 
-        self:PostHitEnt( hitEnt, damageDealt )
-    end )
+    if not caughtDamage then
+        hook.Remove( "PostEntityTakeDamage", hookName ) -- just in case the damage never was dealt, remove the hook
 
-    SafeRemoveEntityDelayed( self, 0.1 )
+    end
+
+    self:PostHit( hitEnt, pos, normal, speed, damageDealt ) -- this is always called after a projectile hits, even if it never does damage
+
+    SafeRemoveEntity( self )
+
 end

@@ -124,7 +124,12 @@ end
 
 hook.Add( "PlayerCanPickupWeapon", "cfc_super_cinder_block_nodoublepickup", function( ply, weapon )
     if not weapon.IsCFCSuperCinderBlock then return end
-    if ply:HasWeapon( "cfc_super_cinder_block" ) then return false end
+    if ply:HasWeapon( "cfc_super_cinder_block" ) then
+        if ply:KeyDown( IN_USE ) and ply:GetEyeTrace().Entity == weapon then -- they already have one, make em switch to it!
+            ply:SelectWeapon( "cfc_super_cinder_block" )
+        end
+        return false
+    end
 end )
 
 hook.Add( "PlayerDeath", "cfc_super_cinder_block_dropondeath", function( ply )

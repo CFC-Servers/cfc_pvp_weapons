@@ -17,10 +17,10 @@ end
 ENT.Model = Model( "models/props_debris/concrete_cynderblock001.mdl" )
 ENT.ModelScale = 1
 
-ENT.BaseDamage = 200
+ENT.BaseDamage = 500
 ENT.AdditionalDamageStartingVel = 500
-ENT.VelocityForOneDamage = 8
-ENT.DamageForceMul = 10
+ENT.VelocityForOneDamage = 100
+ENT.DamageForceMul = 5
 
 ENT.HullSize = 10
 
@@ -35,13 +35,23 @@ function ENT:HitEffects( _, _, speed )
 end
 
 local vec_up = Vector( 0, 0, 1 )
+local criticalDamage = 100
 
 function ENT:PostHitEnt( hitEnt, damageDealt )
-    local critical = damageDealt >= 100
 
     util.ScreenShake( self:WorldSpaceCenter(), 5 + ( damageDealt * 0.5 ), 20, 0.5, 500 + damageDealt * 2 )
     util.ScreenShake( self:WorldSpaceCenter(), 5, 20, 0.1, 1500 + damageDealt )
 
+    if not ( hitEnt:IsPlayer() or hitEnt:IsNPC() ) then return end
+    if damageDealt >= criticalDamage then
+        hitEnt:EmitSound( "Flesh.ImpactHard", 90, 70, 1, CHAN_STATIC )
+        hitEnt:EmitSound( "Breakable.MatFlesh", 90, 70, 1, CHAN_STATIC )
+        hitEnt:EmitSound( "player/pl_fallpain1.wav", 95, 80, 1, CHAN_STATIC )
+        hitEnt:EmitSound( "npc/antlion/shell_impact4.wav", 95, math.random( 20, 30 ), 1, CHAN_STATIC )
+
+    end
+end
+function ENT:PostHit( hitEnt, _pos, _normal, _speed, damageDealt )
     local block = ents.Create( "cfc_super_cinder_block" )
 
     if IsValid( block ) then
@@ -54,24 +64,23 @@ function ENT:PostHitEnt( hitEnt, damageDealt )
 
         local blocksObj = block:GetPhysicsObject()
 
-        if critical then
+        if damageDealt >= criticalDamage then
+            -- kinda unsatisfying sounds when you just hit something
+            -- combines well with below on great hits
+            block:EmitSound( "physics/metal/metal_canister_impact_hard2.wav", 90, math.random( 10, 15 ), 1, CHAN_STATIC )
+            block:EmitSound( "physics/metal/metal_box_impact_bullet" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 30, 40 ), 0.5, CHAN_STATIC )
+
+        end
+        if damageDealt >= criticalDamage and IsValid( hitEnt ) and hitEnt:GetMaxHealth() >= 10 then
             blocksObj:SetVelocity( vec_up * damageDealt * 1 )
             blocksObj:ApplyTorqueCenter( vec_up * damageDealt * 2 )
+
+            -- deep thwap when you hit something good
             block:EmitSound( "physics/metal/metal_box_impact_bullet" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 10, 20 ), 1, CHAN_STATIC )
-            block:EmitSound( "physics/metal/metal_canister_impact_hard2.wav", 90, math.random( 10, 15 ), 1, CHAN_STATIC )
 
         else
             blocksObj:SetVelocity( self:GetVelocity() / 2 )
 
         end
-
-    end
-    if not ( hitEnt:IsPlayer() or hitEnt:IsNPC() ) then return end
-    if critical then
-        hitEnt:EmitSound( "Flesh.ImpactHard", 90, 70, 1, CHAN_STATIC )
-        hitEnt:EmitSound( "Breakable.MatFlesh", 90, 70, 1, CHAN_STATIC )
-        hitEnt:EmitSound( "player/pl_fallpain1.wav", 95, 80, 1, CHAN_STATIC )
-        hitEnt:EmitSound( "npc/antlion/shell_impact4.wav", 95, math.random( 20, 30 ), 1, CHAN_STATIC )
-
     end
 end
