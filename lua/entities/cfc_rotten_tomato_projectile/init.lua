@@ -84,7 +84,6 @@ function ENT:Touch( ent )
     local attacker = IsValid( self:GetThrower() ) and self:GetThrower() or self:GetCreator()
     if not IsValid( attacker ) then
         attacker = self
-
     end
 
     local speed = self:GetVelocity():Length()
@@ -130,7 +129,6 @@ function ENT:Touch( ent )
                 damageDealt = dmgInfo:GetDamage()
                 dmgInfo:SetDamageType( DMG_CLUB )
                 return false, nil
-
             end
         }
         self:FireBullets( bulletTbl )
@@ -147,7 +145,6 @@ function ENT:Touch( ent )
         damageInfo:SetDamage( damageDealt )
         damageInfo:SetDamageForce( normal * force )
         ent:TakeDamageInfo( damageInfo )
-
     end
 
     -- the PostEntityTakeDamage above has now called PostHitEnt, or it didn't
@@ -161,5 +158,4 @@ function ENT:Touch( ent )
     self:PostHit( hitEnt, pos, normal, speed, damageDealt ) -- this is always called after a projectile hits, even if it never does damage
 
     SafeRemoveEntity( self )
-
 end

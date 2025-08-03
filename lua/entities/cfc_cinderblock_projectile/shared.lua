@@ -31,7 +31,6 @@ local vec_up = Vector( 0, 0, 1 )
 local criticalDamage = 50
 
 function ENT:PostHitEnt( hitEnt, damageDealt, _actuallyDidDamage )
-
     util.ScreenShake( self:WorldSpaceCenter(), 5 + ( damageDealt * 0.5 ), 20, 0.5, 500 + damageDealt * 2 )
     util.ScreenShake( self:WorldSpaceCenter(), 5, 20, 0.1, 1500 + damageDealt )
 

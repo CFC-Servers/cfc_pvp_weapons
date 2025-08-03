@@ -36,6 +36,7 @@ function ENT:PostHitEnt( hitEnt, damageDealt )
     util.ScreenShake( self:WorldSpaceCenter(), 5, 20, 0.1, 1500 + damageDealt )
 
     if not ( hitEnt:IsPlayer() or hitEnt:IsNPC() ) then return end
+
     if damageDealt >= criticalDamage then
         hitEnt:EmitSound( "Flesh.ImpactHard", 90, 70, 1, CHAN_STATIC )
         hitEnt:EmitSound( "Breakable.MatFlesh", 90, 70, 1, CHAN_STATIC )
@@ -62,7 +63,6 @@ function ENT:PostHit( hitEnt, _pos, _normal, speed, damageDealt, _actuallyDidDam
             -- combines well with below on great hits
             block:EmitSound( "physics/metal/metal_canister_impact_hard2.wav", 90, math.random( 10, 15 ), 1, CHAN_STATIC )
             block:EmitSound( "physics/metal/metal_box_impact_bullet" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 30, 40 ), 0.5, CHAN_STATIC )
-
         end
         if damageDealt >= criticalDamage and IsValid( hitEnt ) and hitEnt:GetMaxHealth() >= 10 then
             blocksObj:SetVelocity( vec_up * damageDealt * 1 )
@@ -70,10 +70,8 @@ function ENT:PostHit( hitEnt, _pos, _normal, speed, damageDealt, _actuallyDidDam
 
             -- deep thwap when you hit something good
             block:EmitSound( "physics/metal/metal_box_impact_bullet" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 10, 20 ), 1, CHAN_STATIC )
-
         else
             blocksObj:SetVelocity( self:GetVelocity() / 2 )
-
         end
     end
     self:HitEffects( speed )
