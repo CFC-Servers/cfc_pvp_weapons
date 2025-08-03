@@ -91,17 +91,18 @@ function ENT:Touch( ent )
 
     local caughtDamage
     local damageDealt = 0
+    local actuallyDidDamage = false
     local hookName = "cfc_throwable_projectile_damagecatch_" .. self:GetCreationID()
 
     -- do anything that needs to respect hooks, in PostHitEnt
-    hook.Add( "PostEntityTakeDamage", hookName, function( victim, dmgInfo )
+    hook.Add( "PostEntityTakeDamage", hookName, function( victim, dmgInfo, took )
         local inflictor = dmgInfo:GetInflictor()
         if inflictor ~= self then return end
         hook.Remove( "PostEntityTakeDamage", hookName ) -- remove the hook so only gets called once
         caughtDamage = true
         damageDealt = dmgInfo:GetDamage()
-        self:PostHitEnt( victim, damageDealt )
-
+        actuallyDidDamage = took
+        self:PostHitEnt( victim, damageDealt, actuallyDidDamage )
     end )
 
     local damageSpeed = speed + -self.AdditionalDamageStartingVel
@@ -155,7 +156,6 @@ function ENT:Touch( ent )
 
     if not caughtDamage then
         hook.Remove( "PostEntityTakeDamage", hookName ) -- just in case the damage never was dealt, remove the hook
-
     end
 
     self:PostHit( hitEnt, pos, normal, speed, damageDealt ) -- this is always called after a projectile hits, even if it never does damage

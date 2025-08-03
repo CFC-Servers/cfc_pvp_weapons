@@ -48,10 +48,10 @@ function ENT:PostHitEnt( hitEnt, damageDealt )
         hitEnt:EmitSound( "Breakable.MatFlesh", 90, 70, 1, CHAN_STATIC )
         hitEnt:EmitSound( "player/pl_fallpain1.wav", 95, 80, 1, CHAN_STATIC )
         hitEnt:EmitSound( "npc/antlion/shell_impact4.wav", 95, math.random( 20, 30 ), 1, CHAN_STATIC )
-
     end
 end
-function ENT:PostHit( hitEnt, _pos, _normal, _speed, damageDealt )
+
+function ENT:PostHit( hitEnt, _pos, _normal, _speed, damageDealt, actuallyDidDamage )
     local block = ents.Create( "cfc_super_cinder_block" )
 
     if IsValid( block ) then
