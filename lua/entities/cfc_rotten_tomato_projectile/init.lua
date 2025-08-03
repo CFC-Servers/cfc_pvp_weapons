@@ -47,8 +47,9 @@ function ENT:PostHit( _hitEnt, pos, normal, _speed, _damageDealt, _actuallyDidDa
     self:EmitSound( "npc/antlion_grub/squashed.wav", 70, 180, 1, CHAN_STATIC )
 end
 
-function ENT:PostHitEnt( hitEnt, _damageDealt, _actuallyDidDamage ) -- for doing something to whatever we hit, called inside PostEntityTakeDamage to respect hooks
+function ENT:PostHitEnt( hitEnt, _damageDealt, actuallyDidDamage ) -- for doing something to whatever we hit, called inside PostEntityTakeDamage to respect hooks
     if not hitEnt:IsPlayer() then return end
+    if not actuallyDidDamage then return end
     if self:WorldSpaceCenter():Distance( hitEnt:GetShootPos() ) > 30 then return end
     net.Start( "cfc_weapons_tomato_screentomato", false )
     net.Send( hitEnt )

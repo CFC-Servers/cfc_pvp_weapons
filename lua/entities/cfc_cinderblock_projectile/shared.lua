@@ -30,10 +30,11 @@ ENT.HullVec = Vector( ENT.HullSize, ENT.HullSize, ENT.HullSize )
 local vec_up = Vector( 0, 0, 1 )
 local criticalDamage = 50
 
-function ENT:PostHitEnt( hitEnt, damageDealt, _actuallyDidDamage )
+function ENT:PostHitEnt( hitEnt, damageDealt, actuallyDidDamage )
     util.ScreenShake( self:WorldSpaceCenter(), 5 + ( damageDealt * 0.5 ), 20, 0.5, 500 + damageDealt * 2 )
     util.ScreenShake( self:WorldSpaceCenter(), 5, 20, 0.1, 1500 + damageDealt )
 
+    if not actuallyDidDamage then return end
     if hitEnt:IsPlayer() and self:WorldSpaceCenter():Distance( hitEnt:GetShootPos() ) < 25 then -- easy headshot check
         self:DoMotionBlur( hitEnt, damageDealt )
     end
