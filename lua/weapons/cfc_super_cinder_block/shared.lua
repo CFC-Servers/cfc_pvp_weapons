@@ -136,6 +136,8 @@ hook.Add( "PlayerDeath", "cfc_super_cinder_block_dropondeath", function( ply )
     local superBlock = ply:GetWeapon( "cfc_super_cinder_block" )
     if not IsValid( superBlock ) then return end
 
+    if not superBlock:GetThrowableInHand() then return end -- was just thrown, the block is actually in the air!
+
     local newWep = ents.Create( "cfc_super_cinder_block" )
     if not IsValid( newWep ) then return end
 
