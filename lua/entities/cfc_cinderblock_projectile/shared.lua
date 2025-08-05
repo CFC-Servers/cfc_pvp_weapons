@@ -18,8 +18,8 @@ ENT.Model = Model( "models/props_debris/concrete_cynderblock001.mdl" )
 ENT.ModelScale = 1
 
 ENT.BaseDamage = 35
-ENT.AdditionalDamageStartingVel = 500
-ENT.VelocityForOneDamage = 8
+ENT.AdditionalDamageStartingVel = 600
+ENT.VelocityForOneDamage = 4
 
 ENT.HullSize = 10
 
