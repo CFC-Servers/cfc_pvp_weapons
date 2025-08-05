@@ -75,10 +75,10 @@ function ENT:PostHit( hitEnt, _pos, _normal, speed, damageDealt, _actuallyDidDam
             blocksObj:SetVelocity( self:GetVelocity() / 2 )
         end
     end
-    self:HitEffects( speed )
+    self:CinderblockHitEffects( speed )
 end
 
-function ENT:HitEffects( speed )
+function ENT:CinderblockHitEffects( speed )
     local pitch = 180 - ( speed / 30 )
 
     self:EmitSound( "Concrete_Block.ImpactHard", 70, pitch, 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )

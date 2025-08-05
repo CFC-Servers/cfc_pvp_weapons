@@ -27,7 +27,7 @@ ENT.HullSize = 5
 ENT.HullVec = Vector( ENT.HullSize, ENT.HullSize, ENT.HullSize )
 
 
-function ENT:HitEffects( speed )
+function ENT:CinderblockHitEffects( speed )
     local pitch = 180 - ( speed / 25 )
 
     self:EmitSound( "Rock.ImpactHard", 70, pitch, 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
