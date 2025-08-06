@@ -35,6 +35,11 @@ net.Receive( "cfc_weapons_tomato_screentomato", function()
 
     hook.Add( "PostDrawHUD", hookName, function()
         local curTime = CurTime()
+        if not LocalPlayer():Alive() then
+            hook.Remove( "PostDrawHUD", hookName )
+            hooking = nil
+            return
+        end
 
         -- animate each splat individually
         for index, tbl in ipairs( tomatoes ) do

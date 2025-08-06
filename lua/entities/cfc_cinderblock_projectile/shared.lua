@@ -62,8 +62,9 @@ function ENT:PostHit( _hitEnt, _pos, _normal, speed, damageDealt, _actuallyDidDa
         gib:SetAngles( self:GetAngles() )
         gib:SetModel( self.Model )
         gib:SetMaterial( self:GetMaterial() )
-        gib:SetModelScale( self.ModelScale, 0 )
+        gib:SetModelScale( self.ModelScale )
         gib:Spawn()
+        gib:Activate()
 
         local gibsObj = gib:GetPhysicsObject()
 
