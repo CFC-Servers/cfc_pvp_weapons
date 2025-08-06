@@ -13,13 +13,15 @@ function ENT:Initialize()
     self:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
 
     -- don't hit the world, frozen props until this much time has passed
-    local nextHitTime = 0.5
+    local nextHitTime = 0.75
     self.NextHitTime = CurTime() + nextHitTime
 
     timer.Simple( nextHitTime, function() -- so we can land back on the owner
         if not IsValid( self ) then return end
         self:SetOwner()
     end )
+
+    self:SetModelScale( self.ModelScale )
 end
 
 function ENT:PostHit( _hitEnt, pos, normal, _speed, _damageDealt, _actuallyDidDamage ) -- always runs when it hits something
