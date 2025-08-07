@@ -34,7 +34,7 @@ SWEP.Primary = {
     ClipSize = 2, -- The amount of ammo per magazine, -1 to have no magazine (pull from reserves directly)
     DefaultClip = 1000, -- How many rounds the player gets when picking up the weapon for the first time, excess ammo will be added to the player's reserves
 
-    Damage = 2, -- Damage per shot
+    Damage = 1, -- Damage per shot
     Count = 20, -- Optional: Shots fired per shot
 
     PumpAction = false, -- Optional: Tries to pump the weapon between shots
@@ -63,7 +63,41 @@ SWEP.Primary = {
         Sound = "" -- Optional: Sound to play when starting a reload
     },
 
-    Sound = "CFCBonkShotgun.Single", -- Firing sound
+    SpreadPattern = {
+        Type = "rings",
+        Rings = {
+            {
+                Count = 1,
+                SpreadX = 0,
+                SpreadY = 0,
+                ThetaMult = 1,
+                ThetaAdd = math.rad( 0 ),
+            },
+            {
+                Count = 3,
+                SpreadX = 0.01,
+                SpreadY = 0.01,
+                ThetaMult = 1,
+                ThetaAdd = math.rad( -30 ),
+            },
+            {
+                Count = 6,
+                SpreadX = 0.01 * 2,
+                SpreadY = 0.01 * 2,
+                ThetaMult = 1,
+                ThetaAdd = math.rad( 0 ),
+            },
+            {
+                Count = 10,
+                SpreadX = 0.01 * 3,
+                SpreadY = 0.01 * 3,
+                ThetaMult = 1,
+                ThetaAdd = math.rad( 0 ),
+            },
+        }
+    },
+
+    Sound = "CFCBonkShotgun.Single", -- Firing sound (OVERRIDDEN BY SWEP:EmitFireSound)
     TracerName = "Tracer", -- Tracer effect, leave blank for no tracer
 }
 
@@ -77,7 +111,13 @@ SWEP.CFC_FirstTimeHints = {
     {
         Message = "The Bonk Shotgun can also launch your enemies into walls to deal extra damage.",
         Sound = "ambient/water/drip2.wav",
-        Duration = 8,
+        Duration = 10,
+        DelayNext = 7,
+    },
+    {
+        Message = "Try hitting your enemies twice in a row for a devastating double bonk!",
+        Sound = "ambient/water/drip1.wav",
+        Duration = 10,
         DelayNext = 0,
     },
 }
@@ -96,19 +136,32 @@ SWEP.Bonk = {
         PlayerForceGroundPitchMin = 25, -- The minimum launch pitch when on the ground.
         PlayerForceGroundZAdd = 50, -- Adds to the z-component of launch force when on the ground.
         PlayerForceGroundThreshold = 60, -- Count the victim as being grounded (minus the z-add) if they are within this many hmu of the ground.
-        PlayerForceAirMult = 1.15, -- Multiplies against force strength if the victim is in the air when hit.
+        PlayerForceAirMult = 1.25, -- Multiplies against force strength if the victim is in the air when hit.
         PlayerForceCounteractMult = 0.8, -- How strongly (0-1) the victim's velocity will be counteracted by the launch, if they were moving opposite to it.
         PlayerForceIgnoreThreshold = 0.2, -- If the damage multiplier is below this, the player won't be launched.
         NPCForceMult = 1.75, -- Multiplies against launch strength for NPCs.
-    PlayerForceMultRagdoll = 300, -- When the shot is enough to kill, the above values are ignored and this is used instead as a multiplier against dmgForce.
+    PlayerForceMultRagdoll = 600, -- When the shot is enough to kill, the above values are ignored and this is used instead as a multiplier against dmgForce.
     PropForceMult = 30, -- Multiplier against dmgForce when shooting props.
     AirShotsRefundAmmo = 0, -- Ammo refunded when shooting a midair, currently bonked target. Requires ImpactEnabled to be true.
     ImpactEnabled = true, -- If enabled, victims will take damage upon impacting a surface after getting bonked. This is also what enables tracking of the 'bonk status' of victims.
-        ImpactDamageMult = 20 / 20000,
+        ImpactDamageMult = 25 / 20000,
         ImpactDamageMin = 5,
-        ImpactDamageMax = 150,
+        ImpactDamageMax = 200,
     SelfForce = Vector( 300, 300, 500 ), -- Self-knockback when shooting while in the air. False to disable this and SelfDamage.
         SelfDamage = 5, -- Damage dealt to self when shooting while in the air. 0 to not deal any damage.
         SelfForceOnGround = false, -- If true, will apply self force even while on the ground.
     DisableMovementDuration = 0.7, -- How long to disable movement for when bonked. Ends early on impact. 0 to disable.
 }
+
+
+function SWEP:EmitFireSound()
+    self:EmitSound( "weapons/shotgun/shotgun_fire6.wav", 80, 105, 0.6, CHAN_WEAPON )
+    self:EmitSound( "weapons/shotgun/shotgun_fire6.wav", 80, 110, 0.6, CHAN_AUTO )
+    self:EmitSound( "npc/scanner/scanner_nearmiss1.wav", 80, 110, 1, CHAN_AUTO )
+
+    timer.Create( "CFCBonkShotgun_CockSound_" .. self:EntIndex(), 0.3, 1, function()
+        if not IsValid( self ) then return end
+
+        self:EmitSound( "weapons/shotgun/shotgun_cock.wav", 70, 110, 0.4, CHAN_WEAPON )
+    end )
+end
