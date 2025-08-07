@@ -137,7 +137,7 @@ local function getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGro
     local maxDamage = wep.Primary.Damage * wep.Primary.Count
     local damageMult = math.min( dmgAmount / maxDamage, wep.Bonk.PlayerForceMultMax )
     local bonkInfo = victim.cfc_bonkInfo or {}
-    local wasBonked = bonkInfo.IsBonked or false
+    local wasBonked = bonkInfo.IsBonked == true
 
     if wasBonked then
         damageMult = damageMult * wep.Bonk.PlayerForceComboMult
