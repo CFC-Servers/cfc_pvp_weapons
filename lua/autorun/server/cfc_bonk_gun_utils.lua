@@ -10,6 +10,7 @@ local hitgroupNormalizers = {} -- Used for making bonk weapons ignore hitgroup d
 local IMPACT_ACCELERATION_THRESHOLD = 7000
 local IMPACT_START_DELAY = 0.07
 local IMPACT_LIFETIME = 6
+local IMPACT_Z_MULT = 0.2
 local AIR_SHOT_REFUND_COOLDOWN = 0.01
 
 local IsValid = IsValid
@@ -381,6 +382,7 @@ local function detectImpact( ent, dt )
     local curVel = ent:GetVelocity()
     local velDiff = curVel - prevVel
     local accel = velDiff:Length() / dt
+
     bonkInfo.PrevVel = curVel
 
     if accel < IMPACT_ACCELERATION_THRESHOLD then -- Not enough acceleration to be an impact
@@ -408,6 +410,10 @@ local function detectImpact( ent, dt )
     } )
 
     if not tr.Hit then return end -- Didn't hit a wall, don't count as an impact, keep bonk status.
+
+    -- Re-calculate accel with a reduced z component when passing it on to damage, to put a focus on wall impacts and not floor impacts.
+    velDiff[3] = velDiff[3] * IMPACT_Z_MULT
+    accel = velDiff:Length() / dt
 
     handleImpact( ent, accel )
 end
