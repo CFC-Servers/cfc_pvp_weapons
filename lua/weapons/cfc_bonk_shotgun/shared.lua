@@ -27,7 +27,7 @@ SWEP.CustomHoldType = {} -- Allows you to override any hold type animations with
 
 SWEP.Firemode = 0 -- The default firemode, -1 = full-auto, 0 = semi-auto, >1 = burst fire
 
-local spreadMax = 0.03
+local spreadMax = 0.04
 
 SWEP.Primary = {
     Ammo = "Buckshot", -- The ammo type used when reloading
