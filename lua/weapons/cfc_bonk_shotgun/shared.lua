@@ -27,6 +27,8 @@ SWEP.CustomHoldType = {} -- Allows you to override any hold type animations with
 
 SWEP.Firemode = 0 -- The default firemode, -1 = full-auto, 0 = semi-auto, >1 = burst fire
 
+local spreadMax = 0.03
+
 SWEP.Primary = {
     Ammo = "Buckshot", -- The ammo type used when reloading
     Cost = 1, -- The amount of ammo used per shot
@@ -74,25 +76,25 @@ SWEP.Primary = {
                 ThetaAdd = math.rad( 0 ),
             },
             {
-                Count = 3,
-                SpreadX = 0.01,
-                SpreadY = 0.01,
+                Count = 4,
+                SpreadX = spreadMax * 1 / 3,
+                SpreadY = spreadMax * 1 / 3,
                 ThetaMult = 1,
-                ThetaAdd = math.rad( -30 ),
+                ThetaAdd = math.rad( 0 ),
             },
             {
                 Count = 6,
-                SpreadX = 0.01 * 2,
-                SpreadY = 0.01 * 2,
+                SpreadX = spreadMax * 2 / 3,
+                SpreadY = spreadMax * 2 / 3,
                 ThetaMult = 1,
                 ThetaAdd = math.rad( 0 ),
             },
             {
-                Count = 10,
-                SpreadX = 0.01 * 3,
-                SpreadY = 0.01 * 3,
+                Count = 9,
+                SpreadX = spreadMax * 3 / 3,
+                SpreadY = spreadMax * 3 / 3,
                 ThetaMult = 1,
-                ThetaAdd = math.rad( 0 ),
+                ThetaAdd = math.rad( 90 ),
             },
         }
     },
