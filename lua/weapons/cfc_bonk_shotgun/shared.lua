@@ -88,7 +88,7 @@ SWEP.Primary.SpreadPattern = {
         {
             Count = 6,
             SpreadX = spreadMax * 2 / 3,
-            SpreadY = spreadMax * 2 / 3,
+            SpreadY = spreadMax * 2 / 3 * 0.8,
             ThetaMult = 1,
             ThetaAdd = math.rad( 0 ),
         },
