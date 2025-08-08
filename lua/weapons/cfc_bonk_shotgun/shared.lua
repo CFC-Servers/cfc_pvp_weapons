@@ -27,8 +27,6 @@ SWEP.CustomHoldType = {} -- Allows you to override any hold type animations with
 
 SWEP.Firemode = 0 -- The default firemode, -1 = full-auto, 0 = semi-auto, >1 = burst fire
 
-local spreadMax = 0.04
-
 SWEP.Primary = {
     Ammo = "Buckshot", -- The ammo type used when reloading
     Cost = 1, -- The amount of ammo used per shot
@@ -65,42 +63,43 @@ SWEP.Primary = {
         Sound = "" -- Optional: Sound to play when starting a reload
     },
 
-    SpreadPattern = {
-        Type = "rings",
-        Rings = {
-            {
-                Count = 1,
-                SpreadX = 0,
-                SpreadY = 0,
-                ThetaMult = 1,
-                ThetaAdd = math.rad( 0 ),
-            },
-            {
-                Count = 4,
-                SpreadX = spreadMax * 1 / 3,
-                SpreadY = spreadMax * 1 / 3,
-                ThetaMult = 1,
-                ThetaAdd = math.rad( 0 ),
-            },
-            {
-                Count = 6,
-                SpreadX = spreadMax * 2 / 3,
-                SpreadY = spreadMax * 2 / 3,
-                ThetaMult = 1,
-                ThetaAdd = math.rad( 0 ),
-            },
-            {
-                Count = 9,
-                SpreadX = spreadMax * 3 / 3,
-                SpreadY = spreadMax * 3 / 3,
-                ThetaMult = 1,
-                ThetaAdd = math.rad( 90 ),
-            },
-        }
-    },
-
     Sound = "CFCBonkShotgun.Single", -- Firing sound (OVERRIDDEN BY SWEP:EmitFireSound)
     TracerName = "Tracer", -- Tracer effect, leave blank for no tracer
+}
+
+local spreadMax = 0.04
+SWEP.Primary.SpreadPattern = {
+    Type = "rings",
+    Rings = {
+        {
+            Count = 1,
+            SpreadX = 0,
+            SpreadY = 0,
+            ThetaMult = 1,
+            ThetaAdd = math.rad( 0 ),
+        },
+        {
+            Count = 4,
+            SpreadX = spreadMax * 1 / 3,
+            SpreadY = spreadMax * 1 / 3,
+            ThetaMult = 1,
+            ThetaAdd = math.rad( 0 ),
+        },
+        {
+            Count = 6,
+            SpreadX = spreadMax * 2 / 3,
+            SpreadY = spreadMax * 2 / 3,
+            ThetaMult = 1,
+            ThetaAdd = math.rad( 0 ),
+        },
+        {
+            Count = 9,
+            SpreadX = spreadMax * 3 / 3,
+            SpreadY = spreadMax * 3 / 3,
+            ThetaMult = 1,
+            ThetaAdd = math.rad( 90 ),
+        },
+    }
 }
 
 SWEP.CFC_FirstTimeHints = {
