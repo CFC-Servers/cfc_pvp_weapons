@@ -130,14 +130,14 @@ SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmo
 
 SWEP.Bonk = {
     Enabled = true, -- Enables bonking.
-    PlayerForce = 750 / 0.6, -- Soft-maximum launch strength for when all bullets hit, assuming no special hitgroups (e.g. only hit the chest).
+    PlayerForce = 650 / 0.6, -- Soft-maximum launch strength for when all bullets hit, assuming no special hitgroups (e.g. only hit the chest).
         PlayerForceAdd = 100, -- Flat addition to the launch strength, after the multiplier is applied.
         PlayerForceMultMax = 0.6, -- Damage mult (normal is 1) cannot exceed this value. Divide PlayerForce by this amount to make it easier to reach the max.
-        PlayerForceComboMult = 1.75, -- Multiplies against force strength if the victim is currently in a bonk state. Requires ImpactEnabled to be true.
+        PlayerForceComboMult = 1.7, -- Multiplies against force strength if the victim is currently in a bonk state. Requires ImpactEnabled to be true.
         PlayerForceGroundPitchMin = 25, -- The minimum launch pitch when on the ground.
         PlayerForceGroundZAdd = 50, -- Adds to the z-component of launch force when on the ground.
         PlayerForceGroundThreshold = 60, -- Count the victim as being grounded (minus the z-add) if they are within this many hmu of the ground.
-        PlayerForceAirMult = 1.25, -- Multiplies against force strength if the victim is in the air when hit.
+        PlayerForceAirMult = 1, -- Multiplies against force strength if the victim is in the air when hit.
         PlayerForceCounteractMult = 0.8, -- How strongly (0-1) the victim's velocity will be counteracted by the launch, if they were moving opposite to it.
         PlayerForceIgnoreThreshold = 0.2, -- If the damage multiplier is below this, the player won't be launched.
         NPCForceMult = 1.75, -- Multiplies against launch strength for NPCs.
