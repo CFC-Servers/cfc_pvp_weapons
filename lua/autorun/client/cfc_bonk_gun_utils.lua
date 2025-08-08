@@ -16,3 +16,21 @@ net.Receive( "CFC_BonkGun_PlayTweakedSound", function()
         station:Play()
     end )
 end )
+
+net.Receive( "CFC_BonkGun_DisableMovement", function()
+    local endTime = net.ReadFloat()
+    local timeUntil = endTime - CurTime()
+    if timeUntil <= 0 then return end
+
+    hook.Add( "SetupMove", "CFC_BonkGun_MovementDisabled", function( _, mv, cmd )
+        mv:SetForwardSpeed( 0 )
+        mv:SetSideSpeed( 0 )
+        mv:SetUpSpeed( 0 )
+
+        cmd:ClearMovement()
+    end )
+
+    timer.Create( "CFC_BonkGun_MovementDisabled", timeUntil, 1, function()
+        hook.Remove( "SetupMove", "CFC_BonkGun_MovementDisabled" )
+    end )
+end )

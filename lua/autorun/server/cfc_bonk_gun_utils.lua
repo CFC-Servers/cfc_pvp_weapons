@@ -1,6 +1,7 @@
 CFCPvPWeapons = CFCPvPWeapons or {}
 
 util.AddNetworkString( "CFC_BonkGun_PlayTweakedSound" )
+util.AddNetworkString( "CFC_BonkGun_DisableMovement" )
 
 
 local bonkedEnts = {}
@@ -200,6 +201,10 @@ local function disableMovement( victim, wep )
     if not duration or duration <= 0 then return end
 
     local hookName = "CFC_BonkGun_DisableMovement_" .. victim:SteamID()
+
+    net.Start( "CFC_BonkGun_DisableMovement" )
+        net.WriteFloat( CurTime() + duration )
+    net.Send( victim )
 
     hook.Add( "SetupMove", hookName, function( ply, mv, cmd )
         if ply ~= victim then return end
