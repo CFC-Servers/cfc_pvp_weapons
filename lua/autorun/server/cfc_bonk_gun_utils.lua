@@ -411,9 +411,13 @@ local function detectImpact( ent, dt )
 
     if not tr.Hit then return end -- Didn't hit a wall, don't count as an impact, keep bonk status.
 
-    -- Re-calculate accel with a reduced z component when passing it on to damage, to put a focus on wall impacts and not floor impacts.
-    velDiff[3] = velDiff[3] * IMPACT_Z_MULT
-    accel = velDiff:Length() / dt
+    -- Re-calculate accel with a reduced z component when passing it on to damage, to put a focus on wall/ceiling impacts and not floor impacts.
+    local velDiffZ = velDiff[3]
+
+    if velDiffZ < 0 then -- Only reduce when falling down, not when impacting a ceiling.
+        velDiff[3] = velDiffZ * IMPACT_Z_MULT
+        accel = velDiff:Length() / dt
+    end
 
     handleImpact( ent, accel )
 end
