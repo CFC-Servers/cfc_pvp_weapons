@@ -52,6 +52,8 @@ SWEP.CFC_FirstTimeHints = {
     },
 }
 
+local debugVar = CreateConVar( "cfc_wep_stingerdebug", 0, FCVAR_NONE, "aaaaaaaaaaaaa" )
+
 function SWEP:SetupDataTables()
     self:NetworkVar( "Entity", "ClosestEnt" )
     self:NetworkVar( "Bool", "IsLocked" )
@@ -59,6 +61,13 @@ function SWEP:SetupDataTables()
 
     self:NetworkVar( "Bool", "IsReloading" )
     self:NetworkVar( "Float", "ReloadFinish" )
+
+    if SERVER then
+        self:NetworkVarNotify( "ClosestEnt", function( _, _, old, new )
+            if not debugVar:GetBool() then return end
+            ErrorNoHaltWithStack( self:GetOwner(), old, new )
+        end )
+    end
 end
 
 function SWEP:Initialize()
