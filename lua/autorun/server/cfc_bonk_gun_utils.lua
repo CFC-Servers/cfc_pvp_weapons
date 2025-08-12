@@ -1,6 +1,7 @@
 CFCPvPWeapons = CFCPvPWeapons or {}
 
 util.AddNetworkString( "CFC_BonkGun_PlayTweakedSound" )
+util.AddNetworkString( "CFC_BonkGun_DisableMovement" )
 
 
 local bonkedEnts = {}
@@ -9,6 +10,7 @@ local hitgroupNormalizers = {} -- Used for making bonk weapons ignore hitgroup d
 local IMPACT_ACCELERATION_THRESHOLD = 7000
 local IMPACT_START_DELAY = 0.07
 local IMPACT_LIFETIME = 6
+local IMPACT_Z_MULT = 0.2
 local AIR_SHOT_REFUND_COOLDOWN = 0.01
 
 local IsValid = IsValid
@@ -201,6 +203,10 @@ local function disableMovement( victim, wep )
 
     local hookName = "CFC_BonkGun_DisableMovement_" .. victim:SteamID()
 
+    net.Start( "CFC_BonkGun_DisableMovement" )
+        net.WriteFloat( CurTime() + duration )
+    net.Send( victim )
+
     hook.Add( "SetupMove", hookName, function( ply, mv, cmd )
         if ply ~= victim then return end
 
@@ -376,6 +382,7 @@ local function detectImpact( ent, dt )
     local curVel = ent:GetVelocity()
     local velDiff = curVel - prevVel
     local accel = velDiff:Length() / dt
+
     bonkInfo.PrevVel = curVel
 
     if accel < IMPACT_ACCELERATION_THRESHOLD then -- Not enough acceleration to be an impact
@@ -403,6 +410,14 @@ local function detectImpact( ent, dt )
     } )
 
     if not tr.Hit then return end -- Didn't hit a wall, don't count as an impact, keep bonk status.
+
+    -- Re-calculate accel with a reduced z component when passing it on to damage, to put a focus on wall/ceiling impacts and not floor impacts.
+    local velDiffZ = velDiff[3]
+
+    if velDiffZ < 0 then -- Only reduce when falling down, not when impacting a ceiling.
+        velDiff[3] = velDiffZ * IMPACT_Z_MULT
+        accel = velDiff:Length() / dt
+    end
 
     handleImpact( ent, accel )
 end
