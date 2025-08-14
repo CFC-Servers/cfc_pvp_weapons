@@ -2,6 +2,7 @@ CFCPvPWeapons = CFCPvPWeapons or {}
 
 util.AddNetworkString( "CFC_BonkGun_PlayTweakedSound" )
 util.AddNetworkString( "CFC_BonkGun_DisableMovement" )
+util.AddNetworkString( "CFC_BonkGun_DisableMovement_StopEarly" )
 
 
 local bonkedEnts = {}
@@ -227,6 +228,9 @@ local function enableMovement( victim )
 
     timer.Remove( hookName )
     hook.Remove( "SetupMove", hookName )
+
+    net.Start( "CFC_BonkGun_DisableMovement_StopEarly" )
+    net.Send( victim )
 end
 
 local function bonkPlayerOrNPC( attacker, victim, wep, force, wasBonked )
@@ -393,6 +397,10 @@ local function detectImpact( ent, dt )
             bonkInfo.Weapon = nil
             bonkInfo.WeaponClass = nil
             bonkedEnts[ent] = nil
+
+            if ent:IsPlayer() then
+                enableMovement( ent )
+            end
         end
 
         return
