@@ -195,10 +195,11 @@ function SWEP:Think()
         local newSmallestAng = lockAng
 
         for index, vehicle in pairs( vehicles ) do
-            if not IsValid( vehicle ) then table.remove( vehicles, index ) continue end
+            if vehicle == nil then continue end
+            if not IsValid( vehicle ) then vehicles[index] = nil continue end
 
             local hookResult = hook.Run( "CFC_Stinger_BlockLockon", self, vehicle )
-            if hookResult == true then table.remove( vehicles, index ) continue end
+            if hookResult == true then vehicles[index] = nil continue end
 
             local vehicleCenter = vehicle:WorldSpaceCenter()
             local toVehicle = vehicleCenter - eyePos
