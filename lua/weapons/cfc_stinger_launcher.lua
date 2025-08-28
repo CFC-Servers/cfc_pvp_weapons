@@ -52,8 +52,6 @@ SWEP.CFC_FirstTimeHints = {
     },
 }
 
-local debugVar = CreateConVar( "cfc_wep_stingerdebug", 0, FCVAR_NONE, "aaaaaaaaaaaaa" )
-
 function SWEP:SetupDataTables()
     self:NetworkVar( "Entity", "ClosestEnt" )
     self:NetworkVar( "Bool", "IsLocked" )
@@ -61,13 +59,6 @@ function SWEP:SetupDataTables()
 
     self:NetworkVar( "Bool", "IsReloading" )
     self:NetworkVar( "Float", "ReloadFinish" )
-
-    if SERVER then
-        self:NetworkVarNotify( "ClosestEnt", function( _, _, old, new )
-            if not debugVar:GetBool() then return end
-            ErrorNoHaltWithStack( self:GetOwner(), old, new )
-        end )
-    end
 end
 
 function SWEP:Initialize()
@@ -204,10 +195,10 @@ function SWEP:Think()
         local newSmallestAng = lockAng
 
         for index, vehicle in pairs( vehicles ) do
-            if not IsValid( vehicle ) then table.remove( vehicles, index ) continue end
+            if not IsValid( vehicle ) then vehicles[index] = nil continue end
 
             local hookResult = hook.Run( "CFC_Stinger_BlockLockon", self, vehicle )
-            if hookResult == true then table.remove( vehicles, index ) continue end
+            if hookResult == true then vehicles[index] = nil continue end
 
             local vehicleCenter = vehicle:WorldSpaceCenter()
             local toVehicle = vehicleCenter - eyePos
