@@ -195,6 +195,7 @@ function SWEP:Think()
         local newSmallestAng = lockAng
 
         for index, vehicle in pairs( vehicles ) do
+            if vehicle == nil then continue end
             if not IsValid( vehicle ) then vehicles[index] = nil continue end
 
             local hookResult = hook.Run( "CFC_Stinger_BlockLockon", self, vehicle )
