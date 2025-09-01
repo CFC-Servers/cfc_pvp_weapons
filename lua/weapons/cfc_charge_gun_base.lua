@@ -203,6 +203,8 @@ end
 function SWEP:CanPrimaryAttack()
     if self:GetNextFire() > CurTime() then return false end
     if self:GetReserveAmmo() <= 0 then return false end
+    if self:IsCharging() then return false end
+    if self:IsReleasing() then return false end
     --if not self:CanPrimaryFire() then return false end
 
     return true
