@@ -77,6 +77,16 @@ SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmo
 SWEP.KillIconPrefix = "cfc_gamblers_revolver_golden_"
 SWEP.KillIconDefault = "regular"
 
+SWEP.CFCPvPWeapons_HitgroupNormalizeTo = { -- Make the head hitgrouip be the only one to scale damage.
+    [HITGROUP_CHEST] = 1,
+    [HITGROUP_STOMACH] = 1,
+    [HITGROUP_LEFTARM] = 1,
+    [HITGROUP_RIGHTARM] = 1,
+    [HITGROUP_LEFTLEG] = 1,
+    [HITGROUP_RIGHTLEG] = 1,
+    [HITGROUP_GEAR] = 1,
+}
+
 
 if CLIENT then
     function SWEP:CalcViewModelView( vm )

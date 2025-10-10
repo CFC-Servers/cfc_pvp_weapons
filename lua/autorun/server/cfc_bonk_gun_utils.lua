@@ -6,7 +6,6 @@ util.AddNetworkString( "CFC_BonkGun_DisableMovement_StopEarly" )
 
 
 local bonkedEnts = {}
-local hitgroupNormalizers = {} -- Used for making bonk weapons ignore hitgroup damage scaling when calculating bonk force.
 
 local IMPACT_ACCELERATION_THRESHOLD = 7000
 local IMPACT_START_DELAY = 0.07
@@ -16,32 +15,6 @@ local AIR_SHOT_REFUND_COOLDOWN = 0.01
 
 local IsValid = IsValid
 local VECTOR_ZERO = Vector( 0, 0, 0 )
-
-local HITGROUP_MULTS_PER_GAMEMODE = {
-    ["sandbox"] = { -- Also the fallback.
-        [HITGROUP_GENERIC] = 1,
-        [HITGROUP_HEAD] = 2,
-        [HITGROUP_CHEST] = 1,
-        [HITGROUP_STOMACH] = 1,
-        [HITGROUP_LEFTARM] = 0.25,
-        [HITGROUP_RIGHTARM] = 0.25,
-        [HITGROUP_LEFTLEG] = 0.25,
-        [HITGROUP_RIGHTLEG] = 0.25,
-        [HITGROUP_GEAR] = 0.01,
-    },
-    ["terrortown"] = {
-        [HITGROUP_GENERIC] = 1,
-        [HITGROUP_HEAD] = 2,
-        [HITGROUP_CHEST] = 1,
-        [HITGROUP_STOMACH] = 1,
-        [HITGROUP_LEFTARM] = 0.55,
-        [HITGROUP_RIGHTARM] = 0.55,
-        [HITGROUP_LEFTLEG] = 0.55,
-        [HITGROUP_RIGHTLEG] = 0.55,
-        [HITGROUP_GEAR] = 0.55,
-    },
-}
-local DEFAULT_HITGROUP_MULTS = HITGROUP_MULTS_PER_GAMEMODE["sandbox"]
 
 
 local function isBuildPlayer( ply )
@@ -310,7 +283,7 @@ local function processDamage( attacker, victim, wep, dmg, fromGround )
 
         -- Undo the effects of hitgroup multipliers.
         if victim:IsPlayer() then
-            local norm = hitgroupNormalizers[victim:LastHitGroup()] or 1
+            local norm = CFCPvPWeapons.HITGROUP_NORMALIZERS[victim:LastHitGroup()] or 1 -- Ignore hitgroup damage scaling when calculating bonk force.
             dmgAmount = dmgAmount * norm
         end
 
@@ -498,25 +471,3 @@ hook.Add( "PlayerDeath", "CFC_BonkGun_ClearBonksOnDeath", function( ply )
     bonkedEnts[ply] = nil
     ply.cfc_bonkInfo = nil
 end )
-
-
-local function initSetup()
-    local hitgroupMults =
-        hook.Run( "CFC_PvPWeapons_BonkGun_GetHitgroupMultipliers" ) or
-        HITGROUP_MULTS_PER_GAMEMODE[engine.ActiveGamemode()] or
-        DEFAULT_HITGROUP_MULTS
-
-    for hitgroup, defaultMult in pairs( DEFAULT_HITGROUP_MULTS ) do
-        local mult = hitgroupMults[hitgroup] or defaultMult
-        local norm = 1 / mult
-
-        if norm ~= norm then
-            norm = 1 -- NaN
-        end
-
-        hitgroupNormalizers[hitgroup] = norm
-    end
-end
-
-hook.Add( "InitPostEntity", "CFC_PvPWeapons_BonkGun_InitSetup", initSetup )
-if CurTime() > 500 then initSetup() end -- Also run if script is changed mid-session, for testing purposes.
