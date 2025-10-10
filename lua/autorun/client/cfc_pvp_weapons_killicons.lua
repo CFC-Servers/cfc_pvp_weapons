@@ -31,5 +31,5 @@ killicon.Add( "cfc_gamblers_revolver_golden_superlucky", "vgui/hud/cfc_gamblers_
 
 
 hook.Add( "AddDeathNotice", "CFC_PvPWeapons_CustomKillIcons", function( _, _, inflictorClass )
-    if customIconClasses[inflictorClass] then return false end
+    if CFCPvPWeapons.CustomKillIconClasses[inflictorClass] then return false end
 end )
