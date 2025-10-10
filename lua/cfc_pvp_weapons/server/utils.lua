@@ -56,3 +56,21 @@ function CFCPvPWeapons.SpreadDir( dir, pitchSpread, yawSpread )
 
     return ang:Forward()
 end
+
+
+hook.Add( "PlayerDeath", "CFC_PvPWeapons_CustomKillIcons", function( victim, inflictor, attacker )
+    if inflictor == attacker then
+        if not IsValid( attacker ) then return end
+        if not attacker.GetActiveWeapon then return end
+
+        inflictor = attacker:GetActiveWeapon()
+    end
+
+    if not IsValid( inflictor ) then return end
+    if not inflictor.CFCPvPWeapons_GetKillIcon then return end
+
+    local inflictorStr, flags = inflictor:CFCPvPWeapons_GetKillIcon( victim, attacker )
+    if not inflictorStr then return end
+
+    GAMEMODE:SendDeathNotice( attacker, inflictorStr, victim, flags or 0 )
+end )

@@ -1,0 +1,9 @@
+VertexLitGeneric
+{
+    "$basetexture"    "models\weapons\cfc_gamblers_revolver\chamber"
+    "$bumpmap" "models\weapons\cfc_gamblers_revolver\chamber_norm"
+        //"$envmap" "env_cubemap"
+        //"$normalmapalphaenvmapmask" 1
+
+
+}
