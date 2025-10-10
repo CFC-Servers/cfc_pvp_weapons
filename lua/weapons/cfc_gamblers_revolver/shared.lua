@@ -90,8 +90,8 @@ function SWEP:Initialize()
         { Damage = 20, Weight = 100, },
         { Damage = 30, Weight = 60, },
         { Damage = 125, Weight = 16, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", },
-        { Damage = 1000, Weight = 2, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", },
-        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 1000, SelfForce = 5000, },
+        { Damage = 5000, Weight = 2, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", },
+        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, },
         { Damage = 666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, Function = function( wep )
             wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = 1 -- Force headshots to have a mult of one temporarily.
 
