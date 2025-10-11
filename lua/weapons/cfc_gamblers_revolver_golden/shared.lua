@@ -122,3 +122,7 @@ function SWEP:Initialize()
 
     self:SetSkin( 1 )
 end
+
+function SWEP:SetFirstTimeHints()
+    -- Do nothing.
+end

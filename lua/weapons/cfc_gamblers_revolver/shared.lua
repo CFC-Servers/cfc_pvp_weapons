@@ -126,6 +126,31 @@ function SWEP:Initialize()
         end },
     }
     table.SortByMember( self.Primary.PointAtSelfOutcomes, "Weight", false )
+
+    self:SetFirstTimeHints()
+end
+
+function SWEP:SetFirstTimeHints()
+    self.CFC_FirstTimeHints = {
+        {
+            Message = "The Gambler's Revolver has a chance to deal critical hits for massive damage.",
+            Sound = "ambient/water/drip1.wav",
+            Duration = 10,
+            DelayNext = 6,
+        },
+        {
+            Message = "Hold right click to play Russian Roulette for a higher chance at guaranteed crits.",
+            Sound = "ambient/water/drip2.wav",
+            Duration = 10,
+            DelayNext = 7,
+        },
+        {
+            Message = "Guaranteed crits are tracked in your secondary ammo counter.",
+            Sound = "ambient/water/drip1.wav",
+            Duration = 10,
+            DelayNext = 0,
+        },
+    }
 end
 
 function SWEP:GetDamageDiceFilter()
