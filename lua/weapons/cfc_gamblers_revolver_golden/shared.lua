@@ -100,8 +100,8 @@ function SWEP:Initialize()
 
     -- Can't add to the SWEP table normally, as child classes with fewer entries will have some of these forcibly added in.
     self.Primary.DamageDice = {
-        { Damage = 125, Weight = 100, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", },
-        { Damage = 5000, Weight = 20, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", },
+        { Damage = 125, Weight = 100, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", Group = "crit", },
+        { Damage = 5000, Weight = 20, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", },
         { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, },
         { Damage = 666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, Function = function( wep )
             wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = 1 -- Force headshots to have a mult of one temporarily.
@@ -112,8 +112,13 @@ function SWEP:Initialize()
             end )
         end },
     }
-
     table.SortByMember( self.Primary.DamageDice, "Weight", false )
+
+    self.Primary.PointAtSelfOutcomes = {
+        { Weight = 5, Sound = "weapons/pistol/pistol_empty.wav", SoundChannel = CHAN_STATIC, },
+        { Weight = 1, SelfDamage = 1000, KillIcon = "self", Sound = self.Primary.Sound, },
+    }
+    table.SortByMember( self.Primary.PointAtSelfOutcomes, "Weight", false )
 
     self:SetSkin( 1 )
 end

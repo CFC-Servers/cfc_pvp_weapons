@@ -7,3 +7,5 @@ sound.Add( { name = "Weapon_cfc_gamblers_revolver.blick", channel = CHAN_ITEM, v
 sound.Add( { name = "Weapon_cfc_gamblers_revolver.unfold", channel = CHAN_ITEM, volume = 1, sound = "weapons/cfc_gamblers_revolver/unfold.ogg" } )
 sound.Add( { name = "Weapon_cfc_gamblers_revolver.bulletsin", channel = CHAN_ITEM, volume = 1, sound = "weapons/cfc_gamblers_revolver/bulletsin.ogg" } )
 sound.Add( { name = "Weapon_cfc_gamblers_revolver.bulletsout", channel = CHAN_ITEM, volume = 1, sound = "weapons/cfc_gamblers_revolver/bulletsout.ogg" } )
+sound.Add( { name = "Weapon_cfc_gamblers_revolver.point_at_self", channel = CHAN_ITEM, volume = 1, pitch = 120, sound = "ambient/materials/cartrap_rope2.wav" } )
+sound.Add( { name = "Weapon_cfc_gamblers_revolver.point_away", channel = CHAN_ITEM, volume = 1, sound = "ambient/materials/metal_stress3.wav" } )

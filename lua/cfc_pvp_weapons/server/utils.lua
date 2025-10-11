@@ -57,6 +57,65 @@ function CFCPvPWeapons.SpreadDir( dir, pitchSpread, yawSpread )
     return ang:Forward()
 end
 
+--- Selects an outcome from a weighted list of options.
+---
+--- @param outcomes table A list of outcome tables, each containing a `Weight` field (a positive number).
+--- The outcomes must be sorted in descending order by weight.
+--- You can auto-sort the list using `table.SortByMember( outcomes, "Weight", false )`.
+--- CAUTION: A `_weightAccum` field will be written to each outcome table.
+--- @param filter function? An optional filter function that takes an outcome and returns true to include it or false to exclude it.
+--- @return table The selected outcome table. nil if no valid outcomes are available.
+function CFCPvPWeapons.GetWeightedOutcome( outcomes, filter )
+    local totalWeight = 0
+
+    for _, outcome in ipairs( outcomes ) do
+        if filter and not filter( outcome ) then
+            outcome._weightAccum = false
+        else
+            totalWeight = totalWeight + outcome.Weight
+            outcome._weightAccum = totalWeight
+        end
+    end
+
+    local roll = math.Rand( 0, totalWeight )
+
+    for _, outcome in ipairs( outcomes ) do
+        local accum = outcome._weightAccum
+
+        if accum and roll <= accum then
+            return outcome
+        end
+    end
+end
+
+--- Deals damage to the weapon's owner, attributing the damage to the weapon and world.
+---
+--- @param wep SWEP The weapon instance.
+--- @param amount number The amount of damage to deal.
+--- @param force number? Optional force to apply to the damage. Defaults to amount * 0.25.
+--- @param dir Vector? Optional direction of the force. Defaults to -owner:GetAimVector() for players, or Vector(0,0,1) for NPCs.
+--- @param damageType number? Optional damage type. Defaults to DMG_BULLET.
+function CFCPvPWeapons.DealSelfDamage( wep, amount, force, dir, damageType )
+    local owner = wep:GetOwner()
+    if not IsValid( owner ) then return end
+
+    if not dir then
+        if owner:IsPlayer() then
+            dir = -owner:GetAimVector()
+        else
+            dir = Vector( 0, 0, 1 )
+        end
+    end
+
+    local dmgInfo = DamageInfo()
+    dmgInfo:SetDamage( amount )
+    dmgInfo:SetAttacker( game.GetWorld() )
+    dmgInfo:SetInflictor( wep )
+    dmgInfo:SetDamageType( damageType or DMG_BULLET )
+    dmgInfo:SetDamageForce( dir * ( force or ( amount * 0.25 ) ) )
+    owner:TakeDamageInfo( dmgInfo )
+end
+
 
 hook.Add( "PlayerDeath", "CFC_PvPWeapons_CustomKillIcons", function( victim, inflictor, attacker )
     if inflictor == attacker then

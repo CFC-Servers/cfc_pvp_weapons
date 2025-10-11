@@ -70,6 +70,17 @@ SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmo
 SWEP.KillIconPrefix = "cfc_gamblers_revolver_rusty_"
 SWEP.KillIconDefault = "regular"
 
+SWEP.Secondary.ClipSize = 10
+
+SWEP.CanPointAtSelf = true
+SWEP.PointAtSelfDuration = 0.5
+SWEP.PointAtSelfAwayDuration = 0.5
+SWEP.PointAtSelfBoneManips = {
+    ["ValveBiped.Bip01_R_UpperArm"] = Angle( 20, 50, 0 ),
+    ["ValveBiped.Bip01_R_Forearm"] = Angle( 10, -50, 30 ),
+    ["ValveBiped.Bip01_R_Hand"] = Angle( 0, -120, 0 ),
+}
+
 SWEP.CFCPvPWeapons_HitgroupNormalizeTo = { -- Make the head hitgrouip be the only one to scale damage.
     [HITGROUP_CHEST] = 1,
     [HITGROUP_STOMACH] = 1,
@@ -81,6 +92,9 @@ SWEP.CFCPvPWeapons_HitgroupNormalizeTo = { -- Make the head hitgrouip be the onl
 }
 
 
+local ANGLE_ZERO = Angle( 0, 0, 0 )
+
+
 function SWEP:Initialize()
     BaseClass.Initialize( self )
 
@@ -89,8 +103,8 @@ function SWEP:Initialize()
         { Damage = 10, Weight = 60, },
         { Damage = 20, Weight = 100, },
         { Damage = 30, Weight = 60, },
-        { Damage = 125, Weight = 16, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", },
-        { Damage = 5000, Weight = 2, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", },
+        { Damage = 125, Weight = 16, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", Group = "crit", },
+        { Damage = 5000, Weight = 2, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", },
         { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, },
         { Damage = 666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, Function = function( wep )
             wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = 1 -- Force headshots to have a mult of one temporarily.
@@ -101,8 +115,68 @@ function SWEP:Initialize()
             end )
         end },
     }
-
     table.SortByMember( self.Primary.DamageDice, "Weight", false )
+
+    self.Primary.PointAtSelfOutcomes = {
+        { Weight = 3, Sound = "weapons/pistol/pistol_empty.wav", SoundChannel = CHAN_STATIC, },
+        { Weight = 1, SelfDamage = 1000, KillIcon = "self", Sound = self.Primary.Sound, },
+        { Weight = 2, Sound = "buttons/button4.wav", SoundPitch = 135, Function = function( wep )
+            -- Give a guaranteed crit on the next non-self shot.
+            wep:SetCritsLeft( wep:GetCritsLeft() + 1 )
+        end },
+    }
+    table.SortByMember( self.Primary.PointAtSelfOutcomes, "Weight", false )
+end
+
+function SWEP:GetDamageDiceFilter()
+    if self:GetCritsLeft() > 0 then
+        return function( dice ) return dice.Group == "crit" end
+    end
+end
+
+function SWEP:SetCritsLeft( amount )
+    self:SetClip2( math.Clamp( amount, 0, self:GetMaxClip2() ) )
+end
+
+function SWEP:GetCritsLeft()
+    return self:Clip2()
+end
+
+-- Applies a damage dice outcome, auto-handling various fields. bullet is optional, though required for Damage or Force.
+function SWEP:ApplyDamageDice( outcome, bullet )
+    local owner = self:GetOwner()
+
+    self._cfcPvPWeapons_KillIcon = self.KillIconPrefix .. ( outcome.KillIcon or self.KillIconDefault )
+
+    if bullet and outcome.Damage then
+        bullet.Damage = outcome.Damage
+        bullet.Force = outcome.Force or ( bullet.Damage * 0.25 )
+    end
+
+    if outcome.SelfDamage then
+        local dirBack
+
+        if bullet then
+            dirBack = -bullet.Dir
+            bullet.Dir = dirBack
+        else
+            dirBack = -self:GetOwner():GetAimVector()
+        end
+
+        CFCPvPWeapons.DealSelfDamage( self, outcome.SelfDamage, outcome.SelfForce, dirBack, DMG_BULLET )
+    end
+
+    if outcome.Sound and outcome.Sound ~= "" then
+        local rf = RecipientFilter()
+        rf:AddPAS( self:GetPos() )
+        rf:AddPlayer( owner )
+
+        owner:EmitSound( outcome.Sound, outcome.SoundLevel or 85, outcome.SoundPitch or 100, outcome.SoundVolume or 1, outcome.SoundChannel or CHAN_AUTO, nil, nil, rf )
+    end
+
+    if outcome.Function then
+        outcome.Function( self, outcome, bullet )
+    end
 end
 
 function SWEP:ModifyBulletTable( bullet )
@@ -110,56 +184,206 @@ function SWEP:ModifyBulletTable( bullet )
     -- Better, in fact, as not using commandnum for the seed means clients can't force high rolls.
     if CLIENT then return end
 
-    local damageDice = self.Primary.DamageDice
-    local totalWeight = 0
+    local outcomes = self.Primary.DamageDice
+    local outcome = CFCPvPWeapons.GetWeightedOutcome( outcomes, self:GetDamageDiceFilter() ) or outcomes[1]
 
-    for _, dice in ipairs( damageDice ) do
-        totalWeight = totalWeight + dice.Weight
-        dice._weightAccum = totalWeight
+    if self:GetCritsLeft() > 0 then
+        self:SetCritsLeft( self:GetCritsLeft() - 1 )
     end
 
-    local damageRoll = math.Rand( 0, totalWeight )
-    local diceChoice = damageDice[1]
-    local owner = self:GetOwner()
-
-    for _, dice in ipairs( damageDice ) do
-        if damageRoll <= dice._weightAccum then
-            diceChoice = dice
-
-            break
-        end
-    end
-
-    if diceChoice.Sound and diceChoice.Sound ~= "" then
-        local rf = RecipientFilter()
-        rf:AddPAS( self:GetPos() )
-        rf:AddPlayer( owner )
-
-        owner:EmitSound( diceChoice.Sound, 85, diceChoice.SoundPitch or 100, 1, CHAN_AUTO, nil, nil, rf )
-    end
-
-    bullet.Damage = diceChoice.Damage
-    bullet.Force = diceChoice.Force or ( bullet.Damage * 0.25 )
-    self._cfcPvPWeapons_KillIcon = self.KillIconPrefix .. ( diceChoice.KillIcon or self.KillIconDefault )
-
-    if diceChoice.SelfDamage then
-        local dirBack = -bullet.Dir
-        local dmgInfo = DamageInfo()
-        dmgInfo:SetDamage( diceChoice.SelfDamage )
-        dmgInfo:SetAttacker( game.GetWorld() )
-        dmgInfo:SetInflictor( self )
-        dmgInfo:SetDamageType( DMG_BULLET )
-        dmgInfo:SetDamageForce( dirBack * ( diceChoice.SelfForce or ( diceChoice.SelfDamage * 0.25 ) ) )
-        owner:TakeDamageInfo( dmgInfo )
-
-        bullet.Dir = dirBack
-    end
-
-    if diceChoice.Function then
-        diceChoice.Function( self, bullet )
-    end
+    self:ApplyDamageDice( outcome, bullet )
 end
 
 function SWEP:CFCPvPWeapons_GetKillIcon()
     return self._cfcPvPWeapons_KillIcon
+end
+
+function SWEP:Deploy()
+    self._cfcPvPWeapons_PointingAtSelf = false
+    self._cfcPvPWeapons_PointingAtSelfChanging = false
+
+    return BaseClass.Deploy( self )
+end
+
+function SWEP:Holster()
+    self:ResetPointAtSelfBoneManips( self:GetOwner() )
+
+    return BaseClass.Holster( self )
+end
+
+function SWEP:OnDrop( owner )
+    self:ResetPointAtSelfBoneManips( owner )
+    self:SetCritsLeft( 0 )
+
+    return BaseClass.OnDrop( self, owner )
+end
+
+function SWEP:OnRemove()
+    self:ResetPointAtSelfBoneManips( self:GetOwner() )
+
+    return BaseClass.OnRemove( self )
+end
+
+function SWEP:CanReload()
+    if self.CanPointAtSelf then
+        local notPointingAway = self:IsPointingAtSelfChanging() or self:IsPointingAtSelf()
+        if notPointingAway then return false end
+    end
+
+    return BaseClass.CanReload( self )
+end
+
+function SWEP:CanPrimaryFire()
+    if self.CanPointAtSelf and self:IsPointingAtSelfChanging() then return false end
+
+    return BaseClass.CanPrimaryFire( self )
+end
+
+function SWEP:PrimaryFire()
+    if self.CanPointAtSelf and self:IsPointingAtSelf() then
+        return self:PrimaryFireAtSelf()
+    end
+
+    return BaseClass.PrimaryFire( self )
+end
+
+function SWEP:PrimaryFireAtSelf()
+    if CLIENT then return end
+
+    self:SetNextFire( CurTime() + self:GetDelay() )
+    self:ConsumeAmmo()
+
+    local outcome = CFCPvPWeapons.GetWeightedOutcome( self.Primary.PointAtSelfOutcomes ) or self.Primary.PointAtSelfOutcomes[1]
+
+    if outcome.SelfDamage then
+        self:SendWeaponAnim( ACT_VM_PULLBACK_HIGH )
+    end
+
+    self:ApplyDamageDice( outcome )
+end
+
+function SWEP:IsPointingAtSelf()
+    return self._cfcPvPWeapons_PointingAtSelf or false
+end
+
+function SWEP:IsPointingAtSelfChanging()
+    return self._cfcPvPWeapons_PointingAtSelfChanging or false
+end
+
+function SWEP:PointAtSelfThink()
+    if not self.CanPointAtSelf then return end
+
+    local owner = self:GetOwner()
+    if not IsValid( owner ) then return end -- Shouldn't happen due to :Think() limits, but just in case.
+
+    -- If we're changing states...
+    if self._cfcPvPWeapons_PointingAtSelfChanging then
+        -- Finish the change.
+        if CurTime() >= self._cfcPvPWeapons_PointAtSelfChangeTime then
+            local newState = not self._cfcPvPWeapons_PointingAtSelf
+
+            self._cfcPvPWeapons_PointingAtSelf = newState
+            self._cfcPvPWeapons_PointingAtSelfChanging = false
+
+            if newState then
+                self:ApplyPointAtSelfBoneManips( owner )
+            else
+                self:ResetPointAtSelfBoneManips( owner )
+                self:SendWeaponAnim( ACT_VM_IDLE )
+            end
+        end
+
+        return -- Still changing, keep waiting.
+    end
+
+    -- Not currently changing states, see if the owner wants to change.
+    if self:IsReloading() then return end -- Can't change while reloading.
+
+    local curState = self._cfcPvPWeapons_PointingAtSelf or false
+    local targetState = owner:KeyDown( IN_ATTACK2 ) -- Point at self while holding RMB (animation delays permitting)
+    if curState == targetState then return end -- Already in the desired state, do nothing.
+
+    -- Start changing states.
+    self._cfcPvPWeapons_PointingAtSelfChanging = true
+    self._cfcPvPWeapons_PointAtSelfChangeTime = CurTime() + ( targetState and self.PointAtSelfDuration or self.PointAtSelfAwayDuration )
+    self:SendWeaponAnim( targetState and ACT_VM_PULLBACK or ACT_VM_PULLBACK_LOW )
+    self:SetNextIdle( 0 )
+end
+
+function SWEP:Think()
+    BaseClass.Think( self )
+    self:PointAtSelfThink()
+
+    if self:GetCritsLeft() > 0 then
+        self.RenderGroup = RENDERGROUP_TRANSLUCENT
+    else
+        self.RenderGroup = RENDERGROUP_OPAQUE
+    end
+end
+
+function SWEP:ResetPointAtSelfBoneManips( owner )
+    if not self.CanPointAtSelf then return end
+    if not IsValid( owner ) then return end
+
+    for boneName in pairs( self.PointAtSelfBoneManips ) do
+        local boneIndex = owner:LookupBone( boneName )
+        if boneIndex then
+            owner:ManipulateBoneAngles( boneIndex, ANGLE_ZERO )
+        end
+    end
+end
+
+function SWEP:ApplyPointAtSelfBoneManips( owner )
+    if not self.CanPointAtSelf then return end
+    if not IsValid( owner ) then return end
+
+    for boneName, ang in pairs( self.PointAtSelfBoneManips ) do
+        local boneIndex = owner:LookupBone( boneName )
+        if boneIndex then
+            owner:ManipulateBoneAngles( boneIndex, ang )
+        end
+    end
+end
+
+
+if CLIENT then
+    function SWEP:CustomAmmoDisplay()
+        return {
+            Draw = true,
+            PrimaryClip = self:Clip1(),
+            PrimaryAmmo = self:GetOwner():GetAmmoCount( self.Primary.Ammo ),
+            SecondaryAmmo = self:GetCritsLeft() > 0 and self:GetCritsLeft() or nil,
+        }
+    end
+
+
+    local critSpriteMat = Material( "sprites/redglow1" )
+    local critSpriteColor = Color( 255, 50, 50 )
+    local critSpriteOffset = Vector( 10, 0, -4 )
+    local critSpriteSize = 48
+
+
+    function SWEP:DrawCritSprite()
+        if self:GetCritsLeft() < 1 then return end
+
+        local owner = self:GetOwner()
+        if not IsValid( owner ) then return end
+
+        local boneID = owner:LookupBone( "ValveBiped.Bip01_R_Hand" ) -- Right Hand
+        if not boneID then return end
+
+        local matrix = owner:GetBoneMatrix( boneID )
+        if not matrix then return end
+
+        local pos = LocalToWorld( critSpriteOffset, ANGLE_ZERO, matrix:GetTranslation(), matrix:GetAngles() )
+
+        render.SetMaterial( critSpriteMat )
+        render.DrawSprite( pos, critSpriteSize, critSpriteSize, critSpriteColor )
+    end
+
+    function SWEP:DrawWorldModelTranslucent( flags )
+        self:DrawCritSprite()
+
+        return BaseClass.DrawWorldModelTranslucent( self, flags )
+    end
 end

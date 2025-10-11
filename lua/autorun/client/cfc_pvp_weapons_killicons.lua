@@ -25,11 +25,13 @@ killicon.Add( "cfc_gamblers_revolver_rusty_regular", "vgui/hud/cfc_gamblers_revo
 killicon.Add( "cfc_gamblers_revolver_rusty_lucky", "vgui/hud/cfc_gamblers_revolver/rusty_lucky", icolOrange )
 killicon.Add( "cfc_gamblers_revolver_rusty_superlucky", "vgui/hud/cfc_gamblers_revolver/rusty_superlucky", icolOrange )
 killicon.Add( "cfc_gamblers_revolver_rusty_unholy", "vgui/hud/cfc_gamblers_revolver/rusty_unholy", icolOrange )
+killicon.Add( "cfc_gamblers_revolver_rusty_self", "vgui/hud/cfc_gamblers_revolver/rusty_self", icolOrange )
 killicon.Add( "cfc_gamblers_revolver_golden_unlucky", "vgui/hud/cfc_gamblers_revolver/golden_unlucky", icolOrange )
 killicon.Add( "cfc_gamblers_revolver_golden_regular", "vgui/hud/cfc_gamblers_revolver/golden_regular", icolOrange )
 killicon.Add( "cfc_gamblers_revolver_golden_lucky", "vgui/hud/cfc_gamblers_revolver/golden_lucky", icolOrange )
 killicon.Add( "cfc_gamblers_revolver_golden_superlucky", "vgui/hud/cfc_gamblers_revolver/golden_superlucky", icolOrange )
 killicon.Add( "cfc_gamblers_revolver_golden_unholy", "vgui/hud/cfc_gamblers_revolver/golden_unholy", icolOrange )
+killicon.Add( "cfc_gamblers_revolver_golden_self", "vgui/hud/cfc_gamblers_revolver/golden_self", icolOrange )
 
 
 hook.Add( "AddDeathNotice", "CFC_PvPWeapons_CustomKillIcons", function( _, _, inflictorClass )
