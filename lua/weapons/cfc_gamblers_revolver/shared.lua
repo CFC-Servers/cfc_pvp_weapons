@@ -123,6 +123,8 @@ function SWEP:Initialize()
         { Damage = 5000, Weight = 2, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", HullSize = 1, Screenshake = SCREENSHAKES.SUPERLUCKY, Tracer = "GaussTracer", },
         { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, },
         { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Tracer = "AirboatGunHeavyTracer", Function = function( wep )
+            if CLIENT then return end
+
             wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = 1 -- Force headshots to have a mult of one temporarily.
 
             timer.Simple( 0, function()
@@ -195,6 +197,7 @@ function SWEP:ApplyDamageDice( outcome, bullet )
         bullet.Damage = outcome.Damage
         bullet.Force = outcome.Force or ( bullet.Damage * 0.25 )
         bullet.HullSize = outcome.HullSize or bullet.HullSize -- Note that HullSize > 1 will allow any intersection with the player collision hull to count, not just their damage hitboxes!
+        bullet.TracerName = outcome.Tracer or bullet.TracerName
 
         -- Allow the bullet to be disabled, to allow BehindDamage to be the only bullet, or to make the engine not
         --   get confused when SelfDamage kills the owner and the normal bullet tries to fire afterwards.
@@ -205,7 +208,7 @@ function SWEP:ApplyDamageDice( outcome, bullet )
 
         local screenshake = outcome.Screenshake
 
-        if screenshake and screenshake.Far then
+        if SERVER and screenshake and screenshake.Far then
             local cb = bullet.Callback or function() end
             local shake = screenshake.Far
 
@@ -214,35 +217,9 @@ function SWEP:ApplyDamageDice( outcome, bullet )
                 util.ScreenShake( tr.HitPos, shake.Amplitude, shake.Frequency, shake.Duration, shake.Radius, shake.AirShake )
             end
         end
-
-        if math.Rand( 0, 1 ) <= self.Primary.TracerFrequency then
-            local cb = bullet.Callback or function() end
-
-            bullet.Callback = function( attacker, tr, dmg )
-                cb( attacker, tr, dmg )
-
-                local rf = RecipientFilter()
-                rf:AddAllPlayers()
-
-                local eff = EffectData()
-                local attachID = owner:LookupAttachment( "anim_attachment_RH" )
-
-                if attachID > 0 then
-                    eff:SetStart( owner:GetAttachment( attachID ).Pos )
-                else
-                    eff:SetStart( tr.StartPos )
-                end
-
-                eff:SetOrigin( tr.HitPos )
-                eff:SetEntity( owner )
-                eff:SetScale( 10000 )
-                eff:SetFlags( 0 )
-                util.Effect( outcome.Tracer or bullet.TracerName, eff, nil, true )
-            end
-        end
     end
 
-    if outcome.Screenshake and outcome.Screenshake.Near then
+    if SERVER and outcome.Screenshake and outcome.Screenshake.Near then
         local shake = outcome.Screenshake.Near
         util.ScreenShake( owner:GetShootPos(), shake.Amplitude, shake.Frequency, shake.Duration, shake.Radius, shake.AirShake )
     end
@@ -264,16 +241,12 @@ function SWEP:ApplyDamageDice( outcome, bullet )
         owner:FireBullets( behindBullet )
     end
 
-    if outcome.SelfDamage then
+    if SERVER and outcome.SelfDamage then
         CFCPvPWeapons.DealSelfDamage( self, outcome.SelfDamage, outcome.SelfForce, -owner:GetAimVector(), DMG_BULLET )
     end
 
     if outcome.Sound and outcome.Sound ~= "" then
-        local rf = RecipientFilter()
-        rf:AddPAS( self:GetPos() )
-        rf:AddPlayer( owner )
-
-        owner:EmitSound( outcome.Sound, outcome.SoundLevel or 85, outcome.SoundPitch or 100, outcome.SoundVolume or 1, outcome.SoundChannel or CHAN_AUTO, nil, nil, rf )
+        self:EmitSound( outcome.Sound, outcome.SoundLevel or 85, outcome.SoundPitch or 100, outcome.SoundVolume or 1, outcome.SoundChannel or CHAN_AUTO )
     end
 
     if outcome.Function then
@@ -282,14 +255,8 @@ function SWEP:ApplyDamageDice( outcome, bullet )
 end
 
 function SWEP:ModifyBulletTable( bullet )
-    bullet.Tracer = 0 -- Disable regular tracer so prediction doesn't conflict with the per-outcome tracers.
-
-    -- No need for the client to predict the damage roll.
-    -- Better, in fact, as not using commandnum for the seed means clients can't force high rolls.
-    if CLIENT then return end
-
     local outcomes = self.Primary.DamageDice
-    local outcome = CFCPvPWeapons.GetWeightedOutcome( outcomes, self:GetDamageDiceFilter() ) or outcomes[1]
+    local outcome = CFCPvPWeapons.GetWeightedOutcome( outcomes, self:GetDamageDiceFilter(), "cfc_gamblers_revolver_damagedice" ) or outcomes[1]
 
     if self:GetCritsLeft() > 0 then
         self:SetCritsLeft( self:GetCritsLeft() - 1 )
@@ -352,12 +319,10 @@ function SWEP:PrimaryFire()
 end
 
 function SWEP:PrimaryFireAtSelf()
-    if CLIENT then return end
-
     self:SetNextFire( CurTime() + self:GetDelay() )
     self:ConsumeAmmo()
 
-    local outcome = CFCPvPWeapons.GetWeightedOutcome( self.Primary.PointAtSelfOutcomes ) or self.Primary.PointAtSelfOutcomes[1]
+    local outcome = CFCPvPWeapons.GetWeightedOutcome( self.Primary.PointAtSelfOutcomes, nil, "cfc_gamblers_revolver_fireatself" ) or self.Primary.PointAtSelfOutcomes[1]
 
     if outcome.SelfDamage then
         self:SendWeaponAnim( ACT_VM_PULLBACK_HIGH )

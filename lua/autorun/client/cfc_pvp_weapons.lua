@@ -1,5 +1,7 @@
 CFCPvPWeapons = CFCPvPWeapons or {}
 
+include( "cfc_pvp_weapons/utils.lua" )
+
 local hintConvars = {}
 
 list.Set( "ContentCategoryIcons", "CFC", "icon16/star.png" )
