@@ -105,7 +105,7 @@ function SWEP:Initialize()
         { Damage = 30, Weight = 60, },
         { Damage = 125, Weight = 16, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", Group = "crit", },
         { Damage = 5000, Weight = 2, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", },
-        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, },
+        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, },
         { Damage = 666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, Function = function( wep )
             wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = 1 -- Force headshots to have a mult of one temporarily.
 
@@ -168,6 +168,7 @@ function SWEP:GetCritsLeft()
 end
 
 -- Applies a damage dice outcome, auto-handling various fields. bullet is optional, though required for Damage or Force.
+-- If bullet is provided and Damage is zero, that bullet will be marked with DontShoot.
 function SWEP:ApplyDamageDice( outcome, bullet )
     local owner = self:GetOwner()
 
@@ -176,19 +177,33 @@ function SWEP:ApplyDamageDice( outcome, bullet )
     if bullet and outcome.Damage then
         bullet.Damage = outcome.Damage
         bullet.Force = outcome.Force or ( bullet.Damage * 0.25 )
+
+        -- Allow the bullet to be disabled, to allow BehindDamage to be the only bullet, or to make the engine not
+        --   get confused when SelfDamage kills the owner and the normal bullet tries to fire afterwards.
+        -- (Such a case causes the game to treat it like a regular .357 shot, damage and killicon and all.)
+        if bullet.Damage == 0 then
+            bullet.DontShoot = true
+        end
+    end
+
+    if outcome.BehindDamage then
+        local behindBullet = {
+            Num = 1,
+            Src = owner:GetShootPos(),
+            Dir = -owner:GetAimVector(),
+            TracerName = self.Primary.TracerName,
+            Tracer = self.Primary.TracerName == "" and 0 or self.Primary.TracerFrequency,
+            Force = outcome.BehindForce or ( outcome.BehindDamage * 0.25 ),
+            Damage = outcome.BehindDamage,
+            Callback = function( _attacker, tr, dmg )
+                dmg:ScaleDamage( self:GetDamageFalloff( tr.StartPos:Distance( tr.HitPos ) ) )
+            end
+        }
+        owner:FireBullets( behindBullet )
     end
 
     if outcome.SelfDamage then
-        local dirBack
-
-        if bullet then
-            dirBack = -bullet.Dir
-            bullet.Dir = dirBack
-        else
-            dirBack = -self:GetOwner():GetAimVector()
-        end
-
-        CFCPvPWeapons.DealSelfDamage( self, outcome.SelfDamage, outcome.SelfForce, dirBack, DMG_BULLET )
+        CFCPvPWeapons.DealSelfDamage( self, outcome.SelfDamage, outcome.SelfForce, -owner:GetAimVector(), DMG_BULLET )
     end
 
     if outcome.Sound and outcome.Sound ~= "" then
