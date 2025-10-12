@@ -192,67 +192,8 @@ function SWEP:ApplyDamageDice( outcome, bullet )
     local owner = self:GetOwner()
 
     self._cfcPvPWeapons_KillIcon = self.KillIconPrefix .. ( outcome.KillIcon or self.KillIconDefault )
-
-    if bullet and outcome.Damage then
-        bullet.Damage = outcome.Damage
-        bullet.Force = outcome.Force or ( bullet.Damage * 0.25 )
-        bullet.HullSize = outcome.HullSize or bullet.HullSize -- Note that HullSize > 1 will allow any intersection with the player collision hull to count, not just their damage hitboxes!
-        bullet.TracerName = outcome.Tracer or bullet.TracerName
-
-        -- Allow the bullet to be disabled, to allow BehindDamage to be the only bullet, or to make the engine not
-        --   get confused when SelfDamage kills the owner and the normal bullet tries to fire afterwards.
-        -- (Such a case causes the game to treat it like a regular .357 shot, damage and killicon and all.)
-        if bullet.Damage == 0 then
-            bullet.DontShoot = true
-        end
-
-        local screenshake = outcome.Screenshake
-
-        if SERVER and screenshake and screenshake.Far then
-            local cb = bullet.Callback or function() end
-            local shake = screenshake.Far
-
-            bullet.Callback = function( attacker, tr, dmg )
-                cb( attacker, tr, dmg )
-                util.ScreenShake( tr.HitPos, shake.Amplitude, shake.Frequency, shake.Duration, shake.Radius, shake.AirShake )
-            end
-        end
-
-        -- Some tracer effects (e.g. GaussTracer) don't work with the bullet system and need to be done manually.
-        if outcome.Tracer and ( SERVER or IsFirstTimePredicted() ) then
-            local cb = bullet.Callback or function() end
-
-            bullet.Tracer = 0
-            bullet.Callback = function( attacker, tr, dmg )
-                cb( attacker, tr, dmg )
-
-                local rf
-
-                if SERVER then
-                    rf = RecipientFilter()
-                    rf:AddAllPlayers()
-                    rf:RemovePlayer( owner ) -- Owner is doing it already on their end, don't double up.
-                end
-
-                local eff = EffectData()
-                local useViewModel = CLIENT and not owner:ShouldDrawLocalPlayer()
-                local attachEnt = useViewModel and owner:GetViewModel() or owner
-                local attachID = attachEnt:LookupAttachment( useViewModel and "muzzle" or "anim_attachment_RH" )
-
-                if attachID > 0 then
-                    eff:SetStart( attachEnt:GetAttachment( attachID ).Pos )
-                else
-                    eff:SetStart( tr.StartPos )
-                end
-
-                eff:SetOrigin( tr.HitPos )
-                eff:SetEntity( owner )
-                eff:SetScale( 10000 )
-                eff:SetFlags( 0 )
-                util.Effect( outcome.Tracer, eff, nil, rf )
-            end
-        end
-    end
+    self:DamageDiceHandleBullet( outcome, bullet )
+    self:DamageDiceHandleTracer( outcome, bullet )
 
     if SERVER and outcome.Screenshake and outcome.Screenshake.Near then
         local shake = outcome.Screenshake.Near
@@ -286,6 +227,76 @@ function SWEP:ApplyDamageDice( outcome, bullet )
 
     if outcome.Function then
         outcome.Function( self, outcome, bullet )
+    end
+end
+
+-- Pulled out of :ApplyDamageDice() for readability.
+function SWEP:DamageDiceHandleBullet( outcome, bullet )
+    if not bullet then return end
+
+    bullet.Damage = outcome.Damage or bullet.Damage
+    bullet.Force = outcome.Force or ( bullet.Damage * 0.25 )
+    bullet.HullSize = outcome.HullSize or bullet.HullSize -- Note that HullSize > 1 will allow any intersection with the player collision hull to count, not just their damage hitboxes!
+    bullet.TracerName = outcome.Tracer or bullet.TracerName
+
+    -- Allow the bullet to be disabled, to allow BehindDamage to be the only bullet, or to make the engine not
+    --   get confused when SelfDamage kills the owner and the normal bullet tries to fire afterwards.
+    -- (Such a case causes the game to treat it like a regular .357 shot, damage and killicon and all.)
+    if bullet.Damage == 0 then
+        bullet.DontShoot = true
+    end
+
+    local screenshake = outcome.Screenshake
+
+    if SERVER and screenshake and screenshake.Far then
+        local cb = bullet.Callback or function() end
+        local shake = screenshake.Far
+
+        bullet.Callback = function( attacker, tr, dmg )
+            cb( attacker, tr, dmg )
+            util.ScreenShake( tr.HitPos, shake.Amplitude, shake.Frequency, shake.Duration, shake.Radius, shake.AirShake )
+        end
+    end
+end
+
+-- Pulled out of :ApplyDamageDice() for readability.
+function SWEP:DamageDiceHandleTracer( outcome, bullet )
+    if not bullet then return end
+    if not outcome.Tracer then return end
+    if CLIENT and not IsFirstTimePredicted() then return end
+
+    local cb = bullet.Callback or function() end
+    local owner = self:GetOwner()
+
+    -- Some tracer effects (e.g. GaussTracer) don't work with the bullet system and need to be done manually.
+    bullet.Tracer = 0
+    bullet.Callback = function( attacker, tr, dmg )
+        cb( attacker, tr, dmg )
+
+        local rf
+
+        if SERVER then
+            rf = RecipientFilter()
+            rf:AddAllPlayers()
+            rf:RemovePlayer( owner ) -- Owner is doing it already on their end, don't double up.
+        end
+
+        local eff = EffectData()
+        local useViewModel = CLIENT and not owner:ShouldDrawLocalPlayer()
+        local attachEnt = useViewModel and owner:GetViewModel() or owner
+        local attachID = attachEnt:LookupAttachment( useViewModel and "muzzle" or "anim_attachment_RH" )
+
+        if attachID > 0 then
+            eff:SetStart( attachEnt:GetAttachment( attachID ).Pos )
+        else
+            eff:SetStart( tr.StartPos )
+        end
+
+        eff:SetOrigin( tr.HitPos )
+        eff:SetEntity( owner )
+        eff:SetScale( 10000 )
+        eff:SetFlags( 0 )
+        util.Effect( outcome.Tracer, eff, nil, rf )
     end
 end
 
