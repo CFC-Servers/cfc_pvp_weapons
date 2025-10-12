@@ -328,10 +328,10 @@ function SWEP:CFCPvPWeapons_GetKillIcon()
     return self._cfcPvPWeapons_KillIcon
 end
 
-function SWEP:Equip()
+function SWEP:Equip( owner )
     timer.Remove( "CFC_PvpWeapons_GamblersRevolver_CleanupSelf_" .. self:EntIndex() )
 
-    return BaseClass.Equip( self )
+    return BaseClass.Equip( self, owner )
 end
 
 function SWEP:Deploy()
