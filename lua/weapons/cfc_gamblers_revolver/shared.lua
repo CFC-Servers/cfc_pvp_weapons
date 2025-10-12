@@ -104,9 +104,9 @@ function SWEP:Initialize()
         { Damage = 20, Weight = 100, },
         { Damage = 30, Weight = 60, },
         { Damage = 125, Weight = 16, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", Group = "crit", },
-        { Damage = 5000, Weight = 2, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", },
-        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, },
-        { Damage = 666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, Function = function( wep )
+        { Damage = 5000, Weight = 2, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", HullSize = 1, },
+        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, },
+        { Damage = 666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, HullSize = 10, Function = function( wep )
             wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = 1 -- Force headshots to have a mult of one temporarily.
 
             timer.Simple( 0, function()
@@ -177,6 +177,7 @@ function SWEP:ApplyDamageDice( outcome, bullet )
     if bullet and outcome.Damage then
         bullet.Damage = outcome.Damage
         bullet.Force = outcome.Force or ( bullet.Damage * 0.25 )
+        bullet.HullSize = outcome.HullSize or bullet.HullSize
 
         -- Allow the bullet to be disabled, to allow BehindDamage to be the only bullet, or to make the engine not
         --   get confused when SelfDamage kills the owner and the normal bullet tries to fire afterwards.
@@ -195,6 +196,7 @@ function SWEP:ApplyDamageDice( outcome, bullet )
             Tracer = self.Primary.TracerName == "" and 0 or self.Primary.TracerFrequency,
             Force = outcome.BehindForce or ( outcome.BehindDamage * 0.25 ),
             Damage = outcome.BehindDamage,
+            HullSize = outcome.BehindHullSize,
             Callback = function( _attacker, tr, dmg )
                 dmg:ScaleDamage( self:GetDamageFalloff( tr.StartPos:Distance( tr.HitPos ) ) )
             end
