@@ -94,45 +94,12 @@ SWEP.CFCPvPWeapons_HitgroupNormalizeTo = { -- Make the head hitgrouip be the onl
 }
 
 
-local SCREENSHAKES = {
-    LUCKY = {
-        Near = { Amplitude = 5, Frequency = 40, Duration = 0.3, Radius = 100, AirShake = true, },
-        Far = { Amplitude = 5, Frequency = 40, Duration = 0.3, Radius = 250, AirShake = true, },
-    },
-    SUPERLUCKY = {
-        Near = { Amplitude = 10, Frequency = 40, Duration = 1, Radius = 100, AirShake = true, },
-        Far = { Amplitude = 10, Frequency = 40, Duration = 1, Radius = 350, AirShake = true, },
-    },
-    UNHOLY = {
-        Near = { Amplitude = 10, Frequency = 40, Duration = 2, Radius = 100, AirShake = true, },
-        Far = { Amplitude = 15, Frequency = 40, Duration = 2, Radius = 500, AirShake = true, },
-    },
-}
+CFCPvPWeapons.GamblersRevolver = CFCPvPWeapons.GamblersRevolver or {}
+CFCPvPWeapons.GamblersRevolver.SCREENSHAKES = CFCPvPWeapons.GamblersRevolver.SCREENSHAKES or {}
+CFCPvPWeapons.GamblersRevolver.SOUNDS = CFCPvPWeapons.GamblersRevolver.SOUNDS or {}
 
-local SOUNDS = {
-    LUCKY = {
-        { Path = "weapons/357/357_fire2.wav", Pitch = 75, Channel = CHAN_STATIC, },
-    },
-    SUPERLUCKY = {
-        { Path = "weapons/ar2/npc_ar2_altfire.wav", Pitch = 100, Channel = CHAN_STATIC, },
-        { Path = "weapons/physcannon/superphys_launch1.wav", Pitch = 100, Channel = CHAN_STATIC, },
-    },
-    UNHOLY = {
-        { Path = "weapons/mortar/mortar_explode2.wav", Pitch = 40, },
-        { Path = "weapons/physcannon/superphys_launch1.wav", Pitch = 40, Channel = CHAN_STATIC, },
-        { Path = "weapons/crossbow/bolt_skewer1.wav", Pitch = 40, Channel = CHAN_STATIC, },
-    },
-
-    ROULETTE_EMPTY = {
-        { Path = "weapons/pistol/pistol_empty.wav", Pitch = 100, Channel = CHAN_STATIC, },
-    },
-    ROULETTE_LOSE = {
-        { Path = SWEP.Primary.Sound, Pitch = 100, Channel = CHAN_WEAPON, },
-    },
-    ROULETTE_WIN = {
-        { Path = "buttons/button4.wav", Pitch = 135, Channel = CHAN_AUTO, },
-    },
-}
+local SCREENSHAKES = CFCPvPWeapons.GamblersRevolver.SCREENSHAKES
+local SOUNDS = CFCPvPWeapons.GamblersRevolver.SOUNDS
 
 
 if CLIENT then

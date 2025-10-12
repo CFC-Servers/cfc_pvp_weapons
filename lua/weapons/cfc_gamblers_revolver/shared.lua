@@ -98,9 +98,14 @@ SWEP.CFCPvPWeapons_HitgroupNormalizeTo = { -- Make the head hitgrouip be the onl
 }
 
 
+CFCPvPWeapons.GamblersRevolver = CFCPvPWeapons.GamblersRevolver or {}
+CFCPvPWeapons.GamblersRevolver.SCREENSHAKES = CFCPvPWeapons.GamblersRevolver.SCREENSHAKES or {}
+CFCPvPWeapons.GamblersRevolver.SOUNDS = CFCPvPWeapons.GamblersRevolver.SOUNDS or {}
+
 local ANGLE_ZERO = Angle( 0, 0, 0 )
 
-local SCREENSHAKES = {
+local SCREENSHAKES = CFCPvPWeapons.GamblersRevolver.SCREENSHAKES
+table.Merge( CFCPvPWeapons.GamblersRevolver.SCREENSHAKES, {
     LUCKY = {
         Near = { Amplitude = 5, Frequency = 40, Duration = 0.3, Radius = 100, AirShake = true, },
         Far = { Amplitude = 5, Frequency = 40, Duration = 0.3, Radius = 250, AirShake = true, },
@@ -113,9 +118,10 @@ local SCREENSHAKES = {
         Near = { Amplitude = 10, Frequency = 40, Duration = 2, Radius = 100, AirShake = true, },
         Far = { Amplitude = 15, Frequency = 40, Duration = 2, Radius = 500, AirShake = true, },
     },
-}
+} )
 
-local SOUNDS = {
+local SOUNDS = CFCPvPWeapons.GamblersRevolver.SOUNDS
+table.Merge( CFCPvPWeapons.GamblersRevolver.SOUNDS, {
     LUCKY = {
         { Path = "weapons/357/357_fire2.wav", Pitch = 75, Channel = CHAN_STATIC, },
     },
@@ -138,7 +144,7 @@ local SOUNDS = {
     ROULETTE_WIN = {
         { Path = "buttons/button4.wav", Pitch = 135, Channel = CHAN_AUTO, },
     },
-}
+} )
 
 
 function SWEP:Initialize()
