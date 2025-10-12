@@ -64,6 +64,7 @@ SWEP.Primary = {
 
     Sound = "Weapon_cfc_gamblers_revolver.single", -- Firing sound
     TracerName = "Tracer", -- Tracer effect, leave blank for no tracer
+    TracerFrequency = 1,
 }
 
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
@@ -118,10 +119,10 @@ function SWEP:Initialize()
         { Damage = 10, Weight = 60, },
         { Damage = 20, Weight = 100, },
         { Damage = 30, Weight = 60, },
-        { Damage = 125, Weight = 16, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", Group = "crit", Screenshake = SCREENSHAKES.LUCKY, },
-        { Damage = 5000, Weight = 2, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", HullSize = 1, Screenshake = SCREENSHAKES.SUPERLUCKY, },
+        { Damage = 125, Weight = 16, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", Group = "crit", Screenshake = SCREENSHAKES.LUCKY, Tracer = "GaussTracer", },
+        { Damage = 5000, Weight = 2, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", HullSize = 1, Screenshake = SCREENSHAKES.SUPERLUCKY, Tracer = "GaussTracer", },
         { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, },
-        { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Function = function( wep )
+        { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Tracer = "AirboatGunHeavyTracer", Function = function( wep )
             wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = 1 -- Force headshots to have a mult of one temporarily.
 
             timer.Simple( 0, function()
@@ -213,6 +214,32 @@ function SWEP:ApplyDamageDice( outcome, bullet )
                 util.ScreenShake( tr.HitPos, shake.Amplitude, shake.Frequency, shake.Duration, shake.Radius, shake.AirShake )
             end
         end
+
+        if math.Rand( 0, 1 ) <= self.Primary.TracerFrequency then
+            local cb = bullet.Callback or function() end
+
+            bullet.Callback = function( attacker, tr, dmg )
+                cb( attacker, tr, dmg )
+
+                local rf = RecipientFilter()
+                rf:AddAllPlayers()
+
+                local eff = EffectData()
+                local attachID = owner:LookupAttachment( "anim_attachment_RH" )
+
+                if attachID > 0 then
+                    eff:SetStart( owner:GetAttachment( attachID ).Pos )
+                else
+                    eff:SetStart( tr.StartPos )
+                end
+
+                eff:SetOrigin( tr.HitPos )
+                eff:SetEntity( owner )
+                eff:SetScale( 10000 )
+                eff:SetFlags( 0 )
+                util.Effect( outcome.Tracer or bullet.TracerName, eff, nil, true )
+            end
+        end
     end
 
     if outcome.Screenshake and outcome.Screenshake.Near then
@@ -255,6 +282,8 @@ function SWEP:ApplyDamageDice( outcome, bullet )
 end
 
 function SWEP:ModifyBulletTable( bullet )
+    bullet.Tracer = 0 -- Disable regular tracer so prediction doesn't conflict with the per-outcome tracers.
+
     -- No need for the client to predict the damage roll.
     -- Better, in fact, as not using commandnum for the seed means clients can't force high rolls.
     if CLIENT then return end
