@@ -18,6 +18,10 @@ SWEP.Slot = 1
 SWEP.Spawnable = true
 SWEP.AdminOnly = true
 
+if CLIENT then
+    CFCPvPWeapons.CL_SetWeaponSelectIcon( SWEP, "cfc_gamblers_revolver", "materials/vgui/hud/cfc_gamblers_revolver_golden.png" )
+end
+
 -- Appearance
 
 SWEP.UseHands = true -- If your viewmodel includes it's own hands (v_ model instead of a c_ model), set this to false
