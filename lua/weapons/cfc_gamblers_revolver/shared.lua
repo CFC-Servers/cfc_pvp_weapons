@@ -177,7 +177,7 @@ function SWEP:ApplyDamageDice( outcome, bullet )
     if bullet and outcome.Damage then
         bullet.Damage = outcome.Damage
         bullet.Force = outcome.Force or ( bullet.Damage * 0.25 )
-        bullet.HullSize = outcome.HullSize or bullet.HullSize
+        bullet.HullSize = outcome.HullSize or bullet.HullSize -- Note that HullSize > 1 will allow any intersection with the player collision hull to count, not just their damage hitboxes!
 
         -- Allow the bullet to be disabled, to allow BehindDamage to be the only bullet, or to make the engine not
         --   get confused when SelfDamage kills the owner and the normal bullet tries to fire afterwards.
