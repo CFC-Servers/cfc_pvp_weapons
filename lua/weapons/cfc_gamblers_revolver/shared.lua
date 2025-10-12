@@ -217,6 +217,41 @@ function SWEP:ApplyDamageDice( outcome, bullet )
                 util.ScreenShake( tr.HitPos, shake.Amplitude, shake.Frequency, shake.Duration, shake.Radius, shake.AirShake )
             end
         end
+
+        -- Some tracer effects (e.g. GaussTracer) don't work with the bullet system and need to be done manually.
+        if outcome.Tracer and ( SERVER or IsFirstTimePredicted() ) then
+            local cb = bullet.Callback or function() end
+
+            bullet.Tracer = 0
+            bullet.Callback = function( attacker, tr, dmg )
+                cb( attacker, tr, dmg )
+
+                local rf
+
+                if SERVER then
+                    rf = RecipientFilter()
+                    rf:AddAllPlayers()
+                    rf:RemovePlayer( owner ) -- Owner is doing it already on their end, don't double up.
+                end
+
+                local eff = EffectData()
+                local useViewModel = CLIENT and not owner:ShouldDrawLocalPlayer()
+                local attachEnt = useViewModel and owner:GetViewModel() or owner
+                local attachID = attachEnt:LookupAttachment( useViewModel and "muzzle" or "anim_attachment_RH" )
+
+                if attachID > 0 then
+                    eff:SetStart( attachEnt:GetAttachment( attachID ).Pos )
+                else
+                    eff:SetStart( tr.StartPos )
+                end
+
+                eff:SetOrigin( tr.HitPos )
+                eff:SetEntity( owner )
+                eff:SetScale( 10000 )
+                eff:SetFlags( 0 )
+                util.Effect( outcome.Tracer, eff, nil, rf )
+            end
+        end
     end
 
     if SERVER and outcome.Screenshake and outcome.Screenshake.Near then
