@@ -64,8 +64,9 @@ end
 --- @param force number? Optional force to apply to the damage. Defaults to amount * 0.25.
 --- @param dir Vector? Optional direction of the force. Defaults to -owner:GetAimVector() for players, or Vector(0,0,1) for NPCs.
 --- @param damageType number? Optional damage type. Defaults to DMG_BULLET.
-function CFCPvPWeapons.DealSelfDamage( wep, amount, force, dir, damageType )
-    local owner = wep:GetOwner()
+--- @param plyOverride Player? Optional player to damage instead of the weapon's owner. Useful if you're dropping the weapon immediately before this.
+function CFCPvPWeapons.DealSelfDamage( wep, amount, force, dir, damageType, plyOverride )
+    local owner = plyOverride or wep:GetOwner()
     if not IsValid( owner ) then return end
 
     if not dir then

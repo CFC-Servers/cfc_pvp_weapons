@@ -77,6 +77,7 @@ SWEP.Primary = {
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
 SWEP.KillIconPrefix = "cfc_gamblers_revolver_golden_"
 SWEP.KillIconDefault = "regular"
+SWEP.CleanupOnDropDelay = 60 -- Only applies to the auto-drop from outcomes with DropWeapon = true.
 
 SWEP.CFCPvPWeapons_HitgroupNormalizeTo = { -- Make the head hitgrouip be the only one to scale damage.
     [HITGROUP_CHEST] = 1,
@@ -119,7 +120,7 @@ function SWEP:Initialize()
     self.Primary.DamageDice = {
         { Damage = 125, Weight = 100, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", Group = "crit", Screenshake = SCREENSHAKES.LUCKY, Tracer = "GaussTracer", },
         { Damage = 5000, Weight = 20, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", HullSize = 1, Screenshake = SCREENSHAKES.SUPERLUCKY, Tracer = "GaussTracer", },
-        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, },
+        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, DropWeapon = true, },
         { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Tracer = "AirboatGunHeavyTracer", Function = function( wep )
             if CLIENT then return end
 
@@ -135,7 +136,7 @@ function SWEP:Initialize()
 
     self.Primary.PointAtSelfOutcomes = {
         { Weight = 5, Sound = "weapons/pistol/pistol_empty.wav", SoundChannel = CHAN_STATIC, },
-        { Weight = 1, SelfDamage = 1000, KillIcon = "self", Sound = self.Primary.Sound, },
+        { Weight = 1, SelfDamage = 1000, KillIcon = "self", Sound = self.Primary.Sound, DropWeapon = true, },
     }
     table.SortByMember( self.Primary.PointAtSelfOutcomes, "Weight", false )
 

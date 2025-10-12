@@ -70,6 +70,7 @@ SWEP.Primary = {
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
 SWEP.KillIconPrefix = "cfc_gamblers_revolver_rusty_"
 SWEP.KillIconDefault = "regular"
+SWEP.CleanupOnDropDelay = 15 -- Only applies to the auto-drop from outcomes with DropWeapon = true.
 
 SWEP.Secondary.ClipSize = 10
 
@@ -121,7 +122,7 @@ function SWEP:Initialize()
         { Damage = 30, Weight = 60, },
         { Damage = 125, Weight = 16, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", Group = "crit", Screenshake = SCREENSHAKES.LUCKY, Tracer = "GaussTracer", },
         { Damage = 5000, Weight = 2, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", HullSize = 1, Screenshake = SCREENSHAKES.SUPERLUCKY, Tracer = "GaussTracer", },
-        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, },
+        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, DropWeapon = true, },
         { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Tracer = "AirboatGunHeavyTracer", Function = function( wep )
             if CLIENT then return end
 
@@ -137,7 +138,7 @@ function SWEP:Initialize()
 
     self.Primary.PointAtSelfOutcomes = {
         { Weight = 3, Sound = "weapons/pistol/pistol_empty.wav", SoundChannel = CHAN_STATIC, },
-        { Weight = 1, SelfDamage = 1000, KillIcon = "self", Sound = self.Primary.Sound, },
+        { Weight = 1, SelfDamage = 1000, KillIcon = "self", Sound = self.Primary.Sound, DropWeapon = true, },
         { Weight = 2, Sound = "buttons/button4.wav", SoundPitch = 135, Function = function( wep )
             -- Give a guaranteed crit on the next non-self shot.
             wep:SetCritsLeft( wep:GetCritsLeft() + 1 )
@@ -217,8 +218,16 @@ function SWEP:ApplyDamageDice( outcome, bullet )
         owner:FireBullets( behindBullet )
     end
 
+    if SERVER and outcome.DropWeapon then
+        owner:DropWeapon( self, nil, owner:GetAimVector() * 400 )
+
+        timer.Create( "CFC_PvpWeapons_GamblersRevolver_CleanupSelf_" .. self:EntIndex(), self.CleanupOnDropDelay, 1, function()
+            SafeRemoveEntity( self )
+        end )
+    end
+
     if SERVER and outcome.SelfDamage then
-        CFCPvPWeapons.DealSelfDamage( self, outcome.SelfDamage, outcome.SelfForce, -owner:GetAimVector(), DMG_BULLET )
+        CFCPvPWeapons.DealSelfDamage( self, outcome.SelfDamage, outcome.SelfForce, -owner:GetAimVector(), DMG_BULLET, owner )
     end
 
     if outcome.Sound and outcome.Sound ~= "" then
@@ -313,6 +322,12 @@ end
 
 function SWEP:CFCPvPWeapons_GetKillIcon()
     return self._cfcPvPWeapons_KillIcon
+end
+
+function SWEP:Equip()
+    timer.Remove( "CFC_PvpWeapons_GamblersRevolver_CleanupSelf_" .. self:EntIndex() )
+
+    return BaseClass.Equip( self )
 end
 
 function SWEP:Deploy()
