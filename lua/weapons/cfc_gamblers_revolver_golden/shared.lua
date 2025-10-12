@@ -150,3 +150,19 @@ end
 function SWEP:SetFirstTimeHints()
     -- Do nothing.
 end
+
+function SWEP:Equip( owner )
+    -- Give stored ammo to the owner.
+    owner:GiveAmmo( self._cfcPvPWeapons_StoredAmmo or 0, self.Primary.Ammo )
+    self._cfcPvPWeapons_StoredAmmo = 0
+
+    return BaseClass.Equip( self, owner )
+end
+
+function SWEP:OnDrop( owner )
+    -- Store the ammo the owner had and take it from them.
+    self._cfcPvPWeapons_StoredAmmo = owner:GetAmmoCount( self.Primary.Ammo )
+    owner:SetAmmo( 0, self.Primary.Ammo )
+
+    return BaseClass.OnDrop( self, owner )
+end
