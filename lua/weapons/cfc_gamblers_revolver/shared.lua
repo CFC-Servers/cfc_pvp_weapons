@@ -212,7 +212,7 @@ function SWEP:ApplyDamageDice( outcome, bullet )
             HullSize = outcome.BehindHullSize,
             Callback = function( _attacker, tr, dmg )
                 dmg:ScaleDamage( self:GetDamageFalloff( tr.StartPos:Distance( tr.HitPos ) ) )
-            end
+            end,
         }
         owner:FireBullets( behindBullet )
     end
