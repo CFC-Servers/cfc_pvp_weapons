@@ -109,6 +109,31 @@ local SCREENSHAKES = {
     },
 }
 
+local SOUNDS = {
+    LUCKY = {
+        { Path = "weapons/357/357_fire2.wav", Pitch = 75, Channel = CHAN_STATIC, },
+    },
+    SUPERLUCKY = {
+        { Path = "weapons/ar2/npc_ar2_altfire.wav", Pitch = 100, Channel = CHAN_STATIC, },
+        { Path = "weapons/physcannon/superphys_launch1.wav", Pitch = 100, Channel = CHAN_STATIC, },
+    },
+    UNHOLY = {
+        { Path = "weapons/mortar/mortar_explode2.wav", Pitch = 40, },
+        { Path = "weapons/physcannon/superphys_launch1.wav", Pitch = 40, Channel = CHAN_STATIC, },
+        { Path = "weapons/crossbow/bolt_skewer1.wav", Pitch = 40, Channel = CHAN_STATIC, },
+    },
+
+    ROULETTE_EMPTY = {
+        { Path = "weapons/pistol/pistol_empty.wav", Pitch = 100, Channel = CHAN_STATIC, },
+    },
+    ROULETTE_LOSE = {
+        { Path = SWEP.Primary.Sound, Pitch = 100, Channel = CHAN_WEAPON, },
+    },
+    ROULETTE_WIN = {
+        { Path = "buttons/button4.wav", Pitch = 135, Channel = CHAN_AUTO, },
+    },
+}
+
 
 if CLIENT then
     function SWEP:CalcViewModelView( vm )
@@ -122,10 +147,12 @@ function SWEP:Initialize()
 
     -- Can't add to the SWEP table normally, as child classes with fewer entries will have some of these forcibly added in.
     self.Primary.DamageDice = {
-        { Damage = 125, Weight = 100, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", Group = "crit", Screenshake = SCREENSHAKES.LUCKY, Tracer = "GaussTracer", },
-        { Damage = 5000, Weight = 20, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", HullSize = 1, Screenshake = SCREENSHAKES.SUPERLUCKY, Tracer = "GaussTracer", },
-        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, DropWeapon = true, },
-        { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Tracer = "AirboatGunHeavyTracer", Function = function( wep )
+        --{ Damage = 125, Weight = 100, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", Group = "crit", Screenshake = SCREENSHAKES.LUCKY, Tracer = "GaussTracer", },
+        --{ Damage = 5000, Weight = 20, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", HullSize = 1, Screenshake = SCREENSHAKES.SUPERLUCKY, Tracer = "GaussTracer", },
+        { Damage = 125, Weight = 100, KillIcon = "lucky", Sounds = SOUNDS.LUCKY, Group = "crit", Screenshake = SCREENSHAKES.LUCKY, Tracer = "GaussTracer", },
+        { Damage = 5000, Weight = 20, KillIcon = "superlucky", Sounds = SOUNDS.SUPERLUCKY, Group = "crit", HullSize = 1, Screenshake = SCREENSHAKES.SUPERLUCKY, Tracer = "GaussTracer", },
+        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sounds = SOUNDS.UNHOLY, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, DropWeapon = true, },
+        { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sounds = SOUNDS.UNHOLY, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Tracer = "AirboatGunHeavyTracer", Function = function( wep )
             if CLIENT then return end
 
             wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = 1 -- Force headshots to have a mult of one temporarily.
@@ -139,8 +166,8 @@ function SWEP:Initialize()
     table.SortByMember( self.Primary.DamageDice, "Weight", false )
 
     self.Primary.PointAtSelfOutcomes = {
-        { Weight = 5, Sound = "weapons/pistol/pistol_empty.wav", SoundChannel = CHAN_STATIC, },
-        { Weight = 1, SelfDamage = 1000, KillIcon = "self", Sound = self.Primary.Sound, DropWeapon = true, },
+        { Weight = 5, Sounds = SOUNDS.ROULETTE_EMPTY, },
+        { Weight = 1, SelfDamage = 1000, KillIcon = "self", Sounds = SOUNDS.ROULETTE_LOSE, DropWeapon = true, },
     }
     table.SortByMember( self.Primary.PointAtSelfOutcomes, "Weight", false )
 
@@ -165,4 +192,11 @@ function SWEP:OnDrop( owner )
     owner:SetAmmo( 0, self.Primary.Ammo )
 
     return BaseClass.OnDrop( self, owner )
+end
+
+function SWEP:ModifyBulletTable( bullet )
+    local pitch = math.Clamp( bullet.Damage + math.random( -20, 0 ), 75, 200 )
+    self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 85, pitch, 0.75, CHAN_STATIC )
+
+    return BaseClass.ModifyBulletTable( self, bullet )
 end
