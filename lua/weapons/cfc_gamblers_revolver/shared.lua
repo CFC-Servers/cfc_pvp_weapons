@@ -94,6 +94,21 @@ SWEP.CFCPvPWeapons_HitgroupNormalizeTo = { -- Make the head hitgrouip be the onl
 
 local ANGLE_ZERO = Angle( 0, 0, 0 )
 
+local SCREENSHAKES = {
+    LUCKY = {
+        Near = { Amplitude = 5, Frequency = 40, Duration = 0.3, Radius = 100, AirShake = true, },
+        Far = { Amplitude = 5, Frequency = 40, Duration = 0.3, Radius = 250, AirShake = true, },
+    },
+    SUPERLUCKY = {
+        Near = { Amplitude = 10, Frequency = 40, Duration = 1, Radius = 100, AirShake = true, },
+        Far = { Amplitude = 10, Frequency = 40, Duration = 1, Radius = 350, AirShake = true, },
+    },
+    UNHOLY = {
+        Near = { Amplitude = 10, Frequency = 40, Duration = 2, Radius = 100, AirShake = true, },
+        Far = { Amplitude = 15, Frequency = 40, Duration = 2, Radius = 500, AirShake = true, },
+    },
+}
+
 
 function SWEP:Initialize()
     BaseClass.Initialize( self )
@@ -103,10 +118,10 @@ function SWEP:Initialize()
         { Damage = 10, Weight = 60, },
         { Damage = 20, Weight = 100, },
         { Damage = 30, Weight = 60, },
-        { Damage = 125, Weight = 16, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", Group = "crit", },
-        { Damage = 5000, Weight = 2, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", HullSize = 1, },
+        { Damage = 125, Weight = 16, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", Group = "crit", Screenshake = SCREENSHAKES.LUCKY, },
+        { Damage = 5000, Weight = 2, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", HullSize = 1, Screenshake = SCREENSHAKES.SUPERLUCKY, },
         { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, },
-        { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, HullSize = 10, Function = function( wep )
+        { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Function = function( wep )
             wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = 1 -- Force headshots to have a mult of one temporarily.
 
             timer.Simple( 0, function()
@@ -169,6 +184,7 @@ end
 
 -- Applies a damage dice outcome, auto-handling various fields. bullet is optional, though required for Damage or Force.
 -- If bullet is provided and Damage is zero, that bullet will be marked with DontShoot.
+-- Screenshake will apply Near on the owner and Far on where the main bullet hits, if applicable.
 function SWEP:ApplyDamageDice( outcome, bullet )
     local owner = self:GetOwner()
 
@@ -185,6 +201,23 @@ function SWEP:ApplyDamageDice( outcome, bullet )
         if bullet.Damage == 0 then
             bullet.DontShoot = true
         end
+
+        local screenshake = outcome.Screenshake
+
+        if screenshake and screenshake.Far then
+            local cb = bullet.Callback or function() end
+            local shake = screenshake.Far
+
+            bullet.Callback = function( attacker, tr, dmg )
+                cb( attacker, tr, dmg )
+                util.ScreenShake( tr.HitPos, shake.Amplitude, shake.Frequency, shake.Duration, shake.Radius, shake.AirShake )
+            end
+        end
+    end
+
+    if outcome.Screenshake and outcome.Screenshake.Near then
+        local shake = outcome.Screenshake.Near
+        util.ScreenShake( owner:GetShootPos(), shake.Amplitude, shake.Frequency, shake.Duration, shake.Radius, shake.AirShake )
     end
 
     if outcome.BehindDamage then

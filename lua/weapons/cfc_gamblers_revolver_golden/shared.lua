@@ -88,6 +88,22 @@ SWEP.CFCPvPWeapons_HitgroupNormalizeTo = { -- Make the head hitgrouip be the onl
 }
 
 
+local SCREENSHAKES = {
+    LUCKY = {
+        Near = { Amplitude = 5, Frequency = 40, Duration = 0.3, Radius = 100, AirShake = true, },
+        Far = { Amplitude = 5, Frequency = 40, Duration = 0.3, Radius = 250, AirShake = true, },
+    },
+    SUPERLUCKY = {
+        Near = { Amplitude = 10, Frequency = 40, Duration = 1, Radius = 100, AirShake = true, },
+        Far = { Amplitude = 10, Frequency = 40, Duration = 1, Radius = 350, AirShake = true, },
+    },
+    UNHOLY = {
+        Near = { Amplitude = 10, Frequency = 40, Duration = 2, Radius = 100, AirShake = true, },
+        Far = { Amplitude = 15, Frequency = 40, Duration = 2, Radius = 500, AirShake = true, },
+    },
+}
+
+
 if CLIENT then
     function SWEP:CalcViewModelView( vm )
         vm:SetSkin( 1 )
@@ -100,10 +116,10 @@ function SWEP:Initialize()
 
     -- Can't add to the SWEP table normally, as child classes with fewer entries will have some of these forcibly added in.
     self.Primary.DamageDice = {
-        { Damage = 125, Weight = 100, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", Group = "crit", },
-        { Damage = 5000, Weight = 20, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", HullSize = 1, },
+        { Damage = 125, Weight = 100, KillIcon = "lucky", Sound = "physics/glass/glass_impact_bullet4.wav", Group = "crit", Screenshake = SCREENSHAKES.LUCKY, },
+        { Damage = 5000, Weight = 20, KillIcon = "superlucky", Sound = "physics/glass/glass_largesheet_break1.wav", Group = "crit", HullSize = 1, Screenshake = SCREENSHAKES.SUPERLUCKY, },
         { Damage = 0, Weight = 3, KillIcon = "unlucky", Sound = "npc/manhack/gib.wav", SoundPitch = 130, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, },
-        { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, HullSize = 10, Function = function( wep )
+        { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sound = "npc/strider/striderx_alert5.wav", SoundPitch = 40, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Function = function( wep )
             wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = 1 -- Force headshots to have a mult of one temporarily.
 
             timer.Simple( 0, function()
