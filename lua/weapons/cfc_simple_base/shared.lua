@@ -71,6 +71,13 @@ SWEP.NPCData = {
     Rest = { 0.5, 1 }
 }
 
+SWEP.DropCleanupDelay = 15
+SWEP.DropOnDeath = false
+SWEP.RetainAmmoOnDrop = false
+SWEP.AllowMultiplePickup = true
+SWEP.DoCollisionEffects = false
+SWEP.DoOwnerChangedEffects = false
+
 if CLIENT then
     include( "cl_hud.lua" )
 else
@@ -97,8 +104,8 @@ end
 
 function SWEP:Initialize()
     self:SetFiremode( self.Firemode )
-
     self.AmmoType = self:GetAmmoType()
+    self:SetupCollisionEffects()
 end
 
 function SWEP:SetupDataTables()
@@ -154,6 +161,23 @@ function SWEP:OwnerChanged()
     end
 
     self:SetLastOwner( ply )
+
+    if self.DoOwnerChangedEffects and ( SERVER or ( CLIENT and IsFirstTimePredicted() ) ) then
+        timer.Simple( 0, function()
+            if not IsValid( self ) then return end
+            if not IsValid( self:GetOwner() ) then
+                self:OnDroppedFX()
+            else
+                self:OnPickedUpFX()
+            end
+        end )
+    end
+end
+
+function SWEP:OnPickedUpFX() -- stub, see super cinderblock
+end
+
+function SWEP:OnDroppedFX() -- stub, see super cinderblock
 end
 
 function SWEP:Deploy()
@@ -275,3 +299,108 @@ function SWEP:OnRestore()
     self:SetNextFire( CurTime() )
     self:SetNextAltFire( CurTime() )
 end
+
+function SWEP:OnDrop( owner )
+    if self.DropCleanupDelay then
+        local timerName = "CFC_PvpWeapons_CleanupSelf_" .. self:GetCreationID()
+        timer.Create( timerName, self.DropCleanupDelay, 1, function()
+            if not IsValid( self ) then return end
+            if IsValid( self:GetParent() ) then return end
+            SafeRemoveEntity( self )
+        end )
+    end
+
+    if self.RetainAmmoOnDrop then
+        local ammoType = self.RetainAmmoOnDrop
+        if ammoType == true then
+            ammoType = self.Primary.Ammo
+        end
+
+        self._cfcPvPWeapons_StoredAmmo = owner:GetAmmoCount( ammoType )
+        owner:SetAmmo( 0, ammoType )
+    end
+end
+
+function SWEP:Equip( owner )
+    if self.RetainAmmoOnDrop then
+        local ammoType = self.RetainAmmoOnDrop
+        if ammoType == true then
+            ammoType = self.Primary.Ammo
+        end
+
+        owner:GiveAmmo( self._cfcPvPWeapons_StoredAmmo or 0, ammoType )
+        self._cfcPvPWeapons_StoredAmmo = 0
+    end
+end
+
+function SWEP:MakeCollisionEffectFunc() -- stub, see super cinderblock
+end
+
+function SWEP:SetupCollisionEffects()
+    if not SERVER then return end
+    if self.DoCollisionEffects then
+        self:AddCallback( "PhysicsCollide", self:MakeCollisionEffectFunc() )
+    end
+    if self.HasFunHeavyPhysics then
+        local physObj = self:GetPhysicsObject()
+        if IsValid( physObj ) then
+            physObj:SetMass( 5000 )
+            physObj:SetMaterial( "Rubber" )
+        end
+    end
+end
+
+function SWEP:MakeDropOnDeathCopy( owner )
+    local wep = ents.Create( self:GetClass() )
+    wep:SetPos( owner:GetShootPos() + owner:GetAimVector() * 16 )
+    wep:SetAngles( owner:EyeAngles() )
+    wep:Spawn()
+
+    if self.RetainAmmoOnDrop then
+        wep._cfcPvPWeapons_StoredAmmo = owner:GetAmmoCount( self.Primary.Ammo )
+    end
+
+    return wep
+end
+
+function SWEP:CanDropOnDeath()
+    return true
+end
+
+function SWEP:DropOnDeathFX( _owner ) -- stub, see super cinderblock
+end
+
+function SWEP:CanPlayerPickUp( _ply )
+    return true
+end
+
+
+hook.Add( "PlayerDeath", "CFCPvPWeapons_DropOnDeath", function( ply )
+    local weps = ply:GetWeapons()
+    for i = #weps, 1, -1 do
+        local wep = weps[i]
+        if not IsValid( wep ) then continue end
+        if not wep.CFCSimpleWeapon then continue end
+        if not wep.DropOnDeath then continue end
+        if not wep:CanDropOnDeath() then continue end
+
+        local newWep = wep:MakeDropOnDeathCopy( ply )
+        newWep:DropOnDeathFX( ply )
+    end
+end )
+
+hook.Add( "PlayerCanPickupWeapon", "cfc_stickaroundondeath_nodoublepickup", function( ply, wep )
+    if not wep.CFCSimpleWeapon then return end
+    if not wep:CanPlayerPickUp( ply ) then return false end
+    if wep.AllowMultiplePickup ~= false then return end
+
+    local class = wep:GetClass()
+
+    if ply:HasWeapon( class ) then
+        if ply:KeyDown( IN_USE ) and ply:GetEyeTrace().Entity == wep then -- They already have one, make em switch to it!
+            ply:SelectWeapon( class )
+        end
+
+        return false
+    end
+end )

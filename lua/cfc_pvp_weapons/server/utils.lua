@@ -56,3 +56,60 @@ function CFCPvPWeapons.SpreadDir( dir, pitchSpread, yawSpread )
 
     return ang:Forward()
 end
+
+--- Deals damage to the weapon's owner, attributing the damage to the weapon and world.
+---
+--- @param wep SWEP The weapon instance.
+--- @param amount number The amount of damage to deal.
+--- @param force number? Optional force to apply to the damage. Defaults to amount * 0.25.
+--- @param dir Vector? Optional direction of the force. Defaults to -owner:GetAimVector() for players, or Vector(0,0,1) for NPCs.
+--- @param damageType number? Optional damage type. Defaults to DMG_BULLET.
+--- @param plyOverride Player? Optional player to damage instead of the weapon's owner. Useful if you're dropping the weapon immediately before this.
+function CFCPvPWeapons.DealSelfDamage( wep, amount, force, dir, damageType, plyOverride )
+    local owner = plyOverride or wep:GetOwner()
+    if not IsValid( owner ) then return end
+
+    if not dir then
+        if owner:IsPlayer() then
+            dir = -owner:GetAimVector()
+        else
+            dir = Vector( 0, 0, 1 )
+        end
+    end
+
+    local dmgInfo = DamageInfo()
+    dmgInfo:SetDamage( amount )
+    dmgInfo:SetAttacker( game.GetWorld() )
+    dmgInfo:SetInflictor( wep )
+    dmgInfo:SetDamageType( damageType or DMG_BULLET )
+    dmgInfo:SetDamageForce( dir * ( force or ( amount * 0.25 ) ) )
+    owner:TakeDamageInfo( dmgInfo )
+end
+
+
+local function customKillIconHandleDeath( victim, inflictor, attacker )
+    if inflictor == attacker then
+        if not IsValid( attacker ) then return end
+        if not attacker.GetActiveWeapon then return end
+
+        inflictor = attacker:GetActiveWeapon()
+    end
+
+    if not IsValid( inflictor ) then return end
+    if not inflictor.CFCPvPWeapons_GetKillIcon then return end
+
+    local inflictorStr, flags = inflictor:CFCPvPWeapons_GetKillIcon( victim, attacker )
+    if not inflictorStr then return end
+
+    if IsValid( victim ) and victim:IsNPC() or victim:IsNextBot() then
+        victim = GAMEMODE:GetDeathNoticeEntityName( victim )
+    end
+
+    GAMEMODE:SendDeathNotice( attacker, inflictorStr, victim, flags or 0 )
+end
+
+
+hook.Add( "PlayerDeath", "CFC_PvPWeapons_CustomKillIcons", customKillIconHandleDeath )
+hook.Add( "OnNPCKilled", "CFC_PvPWeapons_CustomKillIcons", function( npc, attacker, inflictor )
+    customKillIconHandleDeath( npc, inflictor, attacker )
+end )

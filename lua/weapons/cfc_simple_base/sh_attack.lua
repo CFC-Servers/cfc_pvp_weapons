@@ -141,6 +141,8 @@ function SWEP:HandleBullets()
     if not patternInfo then
         bullet.Spread = self:GetSpread()
         self:ModifyBulletTable( bullet )
+        if bullet.DontShoot then return end
+
         ply:FireBullets( bullet )
 
         return
@@ -150,6 +152,7 @@ function SWEP:HandleBullets()
     bullet.Num = 1
     bullet.Spread = Vector( 0, 0, 0 )
     self:ModifyBulletTable( bullet )
+    if bullet.DontShoot then return end
 
     local patternType = patternInfo.Type
     local dirAng = dir:Angle()
@@ -178,6 +181,8 @@ function SWEP:HandleBullets()
     ply:FireBullets( bullet )
 end
 
+-- Allows the bullet table to be modified.
+-- If you add `DontShoot = true` to the table, the bullet will not be fired.
 function SWEP:ModifyBulletTable( _bullet )
 end
 

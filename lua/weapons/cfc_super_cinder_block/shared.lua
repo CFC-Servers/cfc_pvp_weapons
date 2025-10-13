@@ -45,6 +45,16 @@ SWEP.Primary.ThrowAct = { ACT_VM_PULLBACK_HIGH, ACT_VM_THROW }
 SWEP.Primary.LobAct = { ACT_VM_PULLBACK_LOW, ACT_VM_HAULBACK }
 SWEP.Primary.RollAct = { ACT_VM_PULLBACK_LOW, ACT_VM_SECONDARYATTACK }
 
+SWEP.AllowMultiplePickup = false
+
+SWEP.DropOnDeath = true
+SWEP.DropCleanupDelay = 240
+SWEP.RetainAmmoOnDrop = false
+SWEP.DoOwnerChangedEffects = true
+
+SWEP.DoCollisionEffects = true
+SWEP.HasFunHeavyPhysics = true
+
 SWEP.IsCFCSuperCinderBlock = true
 
 SWEP.CFC_FirstTimeHints = {
@@ -73,98 +83,39 @@ function SWEP:EmitThrowSound()
     util.ScreenShake( self:WorldSpaceCenter(), 20, 20, 0.5, 500 )
 end
 
-if not SERVER then return end
-
-local function collideEffects( ent, data )
-    local nextSound = ent.cfcsupercinderblock_nextcollidesound or 0
-    if nextSound > CurTime() then return end
-    ent.cfcsupercinderblock_nextcollidesound = CurTime() + 0.05
-
-    local speed = data.Speed
-    if speed < 100 then return end
-
-    local pitch = 180 - ( speed / 30 )
-    ent:EmitSound( "Canister.ImpactSoft", 80, pitch, 1, CHAN_ITEM, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
-    ent:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 20, 30 ), 0.5, CHAN_STATIC )
-
-    local effectdata = EffectData()
-    effectdata:SetOrigin( data.HitPos )
-    effectdata:SetNormal( -data.HitNormal )
-    effectdata:SetScale( 1 + speed / 2000 )
-    effectdata:SetMagnitude( 1 )
-    effectdata:SetRadius( speed / 10 )
-    util.Effect( "Sparks", effectdata )
+function SWEP:DropOnDeathFX( _owner )
+    self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 40, 50 ), 1, CHAN_STATIC )
 end
 
-function SWEP:Initialize()
-    BaseClass.Initialize( self )
-
-    self:AddCallback( "PhysicsCollide", collideEffects )
-
-    local physObj = self:GetPhysicsObject()
-    if not IsValid( physObj ) then return end
-
-    physObj:SetMass( 5000 )
-    physObj:SetMaterial( "Rubber" )
+function SWEP:OnPickedUpFX()
+    self:EmitSound( "Canister.ImpactSoft", 80, math.random( 100, 110 ), 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
+    self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 30, 40 ), 0.5, CHAN_STATIC )
 end
 
-
-function SWEP:OwnerChanged()
-    timer.Simple( 0, function()
-        if not IsValid( self ) then return end
-        if not IsValid( self:GetOwner() ) then
-            self:EmitSound( "Canister.ImpactSoft", 80, math.random( 80, 90 ), 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
-            self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 20, 30 ), 0.5, CHAN_STATIC )
-        else
-            self:EmitSound( "Canister.ImpactSoft", 80, math.random( 100, 110 ), 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
-            self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 30, 40 ), 0.5, CHAN_STATIC )
-        end
-    end )
+function SWEP:OnDroppedFX()
+    self:EmitSound( "Canister.ImpactSoft", 80, math.random( 80, 90 ), 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
+    self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 20, 30 ), 0.5, CHAN_STATIC )
 end
 
-hook.Add( "PlayerCanPickupWeapon", "cfc_super_cinder_block_nodoublepickup", function( ply, weapon )
-    if not weapon.IsCFCSuperCinderBlock then return end
-    if ply:HasWeapon( "cfc_super_cinder_block" ) then
-        if ply:KeyDown( IN_USE ) and ply:GetEyeTrace().Entity == weapon then -- they already have one, make em switch to it!
-            ply:SelectWeapon( "cfc_super_cinder_block" )
-        end
-        return false
+function SWEP:MakeCollisionEffectFunc()
+    return function( ent, data )
+        local nextSound = ent.cfcPvPWeapons_NextCollideSound or 0
+        if nextSound > CurTime() then return end
+        ent.cfcPvPWeapons_NextCollideSound = CurTime() + 0.05
+
+        local speed = data.Speed
+        if speed < 100 then return end
+
+        local pitch = 180 - ( speed / 10 )
+        ent:EmitSound( "Canister.ImpactSoft", 80, pitch, 1, CHAN_ITEM, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
+        ent:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 40, 50 ), 0.5, CHAN_STATIC )
+
+        local effectdata = EffectData()
+        effectdata:SetOrigin( data.HitPos )
+        effectdata:SetNormal( -data.HitNormal )
+        effectdata:SetScale( 1 + speed / 2000 )
+        effectdata:SetMagnitude( 1 )
+        effectdata:SetRadius( speed / 10 )
+        util.Effect( "Sparks", effectdata )
     end
-end )
-
-hook.Add( "PlayerDeath", "cfc_super_cinder_block_dropondeath", function( ply )
-    local superBlock = ply:GetWeapon( "cfc_super_cinder_block" )
-    if not IsValid( superBlock ) then return end
-
-    if not superBlock:GetThrowableInHand() then return end -- was just thrown, the block is actually in the air!
-
-    local newWep = ents.Create( "cfc_super_cinder_block" )
-    if not IsValid( newWep ) then return end
-
-    newWep:SetPos( ply:GetShootPos() )
-    newWep:SetAngles( AngleRand() )
-    newWep:Spawn()
-
-    newWep:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS )
-    timer.Simple( 0, function()
-        if not IsValid( newWep ) then return end
-        newWep:EmitSound( "physics/concrete/concrete_impact_hard3.wav", 90, 40, 1, CHAN_STATIC )
-        newWep:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 10, 15 ), 1, CHAN_STATIC )
-    end )
-
-    local cur = CurTime()
-    newWep.cfc_supercinderblock_lastdrop = cur
-
-    timer.Simple( math.random( 240, 280 ), function()
-        if not IsValid( newWep ) then return end
-        if IsValid( newWep:GetOwner() ) or IsValid( newWep:GetParent() ) then return end
-        if newWep.cfc_supercinderblock_lastdrop ~= cur then return end
-
-        SafeRemoveEntity( newWep )
-    end )
-end )
-
-hook.Add( "PlayerCanPickupWeapon", "cfc_super_cinder_block_noinstantpickup", function( _, weapon )
-    if not weapon.cfcsupercinderblock_nextpickup then return end
-    if weapon.cfcsupercinderblock_nextpickup > CurTime() then return false end
-end )
+end

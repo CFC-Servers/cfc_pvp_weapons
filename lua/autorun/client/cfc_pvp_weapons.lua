@@ -1,5 +1,7 @@
 CFCPvPWeapons = CFCPvPWeapons or {}
 
+include( "cfc_pvp_weapons/utils.lua" )
+
 local hintConvars = {}
 
 list.Set( "ContentCategoryIcons", "CFC", "icon16/star.png" )
@@ -112,13 +114,8 @@ end
 
 local white = Color( 255, 255, 255 )
 
--- function that setups the weapon's PrintName translation, select icon. and killicon, all in one place
--- from glee!
--- not useful for stuff with special icons like the stinger
-function CFCPvPWeapons.CL_SetupSwep( SWEP, class, texture )
-    language.Add( class, SWEP.PrintName )
-    killicon.Add( class, texture, white )
-
+-- Simple setup for giving a weapon selection icon to a SWEP
+function CFCPvPWeapons.CL_SetWeaponSelectIcon( SWEP, class, texture )
     local mat = Material( texture, "alphatest" )
     if not mat:IsError() then
         SWEP.glee_WepSelectIcon = mat
@@ -126,6 +123,15 @@ function CFCPvPWeapons.CL_SetupSwep( SWEP, class, texture )
     else
         error( "Error loading weapon icon texture for " .. class .. "\n" .. mat:GetName() .. "\n" .. texture )
     end
+end
+
+-- function that setups the weapon's PrintName translation, select icon. and killicon, all in one place
+-- from glee!
+-- not useful for stuff with special icons like the stinger
+function CFCPvPWeapons.CL_SetupSwep( SWEP, class, texture )
+    language.Add( class, SWEP.PrintName )
+    killicon.Add( class, texture, white )
+    CFCPvPWeapons.CL_SetWeaponSelectIcon( SWEP, class, texture )
 end
 
 function CFCPvPWeapons.CL_SetupSent( ENT, class, texture )

@@ -1,4 +1,5 @@
 AddCSLuaFile()
+DEFINE_BASECLASS( "cfc_simple_base" )
 
 SWEP.Category           = "CFC"
 SWEP.PrintName          = "Stinger Missile"
@@ -392,8 +393,10 @@ function SWEP:Holster()
     return true
 end
 
-function SWEP:OnDrop()
+function SWEP:OnDrop( owner )
     self:UnLock()
+
+    return BaseClass.OnDrop( self, owner )
 end
 
 function SWEP:OnRemove()
@@ -402,6 +405,7 @@ end
 
 function SWEP:OwnerChanged()
     self:UnLock()
+    BaseClass.OwnerChanged( self )
 end
 
 if not CLIENT then return end
