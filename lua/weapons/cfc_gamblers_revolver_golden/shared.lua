@@ -127,13 +127,7 @@ function SWEP:Initialize()
                 wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = nil -- Revert back to normal.
             end )
 
-            local cb = bullet.Callback or function() end
-            bullet.Callback = function( attacker, tr, dmgInfo )
-                cb( attacker, tr, dmgInfo )
-                if not IsValid( wep ) then return end
-
-                wep:HurtInSphere( { tr.Entity }, tr.HitPos + tr.HitNormal * 10, 300, outcome.Damage, 10000, 10 )
-            end
+            wep:UnholyBlast( outcome, bullet )
         end },
     }
     table.SortByMember( self.Primary.DamageDice, "Weight", false )

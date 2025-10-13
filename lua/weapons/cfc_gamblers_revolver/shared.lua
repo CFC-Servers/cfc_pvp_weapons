@@ -168,13 +168,7 @@ function SWEP:Initialize()
                 wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = nil -- Revert back to normal.
             end )
 
-            local cb = bullet.Callback or function() end
-            bullet.Callback = function( attacker, tr, dmgInfo )
-                cb( attacker, tr, dmgInfo )
-                if not IsValid( wep ) then return end
-
-                wep:HurtInSphere( { tr.Entity }, tr.HitPos + tr.HitNormal * 10, 300, outcome.Damage, 10000, 10 )
-            end
+            wep:UnholyBlast( outcome, bullet )
         end },
     }
     table.SortByMember( self.Primary.DamageDice, "Weight", false )
@@ -354,72 +348,6 @@ function SWEP:DamageDiceHandleTracer( outcome, bullet )
     end
 end
 
-function SWEP:HurtInSphere( ignoreList, pos, radius, damage, force, limit, damageType )
-    ignoreList = ignoreList or {}
-    if type( ignoreList ) ~= "table" then ignoreList = { ignoreList } end
-
-    local ignoreLookup = {}
-
-    for _, ent in ipairs( ignoreList ) do
-        ignoreLookup[ent] = true
-    end
-
-    limit = limit or 10
-    damageType = damageType or DMG_BLAST
-
-    local count = 0
-    local victims = {}
-    local radiusSqr = radius * radius
-
-    local function tryAdd( ent, entPos )
-        -- Check line of sight.
-        local tr = util.TraceLine( {
-            start = pos,
-            endpos = entPos,
-            mask = MASK_SHOT,
-        } )
-
-        if tr.Hit and tr.Entity ~= ent then return end
-
-        count = count + 1
-        ignoreLookup[ent] = true
-        table.insert( victims, ent )
-    end
-
-    -- Prioritize players over other entities.
-    for _, ply in player.Iterator() do
-        if ignoreLookup[ply] then continue end
-        if not ply:Alive() then continue end
-
-        local victimPos = ply:GetPos() + ply:OBBCenter()
-        if pos:DistToSqr( victimPos ) > radiusSqr then continue end
-
-        tryAdd( ply, victimPos )
-        if count >= limit then break end
-    end
-
-    for _, ent in ipairs( ents.FindInSphere( pos, radius ) ) do
-        if ignoreLookup[ent] then continue end
-        if not IsValid( ent ) then continue end
-
-        tryAdd( ent, ent:LocalToWorld( ent:OBBCenter() ) )
-        if count >= limit then break end
-    end
-
-    local owner = self:GetOwner()
-
-    for _, ent in ipairs( victims ) do
-        local dmgInfo = DamageInfo()
-        dmgInfo:SetAttacker( owner )
-        dmgInfo:SetInflictor( self )
-        dmgInfo:SetDamage( damage )
-        dmgInfo:SetDamageType( damageType )
-        dmgInfo:SetDamagePosition( pos )
-        dmgInfo:SetDamageForce( ( ent:GetPos() - pos ):GetNormalized() * force )
-        ent:TakeDamageInfo( dmgInfo )
-    end
-end
-
 function SWEP:ModifyBulletTable( bullet )
     local outcomes = self.Primary.DamageDice
     local outcome = CFCPvPWeapons.GetWeightedOutcome( outcomes, self:GetDamageDiceFilter(), "cfc_gamblers_revolver_damagedice" ) or outcomes[1]
@@ -429,6 +357,38 @@ function SWEP:ModifyBulletTable( bullet )
     end
 
     self:ApplyDamageDice( outcome, bullet )
+end
+
+function SWEP:UnholyBlast( outcome, bullet )
+    local cb = bullet.Callback or function() end
+    bullet.Callback = function( attacker, tr, dmgInfo )
+        cb( attacker, tr, dmgInfo )
+        if not IsValid( self ) then return end
+
+        timer.Simple( 0, function()
+            if not IsValid( self ) then return end
+            if not IsValid( attacker ) then return end
+
+            local pos = tr.HitPos + tr.HitNormal * 10
+
+            local eff = EffectData()
+            eff:SetScale( 100 )
+            eff:SetMagnitude( 100 )
+            eff:SetFlags( 4 )
+
+            for _ = 1, 20 do
+                eff:SetOrigin( pos + VectorRand() * 150 )
+                util.Effect( "Explosion", eff, true, true )
+            end
+
+            local blastInfo = DamageInfo()
+            blastInfo:SetAttacker( attacker )
+            blastInfo:SetInflictor( self )
+            blastInfo:SetDamage( outcome.Damage )
+            blastInfo:SetDamageType( DMG_DISSOLVE )
+            util.BlastDamageInfo( blastInfo, pos, 300 )
+        end )
+    end
 end
 
 function SWEP:CFCPvPWeapons_GetKillIcon()
