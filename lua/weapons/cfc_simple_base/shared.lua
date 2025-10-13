@@ -162,24 +162,22 @@ function SWEP:OwnerChanged()
 
     self:SetLastOwner( ply )
 
-    if self.DoOwnerChangedEffects then
-        self:OwnerChangedEffects()
+    if self.DoOwnerChangedEffects and ( SERVER or ( CLIENT and IsFirstTimePredicted() ) ) then
+        timer.Simple( 0, function()
+            if not IsValid( self ) then return end
+            if not IsValid( self:GetOwner() ) then
+                self:OnDroppedFX()
+            else
+                self:OnPickedUpFX()
+            end
+        end )
     end
 end
 
-function SWEP:OwnerChangedEffects()
-    if CLIENT and IsFirstTimePredicted() then return end
+function SWEP:OnPickedUpFX() -- stub, see super cinderblock
+end
 
-    timer.Simple( 0, function()
-        if not IsValid( self ) then return end
-        if not IsValid( self:GetOwner() ) then
-            self:EmitSound( "Canister.ImpactSoft", 80, math.random( 80, 90 ), 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
-            self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 20, 30 ), 0.5, CHAN_STATIC )
-        else
-            self:EmitSound( "Canister.ImpactSoft", 80, math.random( 100, 110 ), 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
-            self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 30, 40 ), 0.5, CHAN_STATIC )
-        end
-    end )
+function SWEP:OnDroppedFX() -- stub, see super cinderblock
 end
 
 function SWEP:Deploy()
@@ -304,7 +302,10 @@ end
 
 function SWEP:OnDrop( owner )
     if self.DropCleanupDelay then
-        timer.Create( "CFC_PvpWeapons_CleanupSelf_" .. self:EntIndex(), self.DropCleanupDelay, 1, function()
+        local timerName = "CFC_PvpWeapons_CleanupSelf_" .. self:GetCreationID()
+        timer.Create( timerName, self.DropCleanupDelay, 1, function()
+            if not IsValid( self ) then return end
+            if IsValid( self:GetParent() ) then return end
             SafeRemoveEntity( self )
         end )
     end
@@ -321,8 +322,6 @@ function SWEP:OnDrop( owner )
 end
 
 function SWEP:Equip( owner )
-    timer.Remove( "CFC_PvpWeapons_CleanupSelf_" .. self:EntIndex() )
-
     if self.RetainAmmoOnDrop then
         local ammoType = self.RetainAmmoOnDrop
         if ammoType == true then
@@ -334,47 +333,28 @@ function SWEP:Equip( owner )
     end
 end
 
-function SWEP:MakeCollisionEffectFunc()
-    return function( ent, data )
-        local nextSound = ent.cfcPvPWeapons_NextCollideSound or 0
-        if nextSound > CurTime() then return end
-        ent.cfcPvPWeapons_NextCollideSound = CurTime() + 0.05
-
-        local speed = data.Speed
-        if speed < 100 then return end
-
-        local pitch = 180 - ( speed / 10 )
-        ent:EmitSound( "Canister.ImpactSoft", 80, pitch, 1, CHAN_ITEM, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
-        ent:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 40, 50 ), 0.5, CHAN_STATIC )
-
-        local effectdata = EffectData()
-        effectdata:SetOrigin( data.HitPos )
-        effectdata:SetNormal( -data.HitNormal )
-        effectdata:SetScale( 1 + speed / 2000 )
-        effectdata:SetMagnitude( 1 )
-        effectdata:SetRadius( speed / 10 )
-        util.Effect( "Sparks", effectdata )
-    end
+function SWEP:MakeCollisionEffectFunc() -- stub, see super cinderblock
 end
 
 function SWEP:SetupCollisionEffects()
-    if not self.DoCollisionEffects then return end
-
-    self:AddCallback( "PhysicsCollide", self:MakeCollisionEffectFunc() )
-
-    local physObj = self:GetPhysicsObject()
-    if not IsValid( physObj ) then return end
-
-    physObj:SetMass( 5000 )
-    physObj:SetMaterial( "Rubber" )
+    if not SERVER then return end
+    if self.DoCollisionEffects then
+        self:AddCallback( "PhysicsCollide", self:MakeCollisionEffectFunc() )
+    end
+    if self.HasFunHeavyPhysics then
+        local physObj = self:GetPhysicsObject()
+        if IsValid( physObj ) then
+            physObj:SetMass( 5000 )
+            physObj:SetMaterial( "Rubber" )
+        end
+    end
 end
 
 function SWEP:CanDropOnDeath()
     return true
 end
 
-function SWEP:DropOnDeathEffects( _owner )
-    self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 40, 50 ), 1, CHAN_STATIC )
+function SWEP:DropOnDeathFX( _owner ) -- stub, see super cinderblock
 end
 
 function SWEP:CanPlayerPickUp( _ply )
@@ -393,8 +373,10 @@ hook.Add( "PlayerDeath", "CFCPvPWeapons_DropOnDeath", function( ply )
 
         ply:DropWeapon( wep )
 
+        print( wep )
+
         if IsValid( wep ) then
-            wep:DropOnDeathEffects( ply )
+            wep:DropOnDeathFX( ply )
         end
     end
 end )

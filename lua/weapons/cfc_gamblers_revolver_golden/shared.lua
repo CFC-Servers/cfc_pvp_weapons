@@ -79,12 +79,16 @@ SWEP.Primary = {
 }
 
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
-SWEP.DropCleanupDelay = 60
-SWEP.DropOnDeath = true
-SWEP.RetainAmmoOnDrop = true
+
 SWEP.AllowMultiplePickup = true
-SWEP.DoCollisionEffects = true
+
+SWEP.DropOnDeath = true
+SWEP.DropCleanupDelay = 240
+SWEP.RetainAmmoOnDrop = true
 SWEP.DoOwnerChangedEffects = true
+
+SWEP.DoCollisionEffects = true
+SWEP.HasFunHeavyPhysics = true
 
 SWEP.KillIconPrefix = "cfc_gamblers_revolver_golden_"
 SWEP.KillIconDefault = "regular"
@@ -163,4 +167,38 @@ function SWEP:CanPlayerPickUp( ply )
     if ply:KeyDown( IN_USE ) and ply:GetEyeTrace().Entity == self then return true end
 
     return false
+end
+
+function SWEP:DropOnDeathFX( _owner )
+    self:EmitSound( "physics/metal/metal_canister_impact_soft" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 90, 110 ), 1, CHAN_STATIC )
+end
+
+function SWEP:OnPickedUpFX()
+    self:EmitSound( "physics/metal/metal_canister_impact_soft" .. math.random( 1, 3 ) .. ".wav", 80, math.random( 120, 140 ), 1, CHAN_STATIC )
+end
+
+function SWEP:OnDroppedFX()
+    self:EmitSound( "physics/metal/metal_canister_impact_soft" .. math.random( 1, 3 ) .. ".wav", 80, math.random( 100, 110 ), 1, CHAN_STATIC )
+end
+
+function SWEP:MakeCollisionEffectFunc()
+    return function( ent, data )
+        local nextSound = ent.cfcPvPWeapons_NextCollideSound or 0
+        if nextSound > CurTime() then return end
+        ent.cfcPvPWeapons_NextCollideSound = CurTime() + 0.05
+
+        local speed = data.Speed
+        if speed < 100 then return end
+
+        local pitch = 140 - math.Clamp( speed / 5, 0, 80 )
+        ent:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 2 ) .. ".wav", 90, pitch, 0.9, CHAN_STATIC )
+
+        local effectdata = EffectData()
+        effectdata:SetOrigin( data.HitPos )
+        effectdata:SetNormal( -data.HitNormal )
+        effectdata:SetScale( 1 + speed / 1500 )
+        effectdata:SetMagnitude( 1 )
+        effectdata:SetRadius( speed / 10 )
+        util.Effect( "Sparks", effectdata )
+    end
 end
