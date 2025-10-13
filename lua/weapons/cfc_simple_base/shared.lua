@@ -350,6 +350,19 @@ function SWEP:SetupCollisionEffects()
     end
 end
 
+function SWEP:MakeDropOnDeathCopy( owner )
+    local wep = ents.Create( self:GetClass() )
+    wep:SetPos( owner:GetShootPos() + owner:GetAimVector() * 16 )
+    wep:SetAngles( owner:EyeAngles() )
+    wep:Spawn()
+
+    if self.RetainAmmoOnDrop then
+        wep._cfcPvPWeapons_StoredAmmo = owner:GetAmmoCount( self.Primary.Ammo )
+    end
+
+    return wep
+end
+
 function SWEP:CanDropOnDeath()
     return true
 end
@@ -371,13 +384,8 @@ hook.Add( "PlayerDeath", "CFCPvPWeapons_DropOnDeath", function( ply )
         if not wep.DropOnDeath then continue end
         if not wep:CanDropOnDeath() then continue end
 
-        ply:DropWeapon( wep )
-
-        print( wep )
-
-        if IsValid( wep ) then
-            wep:DropOnDeathFX( ply )
-        end
+        local newWep = wep:MakeDropOnDeathCopy( ply )
+        newWep:DropOnDeathFX( ply )
     end
 end )
 
