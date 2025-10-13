@@ -134,3 +134,10 @@ SWEP.ScopeSound = "Default.Zoom" -- optional: Sound to play when cycling through
 
 SWEP.UseScope = false -- Whether this weapon obeys the draw scopes option
 SWEP.HideInScope = true -- Whether the viewmodel should be hidden when a scope is being drawn
+
+SWEP.DropCleanupDelay = 15 -- Automatically removes the weapon if dropped and left on the ground for this long, in seconds
+SWEP.DropOnDeath = false -- Whether the weapon is dropped when the owner dies
+SWEP.RetainAmmoOnDrop = false -- If a string, will take ALL of the owner's ammo of that type and store it onto the gun for whoever picks it up. If true, uses SWEP.Primary.Ammo. Should only be done with a custom ammo type.
+SWEP.AllowMultiplePickup = true -- Whether to allow this weapon to be picked up (consuming it for ammo) when the player already has another
+SWEP.DoCollisionEffects = false -- Whether to do special collision effects defined by SWEP:MakeCollisionEffectFunc()
+SWEP.DoOwnerChangedEffects = false -- Whether to play effects defined by SWEP:OwnerChangedEffects() when the weapon is equipped/dropped.

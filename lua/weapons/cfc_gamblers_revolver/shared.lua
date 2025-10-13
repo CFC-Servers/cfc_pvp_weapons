@@ -72,9 +72,9 @@ SWEP.Primary = {
 }
 
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
+SWEP.DropCleanupDelay = 15
 SWEP.KillIconPrefix = "cfc_gamblers_revolver_rusty_"
 SWEP.KillIconDefault = "regular"
-SWEP.CleanupOnDropDelay = 15 -- Only applies to the auto-drop from outcomes with DropWeapon = true.
 
 SWEP.Secondary.ClipSize = 10
 
@@ -257,10 +257,6 @@ function SWEP:ApplyDamageDice( outcome, bullet )
 
     if SERVER and outcome.DropWeapon then
         owner:DropWeapon( self, nil, owner:GetAimVector() * 400 )
-
-        timer.Create( "CFC_PvpWeapons_GamblersRevolver_CleanupSelf_" .. self:EntIndex(), self.CleanupOnDropDelay, 1, function()
-            SafeRemoveEntity( self )
-        end )
     end
 
     if SERVER and outcome.SelfDamage then
@@ -393,12 +389,6 @@ end
 
 function SWEP:CFCPvPWeapons_GetKillIcon()
     return self._cfcPvPWeapons_KillIcon
-end
-
-function SWEP:Equip( owner )
-    timer.Remove( "CFC_PvpWeapons_GamblersRevolver_CleanupSelf_" .. self:EntIndex() )
-
-    return BaseClass.Equip( self, owner )
 end
 
 function SWEP:Deploy()

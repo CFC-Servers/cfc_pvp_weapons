@@ -79,9 +79,15 @@ SWEP.Primary = {
 }
 
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
+SWEP.DropCleanupDelay = 60
+SWEP.DropOnDeath = true
+SWEP.RetainAmmoOnDrop = true
+SWEP.AllowMultiplePickup = true
+SWEP.DoCollisionEffects = true
+SWEP.DoOwnerChangedEffects = true
+
 SWEP.KillIconPrefix = "cfc_gamblers_revolver_golden_"
 SWEP.KillIconDefault = "regular"
-SWEP.CleanupOnDropDelay = 60 -- Only applies to the auto-drop from outcomes with DropWeapon = true.
 
 SWEP.CFCPvPWeapons_HitgroupNormalizeTo = { -- Make the head hitgrouip be the only one to scale damage.
     [HITGROUP_CHEST] = 1,
@@ -145,25 +151,16 @@ function SWEP:SetFirstTimeHints()
     -- Do nothing.
 end
 
-function SWEP:Equip( owner )
-    -- Give stored ammo to the owner.
-    owner:GiveAmmo( self._cfcPvPWeapons_StoredAmmo or 0, self.Primary.Ammo )
-    self._cfcPvPWeapons_StoredAmmo = 0
-
-    return BaseClass.Equip( self, owner )
-end
-
-function SWEP:OnDrop( owner )
-    -- Store the ammo the owner had and take it from them.
-    self._cfcPvPWeapons_StoredAmmo = owner:GetAmmoCount( self.Primary.Ammo )
-    owner:SetAmmo( 0, self.Primary.Ammo )
-
-    return BaseClass.OnDrop( self, owner )
-end
-
 function SWEP:ModifyBulletTable( bullet )
     local pitch = math.Clamp( bullet.Damage + math.random( -20, 0 ), 75, 200 )
     self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 85, pitch, 0.75, CHAN_STATIC )
 
     return BaseClass.ModifyBulletTable( self, bullet )
+end
+
+function SWEP:CanPlayerPickUp( ply )
+    if ply:GetAmmoCount( self.Primary.Ammo ) == 0 then return true end
+    if ply:KeyDown( IN_USE ) and ply:GetEyeTrace().Entity == self then return true end
+
+    return false
 end

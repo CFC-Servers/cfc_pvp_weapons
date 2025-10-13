@@ -71,6 +71,13 @@ SWEP.NPCData = {
     Rest = { 0.5, 1 }
 }
 
+SWEP.DropCleanupDelay = 15
+SWEP.DropOnDeath = false
+SWEP.RetainAmmoOnDrop = false
+SWEP.AllowMultiplePickup = true
+SWEP.DoCollisionEffects = false
+SWEP.DoOwnerChangedEffects = false
+
 if CLIENT then
     include( "cl_hud.lua" )
 else
@@ -97,8 +104,8 @@ end
 
 function SWEP:Initialize()
     self:SetFiremode( self.Firemode )
-
     self.AmmoType = self:GetAmmoType()
+    self:SetupCollisionEffects()
 end
 
 function SWEP:SetupDataTables()
@@ -154,6 +161,25 @@ function SWEP:OwnerChanged()
     end
 
     self:SetLastOwner( ply )
+
+    if self.DoOwnerChangedEffects then
+        self:OwnerChangedEffects()
+    end
+end
+
+function SWEP:OwnerChangedEffects()
+    if CLIENT and IsFirstTimePredicted() then return end
+
+    timer.Simple( 0, function()
+        if not IsValid( self ) then return end
+        if not IsValid( self:GetOwner() ) then
+            self:EmitSound( "Canister.ImpactSoft", 80, math.random( 80, 90 ), 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
+            self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 20, 30 ), 0.5, CHAN_STATIC )
+        else
+            self:EmitSound( "Canister.ImpactSoft", 80, math.random( 100, 110 ), 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
+            self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 30, 40 ), 0.5, CHAN_STATIC )
+        end
+    end )
 end
 
 function SWEP:Deploy()
@@ -275,3 +301,116 @@ function SWEP:OnRestore()
     self:SetNextFire( CurTime() )
     self:SetNextAltFire( CurTime() )
 end
+
+function SWEP:OnDrop( owner )
+    if self.DropCleanupDelay then
+        timer.Create( "CFC_PvpWeapons_CleanupSelf_" .. self:EntIndex(), self.DropCleanupDelay, 1, function()
+            SafeRemoveEntity( self )
+        end )
+    end
+
+    if self.RetainAmmoOnDrop then
+        local ammoType = self.RetainAmmoOnDrop
+        if ammoType == true then
+            ammoType = self.Primary.Ammo
+        end
+
+        self._cfcPvPWeapons_StoredAmmo = owner:GetAmmoCount( ammoType )
+        owner:SetAmmo( 0, ammoType )
+    end
+end
+
+function SWEP:Equip( owner )
+    timer.Remove( "CFC_PvpWeapons_CleanupSelf_" .. self:EntIndex() )
+
+    if self.RetainAmmoOnDrop then
+        local ammoType = self.RetainAmmoOnDrop
+        if ammoType == true then
+            ammoType = self.Primary.Ammo
+        end
+
+        owner:GiveAmmo( self._cfcPvPWeapons_StoredAmmo or 0, ammoType )
+        self._cfcPvPWeapons_StoredAmmo = 0
+    end
+end
+
+function SWEP:MakeCollisionEffectFunc()
+    return function( ent, data )
+        local nextSound = ent.cfcPvPWeapons_NextCollideSound or 0
+        if nextSound > CurTime() then return end
+        ent.cfcPvPWeapons_NextCollideSound = CurTime() + 0.05
+
+        local speed = data.Speed
+        if speed < 100 then return end
+
+        local pitch = 180 - ( speed / 10 )
+        ent:EmitSound( "Canister.ImpactSoft", 80, pitch, 1, CHAN_ITEM, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
+        ent:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 40, 50 ), 0.5, CHAN_STATIC )
+
+        local effectdata = EffectData()
+        effectdata:SetOrigin( data.HitPos )
+        effectdata:SetNormal( -data.HitNormal )
+        effectdata:SetScale( 1 + speed / 2000 )
+        effectdata:SetMagnitude( 1 )
+        effectdata:SetRadius( speed / 10 )
+        util.Effect( "Sparks", effectdata )
+    end
+end
+
+function SWEP:SetupCollisionEffects()
+    if not self.DoCollisionEffects then return end
+
+    self:AddCallback( "PhysicsCollide", self:MakeCollisionEffectFunc() )
+
+    local physObj = self:GetPhysicsObject()
+    if not IsValid( physObj ) then return end
+
+    physObj:SetMass( 5000 )
+    physObj:SetMaterial( "Rubber" )
+end
+
+function SWEP:CanDropOnDeath()
+    return true
+end
+
+function SWEP:DropOnDeathEffects( _owner )
+    self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 40, 50 ), 1, CHAN_STATIC )
+end
+
+function SWEP:CanPlayerPickUp( _ply )
+    return true
+end
+
+
+hook.Add( "PlayerDeath", "CFCPvPWeapons_DropOnDeath", function( ply )
+    local weps = ply:GetWeapons()
+    for i = #weps, 1, -1 do
+        local wep = weps[i]
+        if not IsValid( wep ) then continue end
+        if not wep.CFCSimpleWeapon then continue end
+        if not wep.DropOnDeath then continue end
+        if not wep:CanDropOnDeath() then continue end
+
+        ply:DropWeapon( wep )
+
+        if IsValid( wep ) then
+            wep:DropOnDeathEffects( ply )
+        end
+    end
+end )
+
+hook.Add( "PlayerCanPickupWeapon", "cfc_stickaroundondeath_nodoublepickup", function( ply, wep )
+    if not wep.CFCSimpleWeapon then return end
+    if not wep:CanPlayerPickUp( ply ) then return false end
+    if wep.AllowMultiplePickup ~= false then return end
+
+    local class = wep:GetClass()
+
+    if ply:HasWeapon( class ) then
+        if ply:KeyDown( IN_USE ) and ply:GetEyeTrace().Entity == wep then -- They already have one, make em switch to it!
+            ply:SelectWeapon( class )
+        end
+
+        return false
+    end
+end )

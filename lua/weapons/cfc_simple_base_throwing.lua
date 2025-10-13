@@ -1,6 +1,7 @@
 AddCSLuaFile()
+DEFINE_BASECLASS( "cfc_simple_base" )
 
-SWEP.Base = "weapon_base"
+SWEP.Base = "cfc_simple_base"
 
 SWEP.m_WeaponDeploySpeed = 1
 
@@ -60,6 +61,8 @@ function SWEP:SetupDataTables()
         ["Entity"] = 0
     }
 
+    self:AddNetworkVar( "Entity", "LastOwner" )
+
     self:AddNetworkVar( "Bool", "ThrowableInHand" )
 
     self:AddNetworkVar( "Int", "ThrowMode" )
@@ -83,18 +86,8 @@ function SWEP:Initialize()
         self.MyHeldModel:SetNoDraw( true )
         self.MyHeldModel:SetParent( self )
     end
-end
 
-function SWEP:AddNetworkVar( varType, name, extended )
-    local index = assert( self._NetworkVars[varType], "Attempt to register unknown network var type " .. varType )
-    local max = varType == "String" and 3 or 31
-
-    if index >= max then
-        error( "Network var limit exceeded for " .. varType )
-    end
-
-    self:NetworkVar( varType, index, name, extended )
-    self._NetworkVars[varType] = index + 1
+    self:SetupCollisionEffects()
 end
 
 function SWEP:Deploy()
@@ -413,13 +406,17 @@ function SWEP:OnReloaded()
     self:SetWeaponHoldType( self:GetHoldType() )
 end
 
+function SWEP:Reload()
+end
+
 function SWEP:OnRestore()
     self:SetNextIdle( CurTime() )
     self:SetFinishThrow( 0 )
     self:SetFinishReload( 0 )
 end
 
-function SWEP:OnDrop()
+function SWEP:CanDropOnDeath()
+    return self:GetThrowableInHand() -- If it's not in their hand, it's actually still being thrown, but is temporarily equipped to them.
 end
 
 
@@ -442,6 +439,8 @@ function SWEP:OwnerChanged()
         self:TearDownViewModel( self.oldOwner )
         self.oldOwner = nil
     end
+
+    BaseClass.OwnerChanged( self )
 end
 
 function SWEP:DrawWorldModel( flags )
