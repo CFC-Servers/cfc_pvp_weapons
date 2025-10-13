@@ -89,7 +89,7 @@ end
 
 function SWEP:OnPickedUpFX()
     self:EmitSound( "Canister.ImpactSoft", 80, math.random( 100, 110 ), 1, CHAN_STATIC, bit.bor( SND_CHANGE_PITCH, SND_CHANGE_VOL ) )
-    self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 30, 40 ), 0.5, CHAN_STATIC )    
+    self:EmitSound( "physics/metal/metal_canister_impact_hard" .. math.random( 1, 3 ) .. ".wav", 90, math.random( 30, 40 ), 0.5, CHAN_STATIC )
 end
 
 function SWEP:OnDroppedFX()
