@@ -87,7 +87,7 @@ function CFCPvPWeapons.DealSelfDamage( wep, amount, force, dir, damageType, plyO
 end
 
 
-hook.Add( "PlayerDeath", "CFC_PvPWeapons_CustomKillIcons", function( victim, inflictor, attacker )
+local function customKillIconHandleDeath( victim, inflictor, attacker )
     if inflictor == attacker then
         if not IsValid( attacker ) then return end
         if not attacker.GetActiveWeapon then return end
@@ -101,5 +101,15 @@ hook.Add( "PlayerDeath", "CFC_PvPWeapons_CustomKillIcons", function( victim, inf
     local inflictorStr, flags = inflictor:CFCPvPWeapons_GetKillIcon( victim, attacker )
     if not inflictorStr then return end
 
+    if IsValid( victim ) and victim:IsNPC() or victim:IsNextBot() then
+        victim = GAMEMODE:GetDeathNoticeEntityName( victim )
+    end
+
     GAMEMODE:SendDeathNotice( attacker, inflictorStr, victim, flags or 0 )
+end
+
+
+hook.Add( "PlayerDeath", "CFC_PvPWeapons_CustomKillIcons", customKillIconHandleDeath )
+hook.Add( "OnNPCKilled", "CFC_PvPWeapons_CustomKillIcons", function( npc, attacker, inflictor )
+    customKillIconHandleDeath( npc, inflictor, attacker )
 end )
