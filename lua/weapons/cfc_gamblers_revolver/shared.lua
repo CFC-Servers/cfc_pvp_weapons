@@ -97,6 +97,18 @@ SWEP.CFCPvPWeapons_HitgroupNormalizeTo = { -- Make the head hitgrouip be the onl
     [HITGROUP_GEAR] = 1,
 }
 
+SWEP.VMShake = {
+    StrengthStart = 0.1,
+    StrengthEnd = 0.5,
+    StrengthEase = function( x ) return x end, -- Easing function to use for the viewmodel shake strength (linear by default)
+    StrengthMovementBonus = 1.5 / 400, -- Multiplies the shake strength by 1 + ( the player's movespeed * this value ).
+    IntervalMinStart = 0.075,
+    IntervalMaxStart = 0.075,
+    IntervalMinEnd = 0.01,
+    IntervalMaxEnd = 0.075,
+    Lerp = 1.5, -- How strongly to follow changes in the desired ViewOffset position, per second. 1 means it will reach the new position in 1 second, 2 in 0.5 seconds, etc.
+}
+
 
 CFCPvPWeapons.GamblersRevolver = CFCPvPWeapons.GamblersRevolver or {}
 CFCPvPWeapons.GamblersRevolver.SCREENSHAKES = CFCPvPWeapons.GamblersRevolver.SCREENSHAKES or {}
@@ -184,6 +196,10 @@ function SWEP:Initialize()
     table.SortByMember( self.Primary.PointAtSelfOutcomes, "Weight", false )
 
     self:SetFirstTimeHints()
+
+    if CLIENT then
+        self:SetUpVMShake()
+    end
 end
 
 function SWEP:SetFirstTimeHints()
@@ -401,6 +417,10 @@ end
 function SWEP:Holster()
     self:ResetPointAtSelfBoneManips( self:GetOwner() )
 
+    if CLIENT then
+        self:ResetVMShake( false )
+    end
+
     return BaseClass.Holster( self )
 end
 
@@ -461,6 +481,12 @@ function SWEP:IsPointingAtSelfChanging()
     return self._cfcPvPWeapons_PointingAtSelfChanging or false
 end
 
+function SWEP:OnPointAtSelfChanged( pointingAtSelf )
+    if CLIENT then
+        self:ResetVMShake( pointingAtSelf ) -- Shake the viewmodel while pointing at self.
+    end
+end
+
 function SWEP:PointAtSelfThink()
     if not self.CanPointAtSelf then return end
 
@@ -482,6 +508,8 @@ function SWEP:PointAtSelfThink()
                 self:ResetPointAtSelfBoneManips( owner )
                 self:SendWeaponAnim( ACT_VM_IDLE )
             end
+
+            self:OnPointAtSelfChanged( newState )
         end
 
         return -- Still changing, keep waiting.
@@ -499,6 +527,10 @@ function SWEP:PointAtSelfThink()
     self._cfcPvPWeapons_PointAtSelfChangeTime = CurTime() + ( targetState and self.PointAtSelfDuration or self.PointAtSelfAwayDuration )
     self:SendWeaponAnim( targetState and ACT_VM_PULLBACK or ACT_VM_PULLBACK_LOW )
     self:SetNextIdle( 0 )
+
+    if CLIENT then
+        self:ResetVMShake( false )
+    end
 end
 
 function SWEP:Think()
@@ -509,6 +541,10 @@ function SWEP:Think()
         self.RenderGroup = RENDERGROUP_TRANSLUCENT
     else
         self.RenderGroup = RENDERGROUP_OPAQUE
+    end
+
+    if CLIENT then
+        self:VMShakeThink()
     end
 end
 
@@ -576,5 +612,64 @@ if CLIENT then
         self:DrawCritSprite()
 
         return BaseClass.DrawWorldModelTranslucent( self, flags )
+    end
+
+    function SWEP:SetUpVMShake()
+        local baseViewOffset = self.ViewOffset
+
+        self._baseViewOffset = baseViewOffset
+        self._targetViewOffset = Vector( baseViewOffset[1], baseViewOffset[2], baseViewOffset[3] )
+        self._nextViewOffsetChange = 0
+        self._isVMShakeActive = false
+        self._isVMShakeLerpMatched = false
+    end
+
+    function SWEP:VMShakeThink()
+        if not self._isVMShakeActive then return end
+
+        self:VMShakeChange()
+
+        if self._isVMShakeLerpMatched then return end
+
+        local viewOffset = self.ViewOffset
+        local targetOffset = self._targetViewOffset
+
+        if viewOffset:Distance( targetOffset ) < 0.01 then
+            self.ViewOffset = targetOffset
+            self._isVMShakeLerpMatched = true
+        else
+            self.ViewOffset = LerpVector( FrameTime() * self.VMShake.Lerp, viewOffset, targetOffset )
+        end
+    end
+
+    function SWEP:VMShakeChange()
+        local nextChangeTime = self._nextViewOffsetChange
+        local now = CurTime()
+
+        if now >= nextChangeTime then
+            -- Stronger the fewer bullets there are in the clip.
+            local clipMax = self.Primary.ClipSize
+            local frac = self.VMShake.StrengthEase( ( clipMax - math.min( self:Clip1(), clipMax ) ) / clipMax )
+
+            local shakeStrength = Lerp( frac, self.VMShake.StrengthStart, self.VMShake.StrengthEnd )
+            local speedBonus = self.VMShake.StrengthMovementBonus
+            local interval = math.Rand(
+                Lerp( frac, self.VMShake.IntervalMinStart, self.VMShake.IntervalMinEnd ),
+                Lerp( frac, self.VMShake.IntervalMaxStart, self.VMShake.IntervalMaxEnd )
+            )
+
+            if speedBonus ~= 0 then
+                shakeStrength = shakeStrength * ( LocalPlayer():GetVelocity():Length() * speedBonus + 1 )
+            end
+
+            self._nextViewOffsetChange = now + interval
+            self._targetViewOffset = self._baseViewOffset + Vector( math.Rand( -shakeStrength, shakeStrength ), math.Rand( -shakeStrength, shakeStrength ), math.Rand( -shakeStrength, shakeStrength ) )
+            self._isVMShakeLerpMatched = false
+        end
+    end
+
+    function SWEP:ResetVMShake( active )
+        self.ViewOffset = self._baseViewOffset
+        self._isVMShakeActive = active
     end
 end
