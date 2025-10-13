@@ -149,7 +149,7 @@ function SWEP:Initialize()
 
     self.Primary.PointAtSelfOutcomes = {
         { Weight = 5, Sounds = SOUNDS.ROULETTE_EMPTY, },
-        { Weight = 1, SelfDamage = 1000, KillIcon = "self", Sounds = SOUNDS.ROULETTE_LOSE, DropWeapon = true, },
+        { Weight = 1, SelfDamage = 1000, KillIcon = "self", Sounds = SOUNDS.ROULETTE_LOSE, BehindDamage = 150, BehindHullSize = 10, DropWeapon = true, },
     }
     table.SortByMember( self.Primary.PointAtSelfOutcomes, "Weight", false )
 
