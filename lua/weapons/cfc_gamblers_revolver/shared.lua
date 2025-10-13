@@ -158,7 +158,7 @@ function SWEP:Initialize()
         { Damage = 125, Weight = 16, KillIcon = "lucky", Sounds = SOUNDS.LUCKY, Group = "crit", Screenshake = SCREENSHAKES.LUCKY, Tracer = "GaussTracer", },
         { Damage = 5000, Weight = 2, KillIcon = "superlucky", Sounds = SOUNDS.SUPERLUCKY, Group = "crit", HullSize = 1, Screenshake = SCREENSHAKES.SUPERLUCKY, Tracer = "GaussTracer", },
         { Damage = 0, Weight = 3, KillIcon = "unlucky", Sounds = SOUNDS.UNHOLY, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, DropWeapon = true, },
-        { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sounds = SOUNDS.UNHOLY, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Tracer = "AirboatGunHeavyTracer", Function = function( wep )
+        { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sounds = SOUNDS.UNHOLY, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Tracer = "AirboatGunHeavyTracer", Function = function( wep, outcome, bullet )
             if CLIENT then return end
 
             wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = 1 -- Force headshots to have a mult of one temporarily.
@@ -167,6 +167,14 @@ function SWEP:Initialize()
                 if not IsValid( wep ) then return end
                 wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = nil -- Revert back to normal.
             end )
+
+            local cb = bullet.Callback or function() end
+            bullet.Callback = function( attacker, tr, dmgInfo )
+                cb( attacker, tr, dmgInfo )
+                if not IsValid( wep ) then return end
+
+                wep:HurtInSphere( { tr.Entity }, tr.HitPos + tr.HitNormal * 10, 300, outcome.Damage, 10000, 10 )
+            end
         end },
     }
     table.SortByMember( self.Primary.DamageDice, "Weight", false )
@@ -343,6 +351,72 @@ function SWEP:DamageDiceHandleTracer( outcome, bullet )
         eff:SetScale( 10000 )
         eff:SetFlags( 0 )
         util.Effect( outcome.Tracer, eff, nil, rf )
+    end
+end
+
+function SWEP:HurtInSphere( ignoreList, pos, radius, damage, force, limit, damageType )
+    ignoreList = ignoreList or {}
+    if type( ignoreList ) ~= "table" then ignoreList = { ignoreList } end
+
+    local ignoreLookup = {}
+
+    for _, ent in ipairs( ignoreList ) do
+        ignoreLookup[ent] = true
+    end
+
+    limit = limit or 10
+    damageType = damageType or DMG_BLAST
+
+    local count = 0
+    local victims = {}
+    local radiusSqr = radius * radius
+
+    local function tryAdd( ent, entPos )
+        -- Check line of sight.
+        local tr = util.TraceLine( {
+            start = pos,
+            endpos = entPos,
+            mask = MASK_SHOT,
+        } )
+
+        if tr.Hit and tr.Entity ~= ent then return end
+
+        count = count + 1
+        ignoreLookup[ent] = true
+        table.insert( victims, ent )
+    end
+
+    -- Prioritize players over other entities.
+    for _, ply in player.Iterator() do
+        if ignoreLookup[ply] then continue end
+        if not ply:Alive() then continue end
+
+        local victimPos = ply:GetPos() + ply:OBBCenter()
+        if pos:DistToSqr( victimPos ) > radiusSqr then continue end
+
+        tryAdd( ply, victimPos )
+        if count >= limit then break end
+    end
+
+    for _, ent in ipairs( ents.FindInSphere( pos, radius ) ) do
+        if ignoreLookup[ent] then continue end
+        if not IsValid( ent ) then continue end
+
+        tryAdd( ent, ent:LocalToWorld( ent:OBBCenter() ) )
+        if count >= limit then break end
+    end
+
+    local owner = self:GetOwner()
+
+    for _, ent in ipairs( victims ) do
+        local dmgInfo = DamageInfo()
+        dmgInfo:SetAttacker( owner )
+        dmgInfo:SetInflictor( self )
+        dmgInfo:SetDamage( damage )
+        dmgInfo:SetDamageType( damageType )
+        dmgInfo:SetDamagePosition( pos )
+        dmgInfo:SetDamageForce( ( ent:GetPos() - pos ):GetNormalized() * force )
+        ent:TakeDamageInfo( dmgInfo )
     end
 end
 

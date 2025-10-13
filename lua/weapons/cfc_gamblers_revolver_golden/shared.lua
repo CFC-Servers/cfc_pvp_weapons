@@ -117,7 +117,7 @@ function SWEP:Initialize()
         { Damage = 125, Weight = 100, KillIcon = "lucky", Sounds = SOUNDS.LUCKY, Group = "crit", Screenshake = SCREENSHAKES.LUCKY, Tracer = "GaussTracer", },
         { Damage = 5000, Weight = 20, KillIcon = "superlucky", Sounds = SOUNDS.SUPERLUCKY, Group = "crit", HullSize = 1, Screenshake = SCREENSHAKES.SUPERLUCKY, Tracer = "GaussTracer", },
         { Damage = 0, Weight = 3, KillIcon = "unlucky", Sounds = SOUNDS.UNHOLY, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, DropWeapon = true, },
-        { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sounds = SOUNDS.UNHOLY, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Tracer = "AirboatGunHeavyTracer", Function = function( wep )
+        { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sounds = SOUNDS.UNHOLY, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Tracer = "AirboatGunHeavyTracer", Function = function( wep, outcome, bullet )
             if CLIENT then return end
 
             wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = 1 -- Force headshots to have a mult of one temporarily.
@@ -126,6 +126,14 @@ function SWEP:Initialize()
                 if not IsValid( wep ) then return end
                 wep.CFCPvPWeapons_HitgroupNormalizeTo[HITGROUP_HEAD] = nil -- Revert back to normal.
             end )
+
+            local cb = bullet.Callback or function() end
+            bullet.Callback = function( attacker, tr, dmgInfo )
+                cb( attacker, tr, dmgInfo )
+                if not IsValid( wep ) then return end
+
+                wep:HurtInSphere( { tr.Entity }, tr.HitPos + tr.HitNormal * 10, 300, outcome.Damage, 10000, 10 )
+            end
         end },
     }
     table.SortByMember( self.Primary.DamageDice, "Weight", false )
