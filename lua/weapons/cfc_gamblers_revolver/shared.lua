@@ -10,6 +10,7 @@ SWEP.Category = "CFC"
 
 SWEP.Slot = 1
 SWEP.Spawnable = true
+SWEP.Instructions = "What a crappy gun, seems like something you'd find in some kind of pawn shop."
 
 if CLIENT then
     CFCPvPWeapons.CL_SetWeaponSelectIcon( SWEP, "cfc_gamblers_revolver", "materials/vgui/hud/cfc_gamblers_revolver.png" )
@@ -218,6 +219,12 @@ function SWEP:SetFirstTimeHints()
         },
         {
             Message = "Guaranteed crits are tracked in your secondary ammo counter.",
+            Sound = "ambient/water/drip1.wav",
+            Duration = 10,
+            DelayNext = 10,
+        },
+        {
+            Message = "Good luck...",
             Sound = "ambient/water/drip1.wav",
             Duration = 10,
             DelayNext = 0,

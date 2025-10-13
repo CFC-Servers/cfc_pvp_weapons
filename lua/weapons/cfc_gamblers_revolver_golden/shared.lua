@@ -17,6 +17,7 @@ SWEP.Category = "CFC"
 SWEP.Slot = 1
 SWEP.Spawnable = true
 SWEP.AdminOnly = true
+SWEP.Instructions = "A gun that feels like a million bucks..."
 
 if CLIENT then
     CFCPvPWeapons.CL_SetWeaponSelectIcon( SWEP, "cfc_gamblers_revolver", "materials/vgui/hud/cfc_gamblers_revolver_golden.png" )
