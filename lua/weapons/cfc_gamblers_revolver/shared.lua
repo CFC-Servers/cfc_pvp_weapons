@@ -118,34 +118,40 @@ CFCPvPWeapons.GamblersRevolver.SOUNDS = CFCPvPWeapons.GamblersRevolver.SOUNDS or
 local ANGLE_ZERO = Angle( 0, 0, 0 )
 
 local SCREENSHAKES = CFCPvPWeapons.GamblersRevolver.SCREENSHAKES
+-- table.Empty( CFCPvPWeapons.GamblersRevolver.SCREENSHAKES ) auto re fresh
 table.Merge( CFCPvPWeapons.GamblersRevolver.SCREENSHAKES, {
     LUCKY = {
-        Near = { Amplitude = 5, Frequency = 40, Duration = 0.3, Radius = 100, AirShake = true, },
-        Far = { Amplitude = 5, Frequency = 40, Duration = 0.3, Radius = 250, AirShake = true, },
+        Near = { Amplitude = 5, Frequency = 40, Duration = 0.3, Radius = 500, AirShake = true, }, -- plays on owner
+        Far = { Amplitude = 5, Frequency = 40, Duration = 0.3, Radius = 250, AirShake = true, }, -- plays at hit position
     },
     SUPERLUCKY = {
-        Near = { Amplitude = 10, Frequency = 40, Duration = 1, Radius = 100, AirShake = true, },
+        Near = { Amplitude = 10, Frequency = 40, Duration = 1, Radius = 650, AirShake = true, },
         Far = { Amplitude = 10, Frequency = 40, Duration = 1, Radius = 350, AirShake = true, },
     },
     UNHOLY = {
-        Near = { Amplitude = 10, Frequency = 40, Duration = 2, Radius = 100, AirShake = true, },
-        Far = { Amplitude = 15, Frequency = 40, Duration = 2, Radius = 500, AirShake = true, },
+        Near = { Amplitude = 50, Frequency = 40, Duration = 0.5, Radius = 1500, AirShake = true, },
+        Far = { Amplitude = 40, Frequency = 40, Duration = 2, Radius = 1500, AirShake = true, },
     },
 } )
 
 local SOUNDS = CFCPvPWeapons.GamblersRevolver.SOUNDS
+-- table.Empty( CFCPvPWeapons.GamblersRevolver.SOUNDS ) auto re fresh
 table.Merge( CFCPvPWeapons.GamblersRevolver.SOUNDS, {
     LUCKY = {
-        { Path = "weapons/357/357_fire2.wav", Pitch = 75, Channel = CHAN_STATIC, },
+        { Path = "weapons/airboat/airboat_gun_energy1.wav", Pitch = 80, Channel = CHAN_STATIC, },
+        { Path = "npc/roller/mine/rmine_explode_shock1.wav", Pitch = 200, Channel = CHAN_STATIC, },
     },
     SUPERLUCKY = {
-        { Path = "weapons/ar2/npc_ar2_altfire.wav", Pitch = 100, Channel = CHAN_STATIC, },
         { Path = "weapons/physcannon/superphys_launch1.wav", Pitch = 100, Channel = CHAN_STATIC, },
+        { Path = "npc/roller/mine/rmine_explode_shock1.wav", Pitch = 180, Channel = CHAN_STATIC, },
     },
     UNHOLY = {
-        { Path = "weapons/mortar/mortar_explode2.wav", Pitch = 40, Channel = CHAN_AUTO, },
         { Path = "weapons/physcannon/superphys_launch1.wav", Pitch = 40, Channel = CHAN_STATIC, },
+        { Path = "weapons/gauss/fire1.wav", Pitch = 40, Channel = CHAN_AUTO, },
         { Path = "weapons/crossbow/bolt_skewer1.wav", Pitch = 40, Channel = CHAN_STATIC, },
+    },
+    MISFIRE = {
+        { Path = "npc/manhack/gib.wav", Pitch = 80, Channel = CHAN_AUTO, },
     },
 
     ROULETTE_EMPTY = {
@@ -170,7 +176,7 @@ function SWEP:Initialize()
         { Damage = 30, Weight = 60, },
         { Damage = 125, Weight = 16, KillIcon = "lucky", Sounds = SOUNDS.LUCKY, Group = "crit", Screenshake = SCREENSHAKES.LUCKY, Tracer = "GaussTracer", },
         { Damage = 5000, Weight = 2, KillIcon = "superlucky", Sounds = SOUNDS.SUPERLUCKY, Group = "crit", HullSize = 1, Screenshake = SCREENSHAKES.SUPERLUCKY, Tracer = "GaussTracer", },
-        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sounds = SOUNDS.UNHOLY, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, DropWeapon = true, },
+        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sounds = SOUNDS.MISFIRE, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, DropWeapon = true, },
         { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sounds = SOUNDS.UNHOLY, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Tracer = "AirboatGunHeavyTracer", Function = function( wep, outcome, bullet )
             if CLIENT then return end
 
