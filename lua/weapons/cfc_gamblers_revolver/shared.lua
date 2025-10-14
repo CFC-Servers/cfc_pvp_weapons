@@ -552,12 +552,6 @@ function SWEP:Think()
     BaseClass.Think( self )
     self:PointAtSelfThink()
 
-    if self:GetStoredCrits() > 0 then
-        self.RenderGroup = RENDERGROUP_TRANSLUCENT
-    else
-        self.RenderGroup = RENDERGROUP_OPAQUE
-    end
-
     if CLIENT then
         self:VMShakeThink()
     end
@@ -623,7 +617,22 @@ if CLIENT then
         render.DrawSprite( pos, critSpriteSize, critSpriteSize, critSpriteColor )
     end
 
+    function SWEP:UpdateRenderGroup()
+        if self:GetStoredCrits() > 0 then
+            self.RenderGroup = RENDERGROUP_TRANSLUCENT
+        else
+            self.RenderGroup = RENDERGROUP_OPAQUE
+        end
+    end
+
+    function SWEP:DrawWorldModel( flags )
+        self:UpdateRenderGroup() -- The crit sprite needs the transparent rendergroup, and :Think() only runs for the player holding the weapon, so update it in here.
+
+        return BaseClass.DrawWorldModel( self, flags )
+    end
+
     function SWEP:DrawWorldModelTranslucent( flags )
+        self:UpdateRenderGroup() -- The crit sprite needs the transparent rendergroup, and :Think() only runs for the player holding the weapon, so update it in here.
         self:DrawCritSprite()
 
         return BaseClass.DrawWorldModelTranslucent( self, flags )
