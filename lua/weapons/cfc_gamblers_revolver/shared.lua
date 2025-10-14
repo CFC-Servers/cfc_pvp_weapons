@@ -162,10 +162,10 @@ table.Merge( CFCPvPWeapons.GamblersRevolver.SOUNDS, {
     },
 
     ROULETTE_EMPTY = {
-        { Path = "weapons/pistol/pistol_empty.wav", Pitch = 100, Channel = CHAN_STATIC, },
+        { Path = "weapons/pistol/pistol_empty.wav", Pitch = 100, Channel = CHAN_STATIC, SoundLevel = 60, },
     },
     ROULETTE_LOSE = {
-        { Path = SWEP.Primary.Sound, Pitch = 100, Channel = CHAN_WEAPON, },
+        { Path = SWEP.Primary.Sound, Pitch = 100, Channel = CHAN_WEAPON, SoundLevel = 80, },
     },
     ROULETTE_WIN = {
         { Path = "buttons/button4.wav", Pitch = 135, Channel = CHAN_AUTO, },
