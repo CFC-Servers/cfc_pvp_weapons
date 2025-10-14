@@ -77,7 +77,7 @@ SWEP.DropCleanupDelay = 15
 SWEP.KillIconPrefix = "cfc_gamblers_revolver_rusty_"
 SWEP.KillIconDefault = "regular"
 
-SWEP.Secondary.ClipSize = 10
+SWEP.StoredCritMax = 10
 
 SWEP.CanPointAtSelf = true
 SWEP.PointAtSelfDuration = 0.5
@@ -197,7 +197,7 @@ function SWEP:Initialize()
         { Weight = 1, SelfDamage = 1000, KillIcon = "self", Sounds = SOUNDS.ROULETTE_LOSE, BehindDamage = 150, BehindHullSize = 10, DropWeapon = true, },
         { Weight = 2, Sounds = SOUNDS.ROULETTE_WIN, Function = function( wep )
             -- Give a guaranteed crit on the next non-self shot.
-            wep:SetCritsLeft( wep:GetCritsLeft() + 1 )
+            wep:SetStoredCritsClamped( wep:GetStoredCrits() + 1 )
         end },
     }
     table.SortByMember( self.Primary.PointAtSelfOutcomes, "Weight", false )
@@ -207,6 +207,12 @@ function SWEP:Initialize()
     if CLIENT then
         self:SetUpVMShake()
     end
+end
+
+function SWEP:SetupDataTables()
+    BaseClass.SetupDataTables( self )
+
+    self:AddNetworkVar( "Int", "StoredCrits" )
 end
 
 function SWEP:SetFirstTimeHints()
@@ -239,17 +245,13 @@ function SWEP:SetFirstTimeHints()
 end
 
 function SWEP:GetDamageDiceFilter()
-    if self:GetCritsLeft() > 0 then
+    if self:GetStoredCrits() > 0 then
         return function( dice ) return dice.Group == "crit" end
     end
 end
 
-function SWEP:SetCritsLeft( amount )
-    self:SetClip2( math.Clamp( amount, 0, self:GetMaxClip2() ) )
-end
-
-function SWEP:GetCritsLeft()
-    return self:Clip2()
+function SWEP:SetStoredCritsClamped( amount )
+    self:SetStoredCrits( math.Clamp( amount, 0, self.StoredCritMax ) )
 end
 
 -- Applies a damage dice outcome, auto-handling various fields. bullet is optional, though required for Damage or Force.
@@ -377,8 +379,8 @@ function SWEP:ModifyBulletTable( bullet )
     local outcomes = self.Primary.DamageDice
     local outcome = CFCPvPWeapons.GetWeightedOutcome( outcomes, self:GetDamageDiceFilter(), "cfc_gamblers_revolver_damagedice" ) or outcomes[1]
 
-    if self:GetCritsLeft() > 0 then
-        self:SetCritsLeft( self:GetCritsLeft() - 1 )
+    if self:GetStoredCrits() > 0 then
+        self:SetStoredCritsClamped( self:GetStoredCrits() - 1 )
     end
 
     self:ApplyDamageDice( outcome, bullet )
@@ -439,7 +441,7 @@ end
 
 function SWEP:OnDrop( owner )
     self:ResetPointAtSelfBoneManips( owner )
-    self:SetCritsLeft( 0 )
+    self:SetStoredCritsClamped( 0 )
 
     return BaseClass.OnDrop( self, owner )
 end
@@ -550,7 +552,7 @@ function SWEP:Think()
     BaseClass.Think( self )
     self:PointAtSelfThink()
 
-    if self:GetCritsLeft() > 0 then
+    if self:GetStoredCrits() > 0 then
         self.RenderGroup = RENDERGROUP_TRANSLUCENT
     else
         self.RenderGroup = RENDERGROUP_OPAQUE
@@ -592,7 +594,7 @@ if CLIENT then
             Draw = true,
             PrimaryClip = self:Clip1(),
             PrimaryAmmo = self:GetOwner():GetAmmoCount( self.Primary.Ammo ),
-            SecondaryAmmo = self:GetCritsLeft() > 0 and self:GetCritsLeft() or nil,
+            SecondaryAmmo = self:GetStoredCrits() > 0 and self:GetStoredCrits() or nil,
         }
     end
 
@@ -604,7 +606,7 @@ if CLIENT then
 
 
     function SWEP:DrawCritSprite()
-        if self:GetCritsLeft() < 1 then return end
+        if self:GetStoredCrits() < 1 then return end
 
         local owner = self:GetOwner()
         if not IsValid( owner ) then return end
