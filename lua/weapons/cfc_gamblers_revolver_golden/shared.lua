@@ -100,9 +100,9 @@ SWEP.KillIconDefault = "regular"
 
 if CLIENT then
     SWEP.CritSpriteMat = Material( "sprites/light_glow02_add" )
-    SWEP.CritSpriteColor = Color( 255, 200, 50 )
+    SWEP.CritSpriteColor = Color( 255, 175, 50 )
     SWEP.CritSpriteOffset = Vector( 10, 0, -4 )
-    SWEP.CritSpriteSize = 48
+    SWEP.CritSpriteSize = 64
 end
 
 SWEP.CFCPvPWeapons_HitgroupNormalizeTo = { -- Make the head hitgrouip be the only one to scale damage.
