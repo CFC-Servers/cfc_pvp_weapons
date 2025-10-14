@@ -79,6 +79,13 @@ SWEP.KillIconDefault = "regular"
 
 SWEP.StoredCritMax = 10
 
+if CLIENT then
+    SWEP.CritSpriteMat = Material( "sprites/redglow1" )
+    SWEP.CritSpriteColor = Color( 255, 50, 50 )
+    SWEP.CritSpriteOffset = Vector( 10, 0, -4 )
+    SWEP.CritSpriteSize = 48
+end
+
 SWEP.CanPointAtSelf = true
 SWEP.PointAtSelfDuration = 0.5
 SWEP.PointAtSelfAwayDuration = 0.5
@@ -592,15 +599,12 @@ if CLIENT then
         }
     end
 
-
-    local critSpriteMat = Material( "sprites/redglow1" )
-    local critSpriteColor = Color( 255, 50, 50 )
-    local critSpriteOffset = Vector( 10, 0, -4 )
-    local critSpriteSize = 48
-
+    function SWEP:ShouldDrawCritSprite()
+        return self:GetStoredCrits() > 0
+    end
 
     function SWEP:DrawCritSprite()
-        if self:GetStoredCrits() < 1 then return end
+        if not self:ShouldDrawCritSprite() then return end
 
         local owner = self:GetOwner()
         if not IsValid( owner ) then return end
@@ -611,14 +615,15 @@ if CLIENT then
         local matrix = owner:GetBoneMatrix( boneID )
         if not matrix then return end
 
-        local pos = LocalToWorld( critSpriteOffset, ANGLE_ZERO, matrix:GetTranslation(), matrix:GetAngles() )
+        local pos = LocalToWorld( self.CritSpriteOffset, ANGLE_ZERO, matrix:GetTranslation(), matrix:GetAngles() )
+        local size = self.CritSpriteSize
 
-        render.SetMaterial( critSpriteMat )
-        render.DrawSprite( pos, critSpriteSize, critSpriteSize, critSpriteColor )
+        render.SetMaterial( self.CritSpriteMat )
+        render.DrawSprite( pos, size, size, self.CritSpriteColor )
     end
 
     function SWEP:UpdateRenderGroup()
-        if self:GetStoredCrits() > 0 then
+        if self:ShouldDrawCritSprite() then
             self.RenderGroup = RENDERGROUP_TRANSLUCENT
         else
             self.RenderGroup = RENDERGROUP_OPAQUE
