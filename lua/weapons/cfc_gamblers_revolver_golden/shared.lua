@@ -98,6 +98,13 @@ SWEP.HasFunHeavyPhysics = true
 SWEP.KillIconPrefix = "cfc_gamblers_revolver_golden_"
 SWEP.KillIconDefault = "regular"
 
+if CLIENT then
+    SWEP.CritSpriteMat = Material( "sprites/light_glow02_add" )
+    SWEP.CritSpriteColor = Color( 255, 175, 50 )
+    SWEP.CritSpriteOffset = Vector( 10, 0, -4 )
+    SWEP.CritSpriteSize = 64
+end
+
 SWEP.CFCPvPWeapons_HitgroupNormalizeTo = { -- Make the head hitgrouip be the only one to scale damage.
     [HITGROUP_CHEST] = 1,
     [HITGROUP_STOMACH] = 1,
@@ -154,6 +161,7 @@ function SWEP:Initialize()
     table.SortByMember( self.Primary.PointAtSelfOutcomes, "Weight", false )
 
     self:SetSkin( 1 )
+    self.RenderGroup = RENDERGROUP_TRANSLUCENT
 end
 
 function SWEP:SetFirstTimeHints()
@@ -205,5 +213,15 @@ function SWEP:MakeCollisionEffectFunc()
         effectdata:SetMagnitude( 1 )
         effectdata:SetRadius( speed / 10 )
         util.Effect( "Sparks", effectdata )
+    end
+end
+
+if CLIENT then
+    function SWEP:ShouldDrawCritSprite()
+        return true
+    end
+
+    function SWEP:UpdateRenderGroup()
+        -- Do nothing, always stay translucent to draw the crit sprite.
     end
 end

@@ -77,7 +77,14 @@ SWEP.DropCleanupDelay = 15
 SWEP.KillIconPrefix = "cfc_gamblers_revolver_rusty_"
 SWEP.KillIconDefault = "regular"
 
-SWEP.Secondary.ClipSize = 10
+SWEP.StoredCritMax = 10
+
+if CLIENT then
+    SWEP.CritSpriteMat = Material( "sprites/redglow1" )
+    SWEP.CritSpriteColor = Color( 255, 50, 50 )
+    SWEP.CritSpriteOffset = Vector( 10, 0, -4 )
+    SWEP.CritSpriteSize = 48
+end
 
 SWEP.CanPointAtSelf = true
 SWEP.PointAtSelfDuration = 0.5
@@ -155,10 +162,10 @@ table.Merge( CFCPvPWeapons.GamblersRevolver.SOUNDS, {
     },
 
     ROULETTE_EMPTY = {
-        { Path = "weapons/pistol/pistol_empty.wav", Pitch = 100, Channel = CHAN_STATIC, },
+        { Path = "weapons/pistol/pistol_empty.wav", Pitch = 100, Channel = CHAN_STATIC, SoundLevel = 60, },
     },
     ROULETTE_LOSE = {
-        { Path = SWEP.Primary.Sound, Pitch = 100, Channel = CHAN_WEAPON, },
+        { Path = SWEP.Primary.Sound, Pitch = 100, Channel = CHAN_WEAPON, SoundLevel = 80, },
     },
     ROULETTE_WIN = {
         { Path = "buttons/button4.wav", Pitch = 135, Channel = CHAN_AUTO, },
@@ -197,7 +204,7 @@ function SWEP:Initialize()
         { Weight = 1, SelfDamage = 1000, KillIcon = "self", Sounds = SOUNDS.ROULETTE_LOSE, BehindDamage = 150, BehindHullSize = 10, DropWeapon = true, },
         { Weight = 2, Sounds = SOUNDS.ROULETTE_WIN, Function = function( wep )
             -- Give a guaranteed crit on the next non-self shot.
-            wep:SetCritsLeft( wep:GetCritsLeft() + 1 )
+            wep:SetStoredCritsClamped( wep:GetStoredCrits() + 1 )
         end },
     }
     table.SortByMember( self.Primary.PointAtSelfOutcomes, "Weight", false )
@@ -207,6 +214,12 @@ function SWEP:Initialize()
     if CLIENT then
         self:SetUpVMShake()
     end
+end
+
+function SWEP:SetupDataTables()
+    BaseClass.SetupDataTables( self )
+
+    self:AddNetworkVar( "Int", "StoredCrits" )
 end
 
 function SWEP:SetFirstTimeHints()
@@ -239,17 +252,13 @@ function SWEP:SetFirstTimeHints()
 end
 
 function SWEP:GetDamageDiceFilter()
-    if self:GetCritsLeft() > 0 then
+    if self:GetStoredCrits() > 0 then
         return function( dice ) return dice.Group == "crit" end
     end
 end
 
-function SWEP:SetCritsLeft( amount )
-    self:SetClip2( math.Clamp( amount, 0, self:GetMaxClip2() ) )
-end
-
-function SWEP:GetCritsLeft()
-    return self:Clip2()
+function SWEP:SetStoredCritsClamped( amount )
+    self:SetStoredCrits( math.Clamp( amount, 0, self.StoredCritMax ) )
 end
 
 -- Applies a damage dice outcome, auto-handling various fields. bullet is optional, though required for Damage or Force.
@@ -377,8 +386,8 @@ function SWEP:ModifyBulletTable( bullet )
     local outcomes = self.Primary.DamageDice
     local outcome = CFCPvPWeapons.GetWeightedOutcome( outcomes, self:GetDamageDiceFilter(), "cfc_gamblers_revolver_damagedice" ) or outcomes[1]
 
-    if self:GetCritsLeft() > 0 then
-        self:SetCritsLeft( self:GetCritsLeft() - 1 )
+    if self:GetStoredCrits() > 0 then
+        self:SetStoredCritsClamped( self:GetStoredCrits() - 1 )
     end
 
     self:ApplyDamageDice( outcome, bullet )
@@ -439,7 +448,7 @@ end
 
 function SWEP:OnDrop( owner )
     self:ResetPointAtSelfBoneManips( owner )
-    self:SetCritsLeft( 0 )
+    self:SetStoredCritsClamped( 0 )
 
     return BaseClass.OnDrop( self, owner )
 end
@@ -550,12 +559,6 @@ function SWEP:Think()
     BaseClass.Think( self )
     self:PointAtSelfThink()
 
-    if self:GetCritsLeft() > 0 then
-        self.RenderGroup = RENDERGROUP_TRANSLUCENT
-    else
-        self.RenderGroup = RENDERGROUP_OPAQUE
-    end
-
     if CLIENT then
         self:VMShakeThink()
     end
@@ -592,19 +595,16 @@ if CLIENT then
             Draw = true,
             PrimaryClip = self:Clip1(),
             PrimaryAmmo = self:GetOwner():GetAmmoCount( self.Primary.Ammo ),
-            SecondaryAmmo = self:GetCritsLeft() > 0 and self:GetCritsLeft() or nil,
+            SecondaryAmmo = self:GetStoredCrits() > 0 and self:GetStoredCrits() or nil,
         }
     end
 
-
-    local critSpriteMat = Material( "sprites/redglow1" )
-    local critSpriteColor = Color( 255, 50, 50 )
-    local critSpriteOffset = Vector( 10, 0, -4 )
-    local critSpriteSize = 48
-
+    function SWEP:ShouldDrawCritSprite()
+        return self:GetStoredCrits() > 0
+    end
 
     function SWEP:DrawCritSprite()
-        if self:GetCritsLeft() < 1 then return end
+        if not self:ShouldDrawCritSprite() then return end
 
         local owner = self:GetOwner()
         if not IsValid( owner ) then return end
@@ -615,13 +615,29 @@ if CLIENT then
         local matrix = owner:GetBoneMatrix( boneID )
         if not matrix then return end
 
-        local pos = LocalToWorld( critSpriteOffset, ANGLE_ZERO, matrix:GetTranslation(), matrix:GetAngles() )
+        local pos = LocalToWorld( self.CritSpriteOffset, ANGLE_ZERO, matrix:GetTranslation(), matrix:GetAngles() )
+        local size = self.CritSpriteSize
 
-        render.SetMaterial( critSpriteMat )
-        render.DrawSprite( pos, critSpriteSize, critSpriteSize, critSpriteColor )
+        render.SetMaterial( self.CritSpriteMat )
+        render.DrawSprite( pos, size, size, self.CritSpriteColor )
+    end
+
+    function SWEP:UpdateRenderGroup()
+        if self:ShouldDrawCritSprite() then
+            self.RenderGroup = RENDERGROUP_TRANSLUCENT
+        else
+            self.RenderGroup = RENDERGROUP_OPAQUE
+        end
+    end
+
+    function SWEP:DrawWorldModel( flags )
+        self:UpdateRenderGroup() -- The crit sprite needs the transparent rendergroup, and :Think() only runs for the player holding the weapon, so update it in here.
+
+        return BaseClass.DrawWorldModel( self, flags )
     end
 
     function SWEP:DrawWorldModelTranslucent( flags )
+        self:UpdateRenderGroup() -- The crit sprite needs the transparent rendergroup, and :Think() only runs for the player holding the weapon, so update it in here.
         self:DrawCritSprite()
 
         return BaseClass.DrawWorldModelTranslucent( self, flags )
