@@ -22,6 +22,9 @@ SWEP.ImpactDelay = 0.2
 SWEP.ImpactDamageWindow = 0.15
 
 SWEP.ViewModel = "models/weapons/cfc_knife/v_knife.mdl"
+SWEP.WorldModel = "models/weapons/cfc_knife/w_knife.mdl"
+
+SWEP.HoldType = "knife"
 
 SWEP.DeployTime = 0.6
 
@@ -47,6 +50,10 @@ SWEP.Sounds = {
 
 function SWEP:EmitRandomSound( sounds )
     self:EmitSound( sounds[ math.random( 1, #sounds ) ] )
+end
+
+function SWEP:Initialize()
+    self:SetHoldType( self.HoldType )
 end
 
 function SWEP:IsBackstab( hitEnt )
@@ -134,6 +141,7 @@ function SWEP:DoAttack( damage, cooldown )
     self:SetNextSecondaryFire( ct + cooldown )
 
     self:EmitRandomSound( self.Sounds.Swing )
+    self:GetOwner():SetAnimation( PLAYER_ATTACK1 )
 end
 
 function SWEP:PrimaryAttack()
