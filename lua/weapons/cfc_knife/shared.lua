@@ -49,7 +49,7 @@ SWEP.Sounds = {
 }
 
 function SWEP:EmitRandomSound( sounds )
-    self:EmitSound( sounds[ math.random( 1, #sounds ) ] )
+    self:EmitSound( sounds[math.random( 1, #sounds )] )
 end
 
 function SWEP:Initialize()
@@ -72,7 +72,7 @@ end
 
 function SWEP:GetDamage( backstab )
     local damageTbl = self.nextAttackDamage
-    local damage = damageTbl[ math.random( 1, #damageTbl ) ]
+    local damage = damageTbl[math.random( 1, #damageTbl )]
 
     return backstab and damage * 3 or damage
 end
@@ -123,7 +123,7 @@ function SWEP:Think()
         end
     else
         if CLIENT then
-            util.Decal( "ManhackCut", traceResult.HitPos + traceResult.HitNormal, traceResult.HitPos - traceResult.HitNormal)
+            util.Decal( "ManhackCut", traceResult.HitPos + traceResult.HitNormal, traceResult.HitPos - traceResult.HitNormal )
         end
     end
 
@@ -148,8 +148,8 @@ function SWEP:PrimaryAttack()
     self:DoAttack( self.PrimaryAttackDamage, self.PrimaryAttackCooldown )
     local vm = self:GetOwner():GetViewModel()
     local attacks = { "midslash1", "midslash2" }
-    vm:SendViewModelMatchingSequence( vm:LookupSequence( attacks[ math.random( 1, 2 ) ] ) )
-    vm:ResetSequence( attacks[ math.random( 1, 2 ) ] )
+    vm:SendViewModelMatchingSequence( vm:LookupSequence( attacks[math.random( 1, 2 )] ) )
+    vm:ResetSequence( attacks[math.random( 1, 2 )] )
 end
 
 function SWEP:SecondaryAttack()
