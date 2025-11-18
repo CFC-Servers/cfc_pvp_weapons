@@ -138,7 +138,7 @@ function SWEP:Initialize()
     self.Primary.DamageDice = {
         { Damage = 125, Weight = 100, KillIcon = "lucky", Sounds = SOUNDS.LUCKY, Group = "crit", Screenshake = SCREENSHAKES.LUCKY, Tracer = "GaussTracer", },
         { Damage = 5000, Weight = 20, KillIcon = "superlucky", Sounds = SOUNDS.SUPERLUCKY, Group = "crit", HullSize = 1, Screenshake = SCREENSHAKES.SUPERLUCKY, Tracer = "GaussTracer", },
-        { Damage = 0, Weight = 3, KillIcon = "unlucky", Sounds = SOUNDS.MISFIRE, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, DropWeapon = true, },
+        { Damage = 0, Weight = 0.5, KillIcon = "unlucky", Sounds = SOUNDS.MISFIRE, SelfDamage = 100000, SelfForce = 5000, BehindDamage = 150, BehindHullSize = 10, DropWeapon = true, },
         { Damage = 6666666, Weight = 0.06, KillIcon = "unholy", Sounds = SOUNDS.UNHOLY, Force = 666, HullSize = 10, Screenshake = SCREENSHAKES.UNHOLY, Tracer = "AirboatGunHeavyTracer", Function = function( wep, outcome, bullet )
             if CLIENT then return end
 
