@@ -233,38 +233,45 @@ function SWEP:Exhale( Frac )
 	AddCameraEffector( eOwner, "PRSBOX.ZAZA" )
 end
 
+local entMeta = FindMetaTable( "Entity" )
+local CurTime = CurTime
+local FrameTime = FrameTime
+
 function SWEP:Think()
-	local vm = self:GetOwner():GetViewModel()
+	local myTbl = entMeta.GetTable( self )
+	local owner = entMeta.GetOwner( self )
+
 	local CT = CurTime()
-	local idletime = self:GetNextIdle()
+	local idletime = myTbl.GetNextIdle( self )
 
 	if idletime > 0 and CT > idletime then
+		local vm = owner:GetViewModel()
 		vm:SendViewModelMatchingSequence( vm:LookupSequence( "idle" ) )
 
-		self:UpdateNextIdle( CT )
+		myTbl.UpdateNextIdle( self, CT )
 	end
 
 	if CLIENT then
 		return
 	end
 
-	if self:GetUse() then
-		local SmokeTime = self:GetSmoke() + FrameTime()
+	if myTbl.GetUse( self ) then
+		local SmokeTime = myTbl.GetSmoke( self ) + FrameTime()
 
-		if SmokeTime > self.LongestTime then
+		if SmokeTime > myTbl.LongestTime then
 			SmokeTime = 0
 			self:Exhale( 1 )
 		end
 
-		self:SetSmoke( SmokeTime )
+		myTbl.SetSmoke( self, SmokeTime )
 	else
-		local SmokeTime = self:GetSmoke()
+		local SmokeTime = myTbl.GetSmoke( self )
 
 		if SmokeTime > 0 then
 			self:Exhale( SmokeTime / self.LongestTime )
 		end
 
-		self:SetSmoke( 0 )
+		myTbl.SetSmoke( self, 0 )
 	end
 end
 
