@@ -5,6 +5,7 @@ SWEP.DrawWeaponInfoBox = false
 SWEP.Slot = 4
 SWEP.SlotPos = 8
 
+SWEP.Category = "CFC"
 SWEP.Spawnable = true
 
 SWEP.ViewModel = "models/weapons/c_zaza.mdl"
