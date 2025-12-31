@@ -2,21 +2,19 @@
 --
 --
 
-if ( AddCameraEffector ~= nil ) then
+if AddCameraEffector ~= nil then
 	return
 end
 
-if ( CLIENT ) then
+if CLIENT then
 	local camView = { angles = Angle( 0, 0, 0 ) }
 	aAnimAngles = Angle( 0, 0, 0 )
-	local next, setmetatable = next, setmetatable
+	local setmetatable = setmetatable
 	local Remap, floor = math.Remap, math.floor
 	local DeltaTime, pairs, CurTime = FrameTime, pairs, CurTime
-	local sin, cos = math.sin, math.cos
-	local rad, deg = math.rad, math.deg
-	local OutSine, InOutSine = math.ease.OutSine, math.ease.InOutSine
+	local InOutSine = math.ease.InOutSine
 	local InBack = math.ease.InBack
-	local PI, PI2, PIDiv2, sqrt = math.pi, math.pi * 2, math.pi * .5, math.sqrt
+	local PI2 = math.pi * 2
 
 	CamEffector = CamEffector or {}
 	CamEffector.Effectors = CamEffector.Effectors or {}
@@ -26,14 +24,14 @@ if ( CLIENT ) then
 
 	function RegisterCameraEffector( index, infotable )
 
-		if ( infotable.fps ) then
+		if infotable.fps then
 			infotable.Animated = true
 		end
 
-		if ( not CamEffector.Registered[ index ] ) then
+		if not CamEffector.Registered[ index ] then
 			CamEffector.RegisteredCount = ( CamEffector.RegisteredCount or 0 ) + 1
 		else
-			print( "CamEffector with", index, "index already registered!!!" )
+			print( "CamEffector with", index, "index already registered!!! Overriding!" )
 		end
 
 		CamEffector.Registered[ index ] = infotable
@@ -151,23 +149,23 @@ if ( CLIENT ) then
 	function CCamEffector:Think( fFrameTime )
 		local CT = self.fCurTime
 
-		if ( CT >= self.fDuration ) then 
-			self:Kill() 
-			return 0, 0, 0, 0 
+		if CT >= self.fDuration then
+			self:Kill()
+			return 0, 0, 0, 0
 		end
 
 		local fFrameIndex = round(self.fCurFrame)
-		
+
 		local tMotion = self.tMotion[ fFrameIndex ]
-		if ( not tMotion ) then tMotion = self.tMotion[ self.fMotionLen ] end
+		if not tMotion then tMotion = self.tMotion[ self.fMotionLen ] end
 
 		local fX, fY, fZ = tMotion[1], tMotion[2], tMotion[3]
 
-		if ( fFrameIndex != self.fPrevFrameIndex ) then
+		if fFrameIndex ~= self.fPrevFrameIndex then
 			self.fFrameCurTime = 0
 			self.fFrameInterpLinear = 0
 			local tPrevMotion = self.tMotion[ fFrameIndex - 1 ]
-			if ( tPrevMotion ) then
+			if tPrevMotion then
 				self.fPrevX = tPrevMotion[1]
 				self.fPrevY = tPrevMotion[2]
 				self.fPrevZ = tPrevMotion[3]
@@ -182,9 +180,9 @@ if ( CLIENT ) then
 
 		local fAmp 
 
-		if ( self.fFadeIn and CT <= self.fFadeIn ) then
+		if self.fFadeIn and CT <= self.fFadeIn then
 			fAmp = InOutSine( Remap( CT, 0, self.fFadeIn, 0, 1 ) )
-		elseif ( CT >= self.fFadeOut ) then
+		elseif CT >= self.fFadeOut then
 			fAmp = InBack( Remap( CT, self.fFadeOut, self.fDuration, 1, 0 ) )
 		else
 			fAmp = 1
@@ -205,9 +203,9 @@ if ( CLIENT ) then
 	setmetatable( CCamEffectorFunc, CCamEffector )
 
 	local DefaultInfo = {
-		functionX = function( x ) return TimedSin(1, 0, 1 * 3, 0) end,
-		functionY = function( x ) return TimedSin(1.2, 0, 2 * 3, 0) end,
-		functionZ = function( x ) return 0 end,
+		functionX = function( _ ) return TimedSin(1, 0, 1 * 3, 0) end,
+		functionY = function( _ ) return TimedSin(1.2, 0, 2 * 3, 0) end,
+		functionZ = function( _ ) return 0 end,
 		--FadeIn		= 1,
 		FadeOut		= 2,
 		LifeTime	= 5,
@@ -227,12 +225,12 @@ if ( CLIENT ) then
 	function CCamEffectorFunc:Think( fFrameTime )
 		local CT = self.fCurTime
 
-		if ( CT >= self.fDieTime ) then self:Kill() return 0, 0, 0, 0 end
+		if CT >= self.fDieTime then self:Kill() return 0, 0, 0, 0 end
 
 		local fAmp
-		if ( self.fFadeInTime and CT <= self.fFadeInTime ) then
+		if self.fFadeInTime and CT <= self.fFadeInTime then
 			fAmp = Remap( CT, 0, self.fFadeInTime, 0, 1 )
-		elseif ( CT >= self.fFadeOutTime ) then
+		elseif CT >= self.fFadeOutTime then
 			fAmp = InBack( Remap( CT, self.fFadeOutTime, self.fDieTime, 1, 0 ) )
 		else
 			fAmp = 1
@@ -278,7 +276,7 @@ if ( CLIENT ) then
 	function CamEffector:Recalc( iID )
 		CamEffector.Effectors[iID] = nil
 		CamEffector.ActiveEffectors = CamEffector.ActiveEffectors - 1
-		if ( CamEffector.ActiveEffectors == 0 ) then
+		if CamEffector.ActiveEffectors == 0 then
 			hook.Remove( HookName, HookIndex )
 			camView.angles:Zero()
 			aAnimAngles:Zero()
@@ -304,7 +302,7 @@ if ( CLIENT ) then
 
 	concommand.Add("cam_effector_killall", function()
 		local CT = CurTime()
-		if ( fLastKillAll > CT ) then print("Fuck you!") return end
+		if fLastKillAll > CT then print("Fuck you!") return end
 		fLastKillAll = CT + 120
 		for k,eff in pairs(CamEffector.Effectors) do
 			eff:Kill()
@@ -313,10 +311,10 @@ if ( CLIENT ) then
 
 	local fNextHeadShotTime = 0
 
-	CalcView = function ( ply, pos, ang, fov )
-		if ( GetViewEntity() != LocalPlayer() ) then return end
+	CalcView = function ( ply, _pos, ang, _fov )
+		if GetViewEntity() ~= LocalPlayer() then return end
 		local weapon = ply:GetActiveWeapon()
-		if ( IsValid( weapon ) and weapon.CW20Weapon ) then
+		if IsValid( weapon ) and weapon.CW20Weapon then
 			weapon.CurFOVMod = 0
 			weapon.FOVTarget = 0
 			weapon.BreathFOVModifier = 0
@@ -338,7 +336,7 @@ if ( CLIENT ) then
 
 	local function TakeDamage()
 		local CT = CurTime()
-		if ( fNextHeadShotTime <= CT ) then
+		if fNextHeadShotTime <= CT then
 			CamEffector:AddAnimated()
 			fNextHeadShotTime = CT + 1
 			return
@@ -347,10 +345,10 @@ if ( CLIENT ) then
 
 	net.Receive( "CamEffector.Damage", TakeDamage )
 
-	function AddCameraEffector( ply, index )
+	function AddCameraEffector( _ply, index )
 		local cEffector = CamEffector.Registered[ index ]
 
-		if ( cEffector.Animated ) then
+		if cEffector.Animated then
 			CamEffector:AddAnimated( cEffector )
 		else
 			CamEffector:AddFunction( cEffector )
