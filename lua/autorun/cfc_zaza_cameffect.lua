@@ -112,7 +112,7 @@ if CLIENT then
 		fadeout = 1.5,
 	}
 
-	function CCamEffector:New( tMotion, fSpeed )
+	function CCamEffector:New( tMotion, _fSpeed )
 		self.tMotion = tMotion or DefaultAnim
 		self.fCurTime = 0
 
@@ -178,7 +178,7 @@ if CLIENT then
 		fY = self.fPrevY + ( fY - self.fPrevY ) * self.fFrameInterpLinear --fEasedInterp
 		fZ = self.fPrevZ + ( fZ - self.fPrevZ ) * self.fFrameInterpLinear --fEasedInterp
 
-		local fAmp 
+		local fAmp
 
 		if self.fFadeIn and CT <= self.fFadeIn then
 			fAmp = InOutSine( Remap( CT, 0, self.fFadeIn, 0, 1 ) )
@@ -203,9 +203,9 @@ if CLIENT then
 	setmetatable( CCamEffectorFunc, CCamEffector )
 
 	local DefaultInfo = {
-		functionX = function( _ ) return TimedSin( 1, 0, 1 * 3, 0 ) end,
-		functionY = function( _ ) return TimedSin( 1.2, 0, 2 * 3, 0 ) end,
-		functionZ = function( _ ) return 0 end,
+		functionX = function( _x ) return TimedSin( 1, 0, 1 * 3, 0 ) end,
+		functionY = function( _x ) return TimedSin( 1.2, 0, 2 * 3, 0 ) end,
+		functionZ = function( _x ) return 0 end,
 		--FadeIn		= 1,
 		FadeOut		= 2,
 		LifeTime	= 5,
@@ -213,7 +213,7 @@ if CLIENT then
 
 	function CCamEffectorFunc:New( tInfo )
 		self.fCurTime = 0
-		self.fDieTime = tInfo.LifeTime or 6		
+		self.fDieTime = tInfo.LifeTime or 6
 		self.fFadeInTime = tInfo.FadeIn or nil
 		self.fFadeOutTime = self.fDieTime - ( tInfo.FadeOut or 2 )
 
@@ -304,7 +304,7 @@ if CLIENT then
 		local CT = CurTime()
 		if fLastKillAll > CT then print( "Fuck you!" ) return end
 		fLastKillAll = CT + 120
-		for k,eff in pairs( CamEffector.Effectors ) do
+		for _, eff in pairs( CamEffector.Effectors ) do
 			eff:Kill()
 		end
 	end )
@@ -322,7 +322,7 @@ if CLIENT then
 		local fDeltaTime = DeltaTime()
 		camView.angles:Zero()
 
-		for k, eff in pairs( CamEffector.Effectors ) do
+		for _, eff in pairs( CamEffector.Effectors ) do
 			local x, y, z = eff:Think( fDeltaTime )
 
 			camView.angles.x = camView.angles.x - x

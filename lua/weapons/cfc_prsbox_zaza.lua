@@ -250,7 +250,7 @@ function SWEP:Think()
 		if SmokeTime > self.LongestTime then
 			SmokeTime = 0
 			self:Exhale( 1 )
-		end 
+		end
 
 		self:SetSmoke( SmokeTime )
 	else
@@ -294,8 +294,8 @@ function SWEP:GetViewModelPosition( vEyePos, EyeAng )
 
 	fInt = EaseFunc( Mul )
 
-	self.SwayScale = math.Remap( fInt, 0, 1, 1, .2 ) 
-	self.BobScale = math.Remap( fInt, 0, 1, 1, .1 ) 
+	self.SwayScale = math.Remap( fInt, 0, 1, 1, .2 )
+	self.BobScale = math.Remap( fInt, 0, 1, 1, .1 )
 
 	local Pos, Ang = LocalToWorld( self.IronSightsPos * -fInt, self.IronSightsAng * fInt, vEyePos, EyeAng )
 
@@ -317,7 +317,7 @@ function SWEP:DrawWorldModel()
 		self:DrawModel()
 		self:DrawShadow()
 
-		return 
+		return
 	end
 
 	local bAimState = self:GetUse()
@@ -353,10 +353,10 @@ function SWEP:DrawWorldModel()
 	local CT = CurTime()
 
 	if ( self.NextEmit or 0 ) < CT then
-		local pos = self:GetPos()
+		local posEmit = self:GetPos()
 
-		local PEmiter = ParticleEmitter( pos )
-		local part = PEmiter:Add( self:GetSmokeTexture(), pos )
+		local PEmiter = ParticleEmitter( posEmit )
+		local part = PEmiter:Add( self:GetSmokeTexture(), posEmit )
 
 		if part then
 			part:SetDieTime( math.Rand( 1, 5 ) )
@@ -383,16 +383,16 @@ function SWEP:DrawWorldModel()
 
 		local muzzle = eOwner:GetAttachment( obj )
 
-		local pos
+		local posEmit
 
 		if muzzle then
-			pos = muzzle.Pos
+			posEmit = muzzle.Pos
 		else
-			pos = eOwner:GetShootPos() - eOwner:EyeAngles():Up() * 4.34
+			posEmit = eOwner:GetShootPos() - eOwner:EyeAngles():Up() * 4.34
 		end
- 
-		local PEmiter = ParticleEmitter( pos )
-		local part = PEmiter:Add( self:GetSmokeTexture(), pos )
+
+		local PEmiter = ParticleEmitter( posEmit )
+		local part = PEmiter:Add( self:GetSmokeTexture(), posEmit )
 
 		if part then
 			part:SetDieTime( math.Rand( 3, 6 ) )
