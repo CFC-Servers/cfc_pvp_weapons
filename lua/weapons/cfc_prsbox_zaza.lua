@@ -32,13 +32,25 @@ SWEP.IronSightsPos = Vector( 8.52, -4.527, 0.55 )
 SWEP.IronSightsAng = Angle( -2.724, -4.903, 0 )
 
 SWEP.VignetteMaterial = Material( "fx/cfc_zaza_vignette" )
-SWEP.Alpha = 0
+SWEP.ModelScale = 1
 
 local sThisEntClass = "cfc_prsbox_zaza"
 
 if CLIENT then -- killicon, HUD icon and language 'translation'
 	CFCPvPWeapons.CL_SetupSwep( SWEP, sThisEntClass, "materials/entities/" .. sThisEntClass .. ".png" )
 end
+
+SWEP.IsZaza = true
+
+SWEP.LongestTime = 5
+SWEP.ExhaleTime = 1.5
+SWEP.HealthPerExhale = 42
+SWEP.MaxHealth = 110
+
+hook.Add( "PlayerCanPickupWeapon", "ZAZA.NOEXTRAPICKUP", function( ply, weapon )
+	if not weapon.IsZaza then return end
+	if ply:HasWeapon( weapon:GetClass() ) then return false end
+end )
 
 function SWEP:SetupDataTables()
 	self:NetworkVar( "Float", 0, "NextIdle" )
@@ -49,6 +61,9 @@ function SWEP:SetupDataTables()
 end
 
 function SWEP:Initialize()
+	if self.ModelScale ~= 1 then
+		self:SetModelScale( self.ModelScale, 0 )
+	end
 	self:SetHoldType( "slam" )
 end
 
@@ -66,155 +81,29 @@ function SWEP:SecondaryAttack()
 	return
 end
 
-local function FormatViewModelAttachment( nFOV, vOrigin, bFrom )
-	local vEyePos = EyePos()
-	local aEyesRot = EyeAngles()
-	local vOffset = vOrigin - vEyePos
-	local vForward = aEyesRot:Forward()
-
-	local nViewX = math.tan( nFOV * math.pi / 360 )
-
-	if nViewX == 0 then
-		vForward:Mul( vForward:Dot( vOffset ) )
-		vEyePos:Add( vForward )
-
-		return vEyePos
-	end
-
-	-- FIXME: LocalPlayer():GetFOV() should be replaced with EyeFOV() when it's binded
-	local nWorldX = math.tan( LocalPlayer():GetFOV() * math.pi / 360 )
-
-	if nWorldX == 0 then
-		vForward:Mul( vForward:Dot( vOffset ) )
-		vEyePos:Add( vForward )
-
-		return vEyePos
-	end
-
-	local vRight = aEyesRot:Right()
-	local vUp = aEyesRot:Up()
-
-	if bFrom then
-		local nFactor = nWorldX / nViewX
-		vRight:Mul( vRight:Dot( vOffset ) * nFactor )
-		vUp:Mul( vUp:Dot( vOffset ) * nFactor )
-	else
-		local nFactor = nViewX / nWorldX
-		vRight:Mul( vRight:Dot( vOffset ) * nFactor )
-		vUp:Mul( vUp:Dot( vOffset ) * nFactor )
-	end
-
-	vForward:Mul( vForward:Dot( vOffset ) )
-
-	vEyePos:Add( vRight )
-	vEyePos:Add( vUp )
-	vEyePos:Add( vForward )
-
-	return vEyePos
-end
-
-local vGrav = Vector( 0, 0, 10 )
-local str = "particle/smokesprites_%04i"
-
-function SWEP:GetSmokeTexture()
-	return string.format( str, math.random( 1, 16 ) )
-end
-
-function SWEP:ViewModelDrawn()
-	local CT = CurTime()
-
-	local eOwner = self:GetOwner()
-
-	if self:GetEndEmit() > CT then
-		local pos = eOwner:GetShootPos() - vector_up * 3
-		local PEmiter = ParticleEmitter( pos )
-		local part = PEmiter:Add( self:GetSmokeTexture(), pos )
-
-		if part then
-			part:SetDieTime( math.Rand( 3, 6 ) )
-			part:SetRoll( math.Rand( -1, 1 ) )
-
-			part:SetStartAlpha( 10 )
-			part:SetEndAlpha( 0 )
-
-			part:SetStartSize( 2 )
-			part:SetEndSize( 30 )
-
-			part:SetVelocity( eOwner:GetAimVector() * 20 )
-
-			part:SetGravity( vGrav )
-		end
-
-		PEmiter:Finish()
-	end
-
-	if ( self.NextEmit or 0 ) > CT then return end
-
-	local pViewModel = eOwner:GetViewModel()
-
-	local att = pViewModel:GetAttachment( pViewModel:LookupAttachment( "muzzle" ) )
-
-	if not att then
-		return
-	end
-
-	local pos1 = att.Ang:Forward()
-
-	pos1:Mul( -6 )
-
-	pos1:Add( att.Pos )
-
-	local pos = FormatViewModelAttachment( self.ViewModelFOV, pos1, false )
-
-	local PEmiter = ParticleEmitter( pos )
-	local part = PEmiter:Add( self:GetSmokeTexture(), pos )
-
-	if part then
-		part:SetDieTime( math.Rand( 1, 5 ) )
-		part:SetRoll( math.Rand( -1, 1 ) )
-
-		part:SetStartAlpha( 10 )
-		part:SetEndAlpha( 0 )
-
-		part:SetStartSize( 1 )
-		part:SetEndSize( 10 )
-
-		part:SetGravity( vGrav )
-	end
-
-	PEmiter:Finish()
-
-	local delay = math.Remap( math.min( 400, eOwner:GetVelocity():Length() ), 0, 400, .1, .01 )
-
-	self.NextEmit = CT + delay
-end
-
-function SWEP:PreDrawViewModel()
-end
-
-function SWEP:ShouldDropOnDie()
-	return true
-end
-
-SWEP.LongestTime = 5
-SWEP.ExhaleTime = 2
-SWEP.HealthPerExhale = 42
-SWEP.MaxHealth = 110
-
 sound.Add( {
 	name = "ZAZA.EXHALE",
-	channel = CHAN_VOICE,
+	channel = CHAN_STATIC,
 	volume = 1.0,
 	level = 70,
 	pitch = { 95, 110 },
 	sound = "fx/zaza_exhale.ogg"
 } )
 
+sound.Add( {
+	name = "ZAZA.COUGH",
+	channel = CHAN_STATIC,
+	volume = 1.0,
+	level = 85,
+	pitch = { 85, 95 },
+	sound = "fx/vapecough1.wav"
+} )
+
 local SndExhale = Sound( "ZAZA.EXHALE" )
+local SndCough = Sound( "ZAZA.COUGH" )
 
 function SWEP:Exhale( Frac )
-	local eOwner = self:GetOwner()
-	eOwner:EmitSound( SndExhale )
+	local owner = self:GetOwner()
 
 	self:SetUse( false )
 
@@ -223,15 +112,33 @@ function SWEP:Exhale( Frac )
 	self:SetEndEmit( cd )
 	self:SetNextPrimaryFire( CurTime() + self.LongestTime + .25 )
 
-	local CurHealth = eOwner:Health()
+	local CurHealth = owner:Health()
 
 	if CurHealth < self.MaxHealth then
 		local toheal = self.HealthPerExhale * Frac
 		local newheath = math.min( self.MaxHealth, CurHealth + toheal )
-		eOwner:SetHealth( newheath )
+		owner:SetHealth( newheath )
 	end
 
-	AddCameraEffector( eOwner, "PRSBOX.ZAZA" )
+	local didNotRelease = Frac >= 1
+
+	-- TODO: ragdoll greedy players instead
+	if didNotRelease then
+		owner:EmitSound( SndCough )
+		owner:ViewPunch( Angle( math.Rand( -5, -10 ), math.Rand( -5, 5 ), 0 ) )
+		local damageTime = math.Rand( 1, 2 )
+		timer.Simple( damageTime, function()
+			if not IsValid( owner ) then return end
+
+			local attacker = IsValid( self ) and self or owner
+			owner:TakeDamage( self.HealthPerExhale * 1.5, attacker, attacker )
+			owner:ViewPunch( Angle( math.Rand( -5, -10 ), math.Rand( -5, 5 ), 0 ) )
+		end )
+	else
+		owner:EmitSound( SndExhale )
+	end
+
+	AddCameraEffector( owner, "PRSBOX.ZAZA" )
 end
 
 local entMeta = FindMetaTable( "Entity" )
@@ -294,6 +201,119 @@ function SWEP:Deploy()
 	return true
 end
 
+function SWEP:Holster()
+	self:SetUse( false )
+
+	self.Alpha = 0
+
+	if self:GetSmoke() > 0 then return false end
+
+	local owner = self:GetOwner()
+
+	if IsValid( owner ) then
+		owner:ManipulateBoneAngles( owner:LookupBone( "ValveBiped.Bip01_R_UpperArm" ), angle_zero )
+		owner:ManipulateBoneAngles( owner:LookupBone( "ValveBiped.Bip01_R_Forearm" ), angle_zero )
+		owner:ManipulateBoneAngles( owner:LookupBone( "ValveBiped.Bip01_R_Hand" ), angle_zero )
+	end
+
+	return true
+end
+
+if not CLIENT then return end
+
+local function FormatViewModelAttachment( nFOV, vOrigin, bFrom )
+	local vEyePos = EyePos()
+	local aEyesRot = EyeAngles()
+	local vOffset = vOrigin - vEyePos
+	local vForward = aEyesRot:Forward()
+
+	local nViewX = math.tan( nFOV * math.pi / 360 )
+
+	if nViewX == 0 then
+		vForward:Mul( vForward:Dot( vOffset ) )
+		vEyePos:Add( vForward )
+
+		return vEyePos
+	end
+
+	-- FIXME: LocalPlayer():GetFOV() should be replaced with EyeFOV() when it's binded
+	local nWorldX = math.tan( LocalPlayer():GetFOV() * math.pi / 360 )
+
+	if nWorldX == 0 then
+		vForward:Mul( vForward:Dot( vOffset ) )
+		vEyePos:Add( vForward )
+
+		return vEyePos
+	end
+
+	local vRight = aEyesRot:Right()
+	local vUp = aEyesRot:Up()
+
+	if bFrom then
+		local nFactor = nWorldX / nViewX
+		vRight:Mul( vRight:Dot( vOffset ) * nFactor )
+		vUp:Mul( vUp:Dot( vOffset ) * nFactor )
+	else
+		local nFactor = nViewX / nWorldX
+		vRight:Mul( vRight:Dot( vOffset ) * nFactor )
+		vUp:Mul( vUp:Dot( vOffset ) * nFactor )
+	end
+
+	vForward:Mul( vForward:Dot( vOffset ) )
+
+	vEyePos:Add( vRight )
+	vEyePos:Add( vUp )
+	vEyePos:Add( vForward )
+
+	return vEyePos
+end
+
+local vGrav = Vector( 0, 0, 10 )
+local str = "particle/smokesprites_%04i"
+
+function SWEP:GetSmokeTexture()
+	return string.format( str, math.random( 1, 16 ) )
+end
+
+function SWEP:ViewModelDrawn()
+	local CT = CurTime()
+
+	local owner = self:GetOwner()
+
+	if self:GetEndEmit() > CT then
+		local pos = owner:GetShootPos() - vector_up * 3
+		self:EmitExhalingSmoke( pos, owner )
+	end
+
+	if ( self.NextEmit or 0 ) > CT then return end
+	if self:GetUse() then return end -- currently inhaling
+
+	local pViewModel = owner:GetViewModel()
+
+	local att = pViewModel:GetAttachment( pViewModel:LookupAttachment( "muzzle" ) )
+
+	if not att then
+		return
+	end
+
+	local pos1 = att.Ang:Forward()
+
+	pos1:Mul( -6 )
+
+	pos1:Add( att.Pos )
+
+	local pos = FormatViewModelAttachment( self.ViewModelFOV, pos1, false )
+	local delay = math.Remap( math.min( 400, owner:GetVelocity():Length() ), 0, 400, .1, .01 )
+
+	self:EmitAmbientSmoke( pos, delay )
+
+	self.NextEmit = CT + delay
+end
+
+function SWEP:ShouldDropOnDie()
+	return true
+end
+
 local Mul = 0
 local fInt = 0
 local EaseFunc = math.ease.InOutSine
@@ -314,6 +334,53 @@ function SWEP:GetViewModelPosition( vEyePos, EyeAng )
 	return Pos, Ang
 end
 
+function SWEP:EmitAmbientSmoke( posEmit, delay )
+	local cur = CurTime()
+	if ( self.NextEmit or 0 ) > cur then return end
+
+	local PEmiter = ParticleEmitter( posEmit )
+	local part = PEmiter:Add( self:GetSmokeTexture(), posEmit )
+
+	if part then
+		part:SetDieTime( math.Rand( 1, 5 ) )
+		part:SetRoll( math.Rand( -1, 1 ) )
+
+		part:SetStartAlpha( 10 )
+		part:SetEndAlpha( 0 )
+
+		part:SetStartSize( 1 )
+		part:SetEndSize( 10 )
+
+		part:SetGravity( vGrav )
+	end
+
+	PEmiter:Finish()
+
+	self.NextEmit = cur + delay
+end
+
+function SWEP:EmitExhalingSmoke( pos, owner )
+	local PEmiter = ParticleEmitter( pos )
+	local part = PEmiter:Add( self:GetSmokeTexture(), pos )
+
+	if part then
+		part:SetDieTime( math.Rand( 1, 10 ) )
+		part:SetRoll( math.Rand( -1, 1 ) )
+
+		part:SetStartAlpha( 10 )
+		part:SetEndAlpha( 0 )
+
+		part:SetStartSize( 2 )
+		part:SetEndSize( self.LongestTime * 5 )
+
+		part:SetVelocity( owner:GetAimVector() * self.LongestTime * 5 )
+
+		part:SetGravity( vGrav )
+	end
+
+	PEmiter:Finish()
+end
+
 SWEP.WMPos = Vector( 2.2, -7, 1 )
 SWEP.WMAng = Angle( 180, 0, 0 )
 SWEP.AnimMul = 0
@@ -323,18 +390,20 @@ local Forearm = Angle( -8, -30, 0 )
 local Hand = Angle( 0, -60, 90 )
 
 function SWEP:DrawWorldModel()
-	local eOwner = self:GetOwner()
+	local owner = self:GetOwner()
 
-	if not IsValid( eOwner ) then
+	if not IsValid( owner ) then
 		self:DrawModel()
 		self:DrawShadow()
+
+		self:EmitAmbientSmoke( self:GetPos() + -self:GetForward() * ( 3 + self:GetModelScale() ), 0.5 )
 
 		return
 	end
 
 	local bAimState = self:GetUse()
 
-	local pos, ang = eOwner:GetBonePosition( eOwner:LookupBone( "ValveBiped.Bip01_R_Hand" ) )
+	local pos, ang = owner:GetBonePosition( owner:LookupBone( "ValveBiped.Bip01_R_Hand" ) )
 
 	local iAimState = bAimState and 1 or 0
 
@@ -362,122 +431,88 @@ function SWEP:DrawWorldModel()
 		self:DrawShadow()
 	end
 
-	local CT = CurTime()
-
-	if ( self.NextEmit or 0 ) < CT then
-		local posEmit = self:GetPos()
-
-		local PEmiter = ParticleEmitter( posEmit )
-		local part = PEmiter:Add( self:GetSmokeTexture(), posEmit )
-
-		if part then
-			part:SetDieTime( math.Rand( 1, 5 ) )
-			part:SetRoll( math.Rand( -1, 1 ) )
-
-			part:SetStartAlpha( 10 )
-			part:SetEndAlpha( 0 )
-
-			part:SetStartSize( 1 )
-			part:SetEndSize( 10 )
-
-			part:SetGravity( vGrav )
-		end
-
-		PEmiter:Finish()
-
-		local delay = math.Remap( math.min( 400, eOwner:GetVelocity():Length() ), 0, 400, .1, .01 )
-
-		self.NextEmit = CT + delay
-	end
+	local delay = math.Remap( math.min( 400, owner:GetVelocity():Length() ), 0, 400, .1, .01 )
+	self:EmitAmbientSmoke( self:GetPos(), delay )
 
 	if self:GetEndEmit() > CT then
-		local obj = eOwner:LookupAttachment( "mouth" )
+		local obj = owner:LookupAttachment( "mouth" )
 
-		local muzzle = eOwner:GetAttachment( obj )
+		local muzzle = owner:GetAttachment( obj )
 
 		local posEmit
 
 		if muzzle then
 			posEmit = muzzle.Pos
 		else
-			posEmit = eOwner:GetShootPos() - eOwner:EyeAngles():Up() * 4.34
+			posEmit = owner:GetShootPos() - owner:EyeAngles():Up() * 4.34
 		end
 
-		local PEmiter = ParticleEmitter( posEmit )
-		local part = PEmiter:Add( self:GetSmokeTexture(), posEmit )
-
-		if part then
-			part:SetDieTime( math.Rand( 3, 6 ) )
-			part:SetRoll( math.Rand( -1, 1 ) )
-
-			part:SetStartAlpha( 10 )
-			part:SetEndAlpha( 0 )
-
-			part:SetStartSize( 2 )
-			part:SetEndSize( 30 )
-
-			part:SetVelocity( eOwner:GetAimVector() * 20 )
-
-			part:SetGravity( vGrav )
-		end
-
-		PEmiter:Finish()
+		self:EmitExhalingSmoke( posEmit, owner )
 	end
 
-	eOwner:ManipulateBoneAngles( eOwner:LookupBone( "ValveBiped.Bip01_R_UpperArm" ), UpperArm * fAim )
-	eOwner:ManipulateBoneAngles( eOwner:LookupBone( "ValveBiped.Bip01_R_Forearm" ), Forearm * fAim )
-	eOwner:ManipulateBoneAngles( eOwner:LookupBone( "ValveBiped.Bip01_R_Hand" ), Hand * fAim )
+	owner:ManipulateBoneAngles( owner:LookupBone( "ValveBiped.Bip01_R_UpperArm" ), UpperArm * fAim )
+	owner:ManipulateBoneAngles( owner:LookupBone( "ValveBiped.Bip01_R_Forearm" ), Forearm * fAim )
+	owner:ManipulateBoneAngles( owner:LookupBone( "ValveBiped.Bip01_R_Hand" ), Hand * fAim )
 end
 
-function SWEP:DrawHUD()
-	if not self.VignetteMaterial then return end
-	if self.VignetteMaterial:IsError() then return end -- the content always finds some way to not load
-	surface.SetMaterial( self.VignetteMaterial )
-	self.Alpha = math.Approach( self.Alpha, self:GetUse() and 255 or 0, FrameTime() * 75 )
+SWEP.FadeInSpeed = 75
+SWEP.FadeOutSpeed = 50
 
-	surface.SetDrawColor( 255, 255, 255, self.Alpha )
+local alpha = 0
+
+SWEP.DrawHudFunc = function( self )
+	local speed = self:GetUse() and self.FadeInSpeed or self.FadeOutSpeed
+	alpha = math.Approach( alpha, self:GetUse() and 255 or 0, FrameTime() * speed )
+
+	if alpha <= 0 and not self:GetUse() then return false end
+
+	surface.SetMaterial( self.VignetteMaterial )
+
+	surface.SetDrawColor( 255, 255, 255, alpha )
 
 	for _ = 1, 3 do
-		surface.DrawTexturedRect( 0, 0, ScrW(), ScrH() )
-	end
-end
-
-function SWEP:Holster()
-	self:SetUse( false )
-
-	self.Alpha = 0
-
-	if self:GetSmoke() > 0 then return false end
-
-	local eOwner = self:GetOwner()
-
-	if IsValid( eOwner ) then
-		eOwner:ManipulateBoneAngles( eOwner:LookupBone( "ValveBiped.Bip01_R_UpperArm" ), angle_zero )
-		eOwner:ManipulateBoneAngles( eOwner:LookupBone( "ValveBiped.Bip01_R_Forearm" ), angle_zero )
-		eOwner:ManipulateBoneAngles( eOwner:LookupBone( "ValveBiped.Bip01_R_Hand" ), angle_zero )
+		surface.DrawTexturedRect( -1, -1, ScrW() + 1, ScrH() + 1 )
 	end
 
 	return true
 end
 
-if CLIENT then
-	local zaza = {
-		functionX = function( _ ) return 0 end,
-		functionY = function( _ ) return TimedSin( 1, 0, 1, 0 ) end,
-		functionZ = function( _ ) return TimedCos( .6, 0, 2, 0 ) end,
-		FadeIn		= 1,
-		FadeOut		= 6,
-		LifeTime	= 15,
-	}
+local hooking = nil
 
-	RegisterCameraEffector( "PRSBOX.ZAZA", zaza )
-elseif SERVER then
-	SWEP.IsZaza = true
+function SWEP:DrawHUD()
+	if not self.VignetteMaterial then return end
+	if self.VignetteMaterial:IsError() then return end -- the content always finds some way to not load
 
-	hook.Add( "PlayerCanPickupWeapon", "ZAZA.NOEXTRAPICKUP", function( ply, weapon )
-		if not weapon.IsZaza then return end
-		if weapon:IsValid() and ply:HasWeapon( sThisEntClass ) then
-			return false
+	if not self:GetUse() then return end
+
+	if hooking == self then return end
+	hooking = self
+
+	hook.Remove( "RenderScreenspaceEffects", "CFC_PRSBOX_ZAZA_HUD" )
+	hook.Add( "RenderScreenspaceEffects", "CFC_PRSBOX_ZAZA_HUD", function()
+		if not IsValid( hooking ) then
+			hook.Remove( "RenderScreenspaceEffects", "CFC_PRSBOX_ZAZA_HUD" )
+			hooking = nil
+			return
+		end
+
+		local keep = hooking:DrawHudFunc()
+		if not keep then
+			hook.Remove( "RenderScreenspaceEffects", "CFC_PRSBOX_ZAZA_HUD" )
+			hooking = nil
+			return
 		end
 	end )
 end
+
+local zaza = {
+	functionX = function( _ ) return 0 end,
+	functionY = function( _ ) return TimedSin( 1, 0, 1, 0 ) end,
+	functionZ = function( _ ) return TimedCos( .6, 0, 2, 0 ) end,
+	FadeIn		= 1,
+	FadeOut		= 6,
+	LifeTime	= 15,
+}
+
+RegisterCameraEffector( "PRSBOX.ZAZA", zaza )
+

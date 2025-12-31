@@ -121,7 +121,7 @@ function CFCPvPWeapons.CL_SetWeaponSelectIcon( SWEP, class, texture )
         SWEP.glee_WepSelectIcon = mat
         SWEP.DrawWeaponSelection = drawTexOverride
     else
-        error( "Error loading weapon icon texture for " .. class .. "\n" .. mat:GetName() .. "\n" .. texture )
+        ErrorNoHaltWithStack( "Error loading weapon icon texture for " .. class .. "\n" .. mat:GetName() .. "\n" .. texture )
     end
 end
 
