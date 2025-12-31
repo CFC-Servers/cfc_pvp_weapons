@@ -30,6 +30,10 @@ if not CLIENT then return end
 
 local alpha = 0
 
+SWEP.OnStartDrawingHud = function()
+	alpha = 0
+end
+
 SWEP.DrawHudFunc = function( self )
 	local speed = self:GetUse() and self.FadeInSpeed or self.FadeOutSpeed
 	alpha = math.Approach( alpha, self:GetUse() and 255 or 0, FrameTime() * speed )

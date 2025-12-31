@@ -460,6 +460,10 @@ SWEP.FadeOutSpeed = 50
 
 local alpha = 0
 
+SWEP.OnStartDrawingHud = function()
+	alpha = 0
+end
+
 SWEP.DrawHudFunc = function( self )
 	local speed = self:GetUse() and self.FadeInSpeed or self.FadeOutSpeed
 	alpha = math.Approach( alpha, self:GetUse() and 255 or 0, FrameTime() * speed )
@@ -487,6 +491,8 @@ function SWEP:DrawHUD()
 
 	if hooking == self then return end
 	hooking = self
+
+	self:OnStartDrawingHud()
 
 	hook.Remove( "RenderScreenspaceEffects", "CFC_PRSBOX_ZAZA_HUD" )
 	hook.Add( "RenderScreenspaceEffects", "CFC_PRSBOX_ZAZA_HUD", function()
