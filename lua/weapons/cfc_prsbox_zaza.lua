@@ -206,7 +206,7 @@ sound.Add( {
 	channel = CHAN_VOICE,
 	volume = 1.0,
 	level = 70,
-	pitch = {95, 110},
+	pitch = { 95, 110 },
 	sound = "fx/zaza_exhale.ogg"
 } )
 
@@ -343,9 +343,9 @@ function SWEP:DrawWorldModel()
 	local fAim = self.InterpAnim
 
 	if pos and ang then
-		ang:RotateAroundAxis( ang:Right() , self.WMAng[1] )
-		ang:RotateAroundAxis( ang:Up(), 	self.WMAng[2] + fAim * -60 )
-		ang:RotateAroundAxis( ang:Forward(),self.WMAng[3] )
+		ang:RotateAroundAxis( ang:Right(),   self.WMAng[1] )
+		ang:RotateAroundAxis( ang:Up(), 	 self.WMAng[2] + fAim * -60 )
+		ang:RotateAroundAxis( ang:Forward(), self.WMAng[3] )
 
 		pos = pos + ( self.WMPos[1] + fAim * 4 ) * ang:Right()
 		pos = pos + ( self.WMPos[2] + fAim * 4 ) * ang:Forward()

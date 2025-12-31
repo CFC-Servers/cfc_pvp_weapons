@@ -29,13 +29,13 @@ if CLIENT then
 			infotable.Animated = true
 		end
 
-		if not CamEffector.Registered[ index ] then
+		if not CamEffector.Registered[index] then
 			CamEffector.RegisteredCount = ( CamEffector.RegisteredCount or 0 ) + 1
 		else
 			print( "CamEffector with", index, "index already registered!!! Overriding!" )
 		end
 
-		CamEffector.Registered[ index ] = infotable
+		CamEffector.Registered[index] = infotable
 
 		return true
 	end
@@ -96,15 +96,15 @@ if CLIENT then
 
 		local fFrameIndex = round( self.fCurFrame )
 
-		local tMotion = self.tMotion[ fFrameIndex ]
-		if not tMotion then tMotion = self.tMotion[ self.fMotionLen ] end
+		local tMotion = self.tMotion[fFrameIndex]
+		if not tMotion then tMotion = self.tMotion[self.fMotionLen] end
 
 		local fX, fY, fZ = tMotion[1], tMotion[2], tMotion[3]
 
 		if fFrameIndex ~= self.fPrevFrameIndex then
 			self.fFrameCurTime = 0
 			self.fFrameInterpLinear = 0
-			local tPrevMotion = self.tMotion[ fFrameIndex - 1 ]
+			local tPrevMotion = self.tMotion[fFrameIndex - 1]
 			if tPrevMotion then
 				self.fPrevX = tPrevMotion[1]
 				self.fPrevY = tPrevMotion[2]
@@ -286,7 +286,7 @@ if CLIENT then
 	net.Receive( "CamEffector.Damage", TakeDamage )
 
 	function AddCameraEffector( _ply, index )
-		local cEffector = CamEffector.Registered[ index ]
+		local cEffector = CamEffector.Registered[index]
 
 		if cEffector.Animated then
 			CamEffector:AddAnimated( cEffector )
