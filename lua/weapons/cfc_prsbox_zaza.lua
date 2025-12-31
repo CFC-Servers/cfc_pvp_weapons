@@ -35,6 +35,10 @@ SWEP.Alpha = 0
 
 local sThisEntClass = "cfc_prsbox_zaza"
 
+if CLIENT then -- killicon, HUD icon and language 'translation'
+	CFCPvPWeapons.CL_SetupSwep( SWEP, sThisEntClass, "materials/entities/" .. sThisEntClass .. ".png" )
+end
+
 function SWEP:SetupDataTables()
 	self:NetworkVar( "Float", 0, "NextIdle" )
 	self:NetworkVar( "Float", 1, "Smoke" )
