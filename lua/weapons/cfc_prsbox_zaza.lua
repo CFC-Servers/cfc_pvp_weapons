@@ -27,8 +27,8 @@ SWEP.AdminOnly = false
 
 SWEP.OnlyOneInInventory = true
 
-SWEP.IronSightsPos = Vector(8.52, -4.527, 0.55)
-SWEP.IronSightsAng = Angle(-2.724, -4.903, 0)
+SWEP.IronSightsPos = Vector( 8.52, -4.527, 0.55 )
+SWEP.IronSightsAng = Angle( -2.724, -4.903, 0 )
 
 SWEP.VignetteMaterial = Material( "fx/cfc_zaza_vignette" )
 SWEP.Alpha = 0
@@ -61,13 +61,13 @@ function SWEP:SecondaryAttack()
 	return
 end
 
-local function FormatViewModelAttachment(nFOV, vOrigin, bFrom )
+local function FormatViewModelAttachment( nFOV, vOrigin, bFrom )
 	local vEyePos = EyePos()
 	local aEyesRot = EyeAngles()
 	local vOffset = vOrigin - vEyePos
 	local vForward = aEyesRot:Forward()
 
-	local nViewX = math.tan(nFOV * math.pi / 360)
+	local nViewX = math.tan( nFOV * math.pi / 360 )
 
 	if nViewX == 0 then
 		vForward:Mul( vForward:Dot( vOffset ) )
@@ -77,11 +77,11 @@ local function FormatViewModelAttachment(nFOV, vOrigin, bFrom )
 	end
 
 	-- FIXME: LocalPlayer():GetFOV() should be replaced with EyeFOV() when it's binded
-	local nWorldX = math.tan(LocalPlayer():GetFOV() * math.pi / 360)
+	local nWorldX = math.tan( LocalPlayer():GetFOV() * math.pi / 360 )
 
 	if nWorldX == 0 then
-		vForward:Mul(vForward:Dot(vOffset))
-		vEyePos:Add(vForward)
+		vForward:Mul( vForward:Dot( vOffset ) )
+		vEyePos:Add( vForward )
 
 		return vEyePos
 	end
@@ -91,19 +91,19 @@ local function FormatViewModelAttachment(nFOV, vOrigin, bFrom )
 
 	if bFrom then
 		local nFactor = nWorldX / nViewX
-		vRight:Mul(vRight:Dot(vOffset) * nFactor)
-		vUp:Mul(vUp:Dot(vOffset) * nFactor)
+		vRight:Mul( vRight:Dot( vOffset ) * nFactor )
+		vUp:Mul( vUp:Dot( vOffset ) * nFactor )
 	else
 		local nFactor = nViewX / nWorldX
-		vRight:Mul(vRight:Dot(vOffset) * nFactor)
-		vUp:Mul(vUp:Dot(vOffset) * nFactor)
+		vRight:Mul( vRight:Dot( vOffset ) * nFactor )
+		vUp:Mul( vUp:Dot( vOffset ) * nFactor )
 	end
 
-	vForward:Mul(vForward:Dot(vOffset))
+	vForward:Mul( vForward:Dot( vOffset ) )
 
-	vEyePos:Add(vRight)
-	vEyePos:Add(vUp)
-	vEyePos:Add(vForward)
+	vEyePos:Add( vRight )
+	vEyePos:Add( vUp )
+	vEyePos:Add( vForward )
 
 	return vEyePos
 end
@@ -143,7 +143,7 @@ function SWEP:ViewModelDrawn()
 		PEmiter:Finish()
 	end
 
-	if (self.NextEmit or 0) > CT then return end
+	if ( self.NextEmit or 0 ) > CT then return end
 
 	local pViewModel = eOwner:GetViewModel()
 
@@ -179,7 +179,7 @@ function SWEP:ViewModelDrawn()
 
 	PEmiter:Finish()
 
-	local delay = math.Remap( math.min( 400, eOwner:GetVelocity():Length()), 0, 400, .1, .01 )
+	local delay = math.Remap( math.min( 400, eOwner:GetVelocity():Length() ), 0, 400, .1, .01 )
 
 	self.NextEmit = CT + delay
 end
@@ -286,16 +286,16 @@ local Mul = 0
 local fInt = 0
 local EaseFunc = math.ease.InOutSine
 
-function SWEP:GetViewModelPosition(vEyePos, EyeAng)
+function SWEP:GetViewModelPosition( vEyePos, EyeAng )
 	local bAimState = self:GetUse()
 
 	local iAimState = bAimState and 1 or 0
-	Mul = math.Approach(Mul, iAimState, FrameTime() * 3)
+	Mul = math.Approach( Mul, iAimState, FrameTime() * 3 )
 
 	fInt = EaseFunc( Mul )
 
-	self.SwayScale = math.Remap(fInt, 0, 1, 1, .2) 
-	self.BobScale = math.Remap(fInt, 0, 1, 1, .1) 
+	self.SwayScale = math.Remap( fInt, 0, 1, 1, .2 ) 
+	self.BobScale = math.Remap( fInt, 0, 1, 1, .1 ) 
 
 	local Pos, Ang = LocalToWorld( self.IronSightsPos * -fInt, self.IronSightsAng * fInt, vEyePos, EyeAng )
 
@@ -322,7 +322,7 @@ function SWEP:DrawWorldModel()
 
 	local bAimState = self:GetUse()
 
-	local pos, ang = eOwner:GetBonePosition( eOwner:LookupBone("ValveBiped.Bip01_R_Hand") )
+	local pos, ang = eOwner:GetBonePosition( eOwner:LookupBone( "ValveBiped.Bip01_R_Hand" ) )
 
 	local iAimState = bAimState and 1 or 0
 
@@ -335,12 +335,12 @@ function SWEP:DrawWorldModel()
 		ang:RotateAroundAxis( ang:Up(), 	self.WMAng[2] + fAim * -60 )
 		ang:RotateAroundAxis( ang:Forward(),self.WMAng[3] )
 
-		pos = pos + ( self.WMPos[1] + fAim * 4 ) * ang:Right() 
+		pos = pos + ( self.WMPos[1] + fAim * 4 ) * ang:Right()
 		pos = pos + ( self.WMPos[2] + fAim * 4 ) * ang:Forward()
 		pos = pos + self.WMPos[3] * ang:Up()
 
-		self:SetRenderOrigin(pos)
-		self:SetRenderAngles(ang)
+		self:SetRenderOrigin( pos )
+		self:SetRenderAngles( ang )
 		self:DrawModel()
 		self:DrawShadow()
 	else
@@ -352,7 +352,7 @@ function SWEP:DrawWorldModel()
 
 	local CT = CurTime()
 
-	if (self.NextEmit or 0) < CT then
+	if ( self.NextEmit or 0 ) < CT then
 		local pos = self:GetPos()
 
 		local PEmiter = ParticleEmitter( pos )
@@ -412,9 +412,9 @@ function SWEP:DrawWorldModel()
 		PEmiter:Finish()
 	end
 
-	eOwner:ManipulateBoneAngles( eOwner:LookupBone("ValveBiped.Bip01_R_UpperArm"), UpperArm * fAim )
-	eOwner:ManipulateBoneAngles( eOwner:LookupBone("ValveBiped.Bip01_R_Forearm"), Forearm * fAim )
-	eOwner:ManipulateBoneAngles( eOwner:LookupBone("ValveBiped.Bip01_R_Hand"), Hand * fAim)
+	eOwner:ManipulateBoneAngles( eOwner:LookupBone( "ValveBiped.Bip01_R_UpperArm" ), UpperArm * fAim )
+	eOwner:ManipulateBoneAngles( eOwner:LookupBone( "ValveBiped.Bip01_R_Forearm" ), Forearm * fAim )
+	eOwner:ManipulateBoneAngles( eOwner:LookupBone( "ValveBiped.Bip01_R_Hand" ), Hand * fAim )
 end
 
 function SWEP:DrawHUD()
@@ -440,9 +440,9 @@ function SWEP:Holster()
 	local eOwner = self:GetOwner()
 
 	if IsValid( eOwner ) then
-		eOwner:ManipulateBoneAngles( eOwner:LookupBone("ValveBiped.Bip01_R_UpperArm"), angle_zero )
-		eOwner:ManipulateBoneAngles( eOwner:LookupBone("ValveBiped.Bip01_R_Forearm"), angle_zero )
-		eOwner:ManipulateBoneAngles( eOwner:LookupBone("ValveBiped.Bip01_R_Hand"), angle_zero )
+		eOwner:ManipulateBoneAngles( eOwner:LookupBone( "ValveBiped.Bip01_R_UpperArm" ), angle_zero )
+		eOwner:ManipulateBoneAngles( eOwner:LookupBone( "ValveBiped.Bip01_R_Forearm" ), angle_zero )
+		eOwner:ManipulateBoneAngles( eOwner:LookupBone( "ValveBiped.Bip01_R_Hand" ), angle_zero )
 	end
 
 	return true
@@ -451,8 +451,8 @@ end
 if CLIENT then
 	local zaza = {
 		functionX = function( _ ) return 0 end,
-		functionY = function( _ ) return TimedSin( 1, 0, 1, 0) end,
-		functionZ = function( _ ) return TimedCos( .6, 0, 2, 0) end,
+		functionY = function( _ ) return TimedSin( 1, 0, 1, 0 ) end,
+		functionZ = function( _ ) return TimedCos( .6, 0, 2, 0 ) end,
 		FadeIn		= 1,
 		FadeOut		= 6,
 		LifeTime	= 15,

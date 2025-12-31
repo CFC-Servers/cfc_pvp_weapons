@@ -154,7 +154,7 @@ if CLIENT then
 			return 0, 0, 0, 0
 		end
 
-		local fFrameIndex = round(self.fCurFrame)
+		local fFrameIndex = round( self.fCurFrame )
 
 		local tMotion = self.tMotion[ fFrameIndex ]
 		if not tMotion then tMotion = self.tMotion[ self.fMotionLen ] end
@@ -203,8 +203,8 @@ if CLIENT then
 	setmetatable( CCamEffectorFunc, CCamEffector )
 
 	local DefaultInfo = {
-		functionX = function( _ ) return TimedSin(1, 0, 1 * 3, 0) end,
-		functionY = function( _ ) return TimedSin(1.2, 0, 2 * 3, 0) end,
+		functionX = function( _ ) return TimedSin( 1, 0, 1 * 3, 0 ) end,
+		functionY = function( _ ) return TimedSin( 1.2, 0, 2 * 3, 0 ) end,
 		functionZ = function( _ ) return 0 end,
 		--FadeIn		= 1,
 		FadeOut		= 2,
@@ -215,7 +215,7 @@ if CLIENT then
 		self.fCurTime = 0
 		self.fDieTime = tInfo.LifeTime or 6		
 		self.fFadeInTime = tInfo.FadeIn or nil
-		self.fFadeOutTime = self.fDieTime - (tInfo.FadeOut or 2)
+		self.fFadeOutTime = self.fDieTime - ( tInfo.FadeOut or 2 )
 
 		self.fXfunc = tInfo.functionX
 		self.fYfunc = tInfo.functionY
@@ -243,7 +243,7 @@ if CLIENT then
 
 	CCamEffectorFunc.__index = CCamEffectorFunc
 
-	local Player = FindMetaTable("Player")
+	local Player = FindMetaTable( "Player" )
 	local GetViewPunchAngles = Player.GetViewPunchAngles
 
 	local function PunchAngle( ply )
@@ -258,7 +258,7 @@ if CLIENT then
 		self.Effectors[i].iID = i
 
 		if self.ActiveEffectors == 0 then
-			hook.Add( HookName, HookIndex, CalcView)
+			hook.Add( HookName, HookIndex, CalcView )
 			Player.GetPunchAngle = PunchAngle
 		end
 
@@ -290,24 +290,24 @@ if CLIENT then
 		return Effector
 	end
 
-	concommand.Add("cam_effector_test_func", function()
+	concommand.Add( "cam_effector_test_func", function()
 		CamEffector:AddFunction()
-	end)
+	end )
 
-	concommand.Add("cam_effector_test_anim", function()
+	concommand.Add( "cam_effector_test_anim", function()
 		CamEffector:AddAnimated()
-	end)
+	end )
 
 	local fLastKillAll = 0
 
-	concommand.Add("cam_effector_killall", function()
+	concommand.Add( "cam_effector_killall", function()
 		local CT = CurTime()
-		if fLastKillAll > CT then print("Fuck you!") return end
+		if fLastKillAll > CT then print( "Fuck you!" ) return end
 		fLastKillAll = CT + 120
-		for k,eff in pairs(CamEffector.Effectors) do
+		for k,eff in pairs( CamEffector.Effectors ) do
 			eff:Kill()
 		end
-	end)
+	end )
 
 	local fNextHeadShotTime = 0
 
@@ -322,14 +322,14 @@ if CLIENT then
 		local fDeltaTime = DeltaTime()
 		camView.angles:Zero()
 
-		for k, eff in pairs(CamEffector.Effectors) do
+		for k, eff in pairs( CamEffector.Effectors ) do
 			local x, y, z = eff:Think( fDeltaTime )
 
 			camView.angles.x = camView.angles.x - x
 			camView.angles.y = camView.angles.y - y
 			camView.angles.z = camView.angles.z - z
 		end
-		aAnimAngles:Set(camView.angles)
+		aAnimAngles:Set( camView.angles )
 		camView.angles:Add( ang )
 		return camView
 	end
@@ -359,11 +359,11 @@ if CLIENT then
 		AddCameraEffector( LocalPlayer(), net.ReadString() )
 	end )
 else
-	util.AddNetworkString("CamEffector.Damage")
-	util.AddNetworkString("CamEffector.Data")
+	util.AddNetworkString( "CamEffector.Damage" )
+	util.AddNetworkString( "CamEffector.Data" )
 
 	function AddCameraEffector( ply, index )
-		net.Start("CamEffector.Data")
+		net.Start( "CamEffector.Data" )
 			net.WriteString( index )
 		net.Send( ply )
 	end
