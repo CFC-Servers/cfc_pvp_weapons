@@ -74,6 +74,7 @@ SWEP.NPCData = {
 SWEP.DropCleanupDelay = 15
 SWEP.DropOnDeath = false
 SWEP.RetainAmmoOnDrop = false
+SWEP.RetainAmmoStartingAmount = 0
 SWEP.AllowMultiplePickup = true
 SWEP.DoCollisionEffects = false
 SWEP.DoOwnerChangedEffects = false
@@ -105,6 +106,7 @@ end
 function SWEP:Initialize()
     self:SetFiremode( self.Firemode )
     self.AmmoType = self:GetAmmoType()
+    self._cfcPvPWeapons_StoredAmmo = self.RetainAmmoStartingAmount
     self:SetupCollisionEffects()
 end
 
