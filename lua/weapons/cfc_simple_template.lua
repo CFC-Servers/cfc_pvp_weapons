@@ -139,7 +139,8 @@ SWEP.AllowMultiplePickup = true -- Whether to allow this weapon to be picked up 
 
 SWEP.DropOnDeath = false -- Whether the weapon is dropped when the owner dies, calls SWEP:DropOnDeathFX if true
 SWEP.DropCleanupDelay = 15 -- Automatically removes the weapon if dropped and left on the ground for this long, in seconds
-SWEP.RetainAmmoOnDrop = false -- If a string, will take ALL of the owner's ammo of that type and store it onto the gun for whoever picks it up. If true, uses SWEP.Primary.Ammo. Should only be done with a custom ammo type.
+SWEP.RetainAmmoOnDrop = false -- If true, will take ALL of the owner's ammo of the weapon's primary type and store it onto the gun for whoever picks it up. Should only be done with a custom ammo type.
+SWEP.RetainAmmoStartingAmount = 0 -- If RetainAmmoOnDrop is non-false, the weapon will start with this much ammo stored. Use this and set SWEP.Primary.DefaultClip to 0 to avoid infinitely replenishable ammo.
 SWEP.DoOwnerChangedEffects = false -- Whether to call SWEP:OnPickedUpFX and SWEP:OnDroppedFX when the weapon is picked up or dropped
 
 SWEP.DoCollisionEffects = false -- Whether to do special collision effects defined by SWEP:MakeCollisionEffectFunc()

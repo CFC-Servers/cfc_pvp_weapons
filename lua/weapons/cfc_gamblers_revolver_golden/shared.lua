@@ -47,7 +47,7 @@ SWEP.Primary = {
     Cost = 1, -- The amount of ammo used per shot
 
     ClipSize = 6, -- The amount of ammo per magazine, -1 to have no magazine (pull from reserves directly)
-    DefaultClip = 66 + 6, -- How many rounds the player gets when picking up the weapon for the first time, excess ammo will be added to the player's reserves
+    DefaultClip = 0, -- How many rounds the player gets when picking up the weapon for the first time, excess ammo will be added to the player's reserves
 
     Damage = 1, -- Damage per shot (ignored for this weapon)
     Count = 1, -- Optional: Shots fired per shot
@@ -90,6 +90,7 @@ SWEP.AllowMultiplePickup = true
 SWEP.DropOnDeath = true
 SWEP.DropCleanupDelay = 240
 SWEP.RetainAmmoOnDrop = true
+SWEP.RetainAmmoStartingAmount = 66 + 6
 SWEP.DoOwnerChangedEffects = true
 
 SWEP.DoCollisionEffects = true
