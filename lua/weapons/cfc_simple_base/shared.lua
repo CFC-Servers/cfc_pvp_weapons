@@ -343,11 +343,6 @@ end
 function SWEP:GiveStoredAmmo( owner, fillTheClip )
     if not self.RetainAmmoOnDrop then return end
 
-    local ammoType = self.RetainAmmoOnDrop
-    if ammoType == true then
-        ammoType = self.Primary.Ammo
-    end
-
     local ammoToGive = self._cfcPvPWeapons_StoredAmmo or 0
     local storedClip = self._cfcPvpWeapons_StoredClip or 0
 
@@ -359,7 +354,7 @@ function SWEP:GiveStoredAmmo( owner, fillTheClip )
         self:SetClip1( curClip + fillAmount )
     end
 
-    owner:GiveAmmo( ammoToGive + storedClip, ammoType )
+    owner:GiveAmmo( ammoToGive + storedClip, self.Primary.Ammo )
     self._cfcPvPWeapons_StoredAmmo = 0
     self._cfcPvpWeapons_StoredClip = 0
 end
