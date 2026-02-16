@@ -346,6 +346,7 @@ function SWEP:GiveStoredAmmo( owner, fillTheClip )
     local ammoToGive = self._cfcPvPWeapons_StoredAmmo or 0
     local storedClip = self._cfcPvpWeapons_StoredClip or 0
 
+    -- Add to clip1 by however much clip is stored on the wep. Any excess gets added to :GiveAmmo().
     if fillTheClip then
         local curClip = self:Clip1()
         local fillAmount = math.Clamp( self.Primary.ClipSize - curClip, 0, storedClip )
