@@ -432,3 +432,10 @@ hook.Add( "PlayerCanPickupWeapon", "cfc_stickaroundondeath_nodoublepickup", func
         return false
     end
 end )
+
+hook.Add( "CFC_AutoClean_DisallowWeaponRemoval", "CFCPvPWeapons_DontCleanPersistentWeapons", function( wep )
+    if not wep.CFCSimpleWeapon then return end
+    if not wep.DropOnDeath then return end
+
+    return true
+end )
