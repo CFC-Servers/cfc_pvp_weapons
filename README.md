@@ -19,3 +19,4 @@
 - [M29 Satan (gambler's revolver)](https://steamcommunity.com/sharedfiles/filedetails/?id=128093075) - Workshop
 - [MMod Tau Cannon (ion cannon)](https://steamcommunity.com/sharedfiles/filedetails/?id=2885673816) - Workshop rip from MMod
 - [Jan 2000 Beta Physgun (graviton gun)](https://steamcommunity.com/sharedfiles/filedetails/?id=2862946909) - Workshop
+- [Extrema Ratio MK21 (knife)](https://steamcommunity.com/sharedfiles/filedetails/?id=707343339) - Workshop

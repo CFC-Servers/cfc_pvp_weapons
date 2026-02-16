@@ -17,6 +17,7 @@ killicon.Add( "cfc_trash_blaster", "vgui/hud/cfc_trash_blaster", icol ) -- Sadly
 killicon.Add( "cfc_ion_cannon", "vgui/hud/cfc_ion_cannon", icol )
 killicon.Add( "cfc_graviton_gun", "vgui/hud/cfc_graviton_gun", icolOrange )
 killicon.Add( "cfc_simple_ent_cluster_grenade", "vgui/hud/cfc_simple_ent_cluster_grenade", icolOrange )
+killicon.Add( "cfc_knife", "vgui/hud/cfc_knife", icolOrange )
 
 killicon.Add( "cfc_stinger_launcher", "vgui/hud/cfc_stinger_launcher", icolOrange )
 killicon.Add( "cfc_stinger_missile", "vgui/hud/cfc_stinger_launcher", icolOrange ) -- missile/launcher share killicon
