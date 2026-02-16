@@ -324,15 +324,23 @@ function SWEP:OnDrop( owner )
 end
 
 function SWEP:Equip( owner )
-    if self.RetainAmmoOnDrop then
-        local ammoType = self.RetainAmmoOnDrop
-        if ammoType == true then
-            ammoType = self.Primary.Ammo
-        end
+    self:GiveStoredAmmo( owner )
+end
 
-        owner:GiveAmmo( self._cfcPvPWeapons_StoredAmmo or 0, ammoType )
-        self._cfcPvPWeapons_StoredAmmo = 0
+function SWEP:EquipAmmo( owner )
+    self:GiveStoredAmmo( owner )
+end
+
+function SWEP:GiveStoredAmmo( owner )
+    if not self.RetainAmmoOnDrop then return end
+
+    local ammoType = self.RetainAmmoOnDrop
+    if ammoType == true then
+        ammoType = self.Primary.Ammo
     end
+
+    owner:GiveAmmo( self._cfcPvPWeapons_StoredAmmo or 0, ammoType )
+    self._cfcPvPWeapons_StoredAmmo = 0
 end
 
 function SWEP:MakeCollisionEffectFunc() -- stub, see super cinderblock
