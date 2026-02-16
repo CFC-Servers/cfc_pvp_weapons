@@ -106,8 +106,14 @@ end
 function SWEP:Initialize()
     self:SetFiremode( self.Firemode )
     self.AmmoType = self:GetAmmoType()
-    self._cfcPvPWeapons_StoredAmmo = self.RetainAmmoStartingAmount
     self:SetupCollisionEffects()
+
+    if self.RetainAmmoOnDrop then
+        local clipSize = math.max( self.Primary.ClipSize, 0 )
+
+        self._cfcPvPWeapons_StoredAmmo = self.RetainAmmoStartingAmount - clipSize
+        self._cfcPvpWeapons_StoredClip = clipSize
+    end
 end
 
 function SWEP:SetupDataTables()
@@ -319,19 +325,22 @@ function SWEP:OnDrop( owner )
         end
 
         self._cfcPvPWeapons_StoredAmmo = owner:GetAmmoCount( ammoType )
+        self._cfcPvpWeapons_StoredClip = self:Clip1()
+
+        self:SetClip1( 0 )
         owner:SetAmmo( 0, ammoType )
     end
 end
 
 function SWEP:Equip( owner )
-    self:GiveStoredAmmo( owner )
+    self:GiveStoredAmmo( owner, true )
 end
 
 function SWEP:EquipAmmo( owner )
-    self:GiveStoredAmmo( owner )
+    self:GiveStoredAmmo( owner, false )
 end
 
-function SWEP:GiveStoredAmmo( owner )
+function SWEP:GiveStoredAmmo( owner, fillTheClip )
     if not self.RetainAmmoOnDrop then return end
 
     local ammoType = self.RetainAmmoOnDrop
@@ -339,8 +348,20 @@ function SWEP:GiveStoredAmmo( owner )
         ammoType = self.Primary.Ammo
     end
 
-    owner:GiveAmmo( self._cfcPvPWeapons_StoredAmmo or 0, ammoType )
+    local ammoToGive = self._cfcPvPWeapons_StoredAmmo or 0
+    local storedClip = self._cfcPvpWeapons_StoredClip or 0
+
+    if fillTheClip then
+        local curClip = self:Clip1()
+        local fillAmount = math.Clamp( self.Primary.ClipSize - curClip, 0, storedClip )
+
+        storedClip = storedClip - fillAmount
+        self:SetClip1( curClip + fillAmount )
+    end
+
+    owner:GiveAmmo( ammoToGive + storedClip, ammoType )
     self._cfcPvPWeapons_StoredAmmo = 0
+    self._cfcPvpWeapons_StoredClip = 0
 end
 
 function SWEP:MakeCollisionEffectFunc() -- stub, see super cinderblock
@@ -368,6 +389,7 @@ function SWEP:MakeDropOnDeathCopy( owner )
 
     if self.RetainAmmoOnDrop then
         wep._cfcPvPWeapons_StoredAmmo = owner:GetAmmoCount( self.Primary.Ammo )
+        wep._cfcPvpWeapons_StoredClip = self:Clip1()
     end
 
     return wep
