@@ -1,0 +1,12 @@
+UnlitGeneric
+{
+	$basetexture "fx/cfc_zaza_vignette"
+
+	$translucent 1
+
+	$vertexcolor 1
+	$vertexalpha 1
+	$nolod 1
+
+	$color "[0 0 0]"
+}
