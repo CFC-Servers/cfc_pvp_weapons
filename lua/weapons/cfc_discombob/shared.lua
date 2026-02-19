@@ -157,13 +157,8 @@ if SERVER then
             local timeUntilReloadStart = timeUntilReady - reloadAnimDur
 
             selfObj._discombobNadeEnt = nil
-            selfObj:SetFinishReload( CurTime() + timeUntilReloadStart ) -- Delay the reload anim based on post-det cooldown.
-
-            timer.Create( "CFC_PvPWeapons_Discombob_Cooldown" .. selfObj:EntIndex(), selfObj.PostDetCooldown, 1, function()
-                if not IsValid( selfObj ) then return end
-
-                selfObj:SetWaitingForNadeDet( false )
-            end )
+            selfObj:SetFinishReload( CurTime() + timeUntilReloadStart ) -- Delay the reload anim (which controls nextfire) based on post-det cooldown.
+            selfObj:SetWaitingForNadeDet( false )
         end )
 
         return ent
