@@ -140,6 +140,7 @@ function SWEP:EmitThrowSound()
 end
 
 function SWEP:PrimaryAttack()
+    if self:GetNextPrimaryFire() > CurTime() then return end
     if not self:CanThrow() then return end
 
     self:SetHoldType( self.ThrowingHoldType )
@@ -163,6 +164,7 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
+    if self:GetNextSecondaryFire() > CurTime() then return end
     if not self:CanThrow() then return end
 
     local duration = 0
