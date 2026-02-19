@@ -44,7 +44,7 @@ SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = 0
 SWEP.Secondary.Automatic = false
 
-SWEP.ThrowCooldown = 0
+SWEP.ThrowCooldown = 0 -- Desired cooldown between throws. Final result can't go lower than the throw + reload anim durations.
 
 
 local cooldownEndTimesPerClass = {}
