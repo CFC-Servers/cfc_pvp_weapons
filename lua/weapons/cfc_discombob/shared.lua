@@ -36,8 +36,8 @@ SWEP.Primary = {
     StrengthMultSelf = 1.25, -- Affects the knockback strength against the player who threw it
 }
 
-SWEP.ThrowCooldown = 0 -- Normal grenade cooldown on throw. Viewmodel anims and the nade being undetonated are separate cooldowns.
-SWEP.PostDetCooldown = 1 -- Unique param for the discombob; applies after the previous nade explodes.
+SWEP.ThrowCooldown = 0 -- Leave at 0. Cooldown will be handled after the discombob explodes.
+SWEP.PostDetCooldown = 1.5 -- Unique param for the discombob; applies after the previous nade explodes.
 
 SWEP.CFC_FirstTimeHints = {
     {
@@ -73,11 +73,13 @@ function SWEP:CanThrow()
 end
 
 function SWEP:Throw()
+    BaseClass.Throw( self )
+
+    self:SetFinishReload( CurTime() + 999 ) -- Put the reload anim on indefinite hold.
+
     if CLIENT then
         self._discombobPlayedManualDetSound = nil
     end
-
-    return BaseClass.Throw( self )
 end
 
 function SWEP:Reload()
@@ -150,7 +152,12 @@ if SERVER then
         ent:CallOnRemove( "CFC_PvPWeapons_Discombob_TrackDetonation", function()
             if not IsValid( selfObj ) then return end
 
+            local reloadAnimDur = selfObj:GetTranslatedWeaponAnimDuration( ACT_VM_DRAW )
+            local timeUntilReady = math.max( selfObj.PostDetCooldown, reloadAnimDur )
+            local timeUntilReloadStart = timeUntilReady - reloadAnimDur
+
             selfObj._discombobNadeEnt = nil
+            selfObj:SetFinishReload( CurTime() + timeUntilReloadStart ) -- Delay the reload anim based on post-det cooldown.
 
             timer.Create( "CFC_PvPWeapons_Discombob_Cooldown" .. selfObj:EntIndex(), selfObj.PostDetCooldown, 1, function()
                 if not IsValid( selfObj ) then return end
