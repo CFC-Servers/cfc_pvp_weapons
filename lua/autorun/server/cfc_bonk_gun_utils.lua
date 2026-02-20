@@ -35,6 +35,19 @@ local function enoughToKill( ply, dmgAmount )
     return false
 end
 
+local function getBonkInfo( victim )
+    local bonkInfo = victim.cfc_bonkInfo
+
+    if not bonkInfo then
+        bonkInfo = {
+            impactSources = {}, -- Unique per each attacker + weapon class.
+        }
+        victim.cfc_bonkInfo = bonkInfo
+    end
+
+    return bonkInfo
+end
+
 local function playTweakedSound( ent, path, volume, pitch )
     if not IsValid( ent ) then return end
     if not path then return end
@@ -66,23 +79,56 @@ local function playBonkComboSound( attacker )
     attacker:EmitSound( "weapons/cfc_pvp_bonk/double_bonk.wav", 100, 100, 1, CHAN_AUTO, 0, 0, rf )
 end
 
-local function playBonkImpactSound( attacker, victim )
-    playTweakedSound( victim, "physics/flesh/flesh_impact_bullet" .. math.random( 1, 5 ) .. ".wav", 1.25, 1 )
+local function playBonkImpactSound( victim )
+    if not victim:OnGround() then -- Ground impacts already play bone crunching sounds
+        playTweakedSound( victim, "physics/flesh/flesh_impact_bullet" .. math.random( 1, 5 ) .. ".wav", 1.25, 1 )
+    end
 
-    if attacker and attacker:IsPlayer() then
-        attacker:EmitSound( "npc/headcrab_poison/ph_wallhit2.wav", 50, 100, 1 )
+    local impactSources = getBonkInfo( victim ).impactSources
+
+    for _, source in ipairs( impactSources ) do
+        local attacker = source.Attacker
+
+        if IsValid( attacker ) and attacker:IsPlayer() then
+            attacker:EmitSound( "npc/headcrab_poison/ph_wallhit2.wav", 50, 100, 1 )
+        end
     end
 end
 
-local function getBonkInfo( victim )
+local function clearBonkInfo( victim )
     local bonkInfo = victim.cfc_bonkInfo
+    if not bonkInfo then return end
 
-    if not bonkInfo then
-        bonkInfo = {}
-        victim.cfc_bonkInfo = bonkInfo
+    bonkInfo.IsBonked = nil
+    bonkInfo.PrevVel = nil
+    victim.cfc_bonkInfo = nil
+    bonkedEnts[victim] = nil
+end
+
+local function addBonkImpactSource( victim, attacker, wep )
+    if not IsValid( victim ) then return end
+    if not IsValid( wep ) then return end
+
+    local bonkInfo = getBonkInfo( victim )
+    local wepClass = wep:GetClass()
+    bonkInfo.IsBonked = true
+    bonkInfo.PrevVel = victim:GetVelocity()
+    bonkInfo.ExpireTime = RealTime() + IMPACT_LIFETIME
+    bonkedEnts[victim] = true
+
+    local impactSources = bonkInfo.impactSources
+
+    for _, source in ipairs( impactSources ) do
+        if source.Attacker == attacker and source.WeaponClass == wepClass then
+            return -- Already have this source, don't need to add again.
+        end
     end
 
-    return bonkInfo
+    table.insert( impactSources, {
+        Attacker = attacker,
+        Weapon = wep,
+        WeaponClass = wepClass,
+    } )
 end
 
 -- Refunds a single shot of ammo if the victim is in the air due to being bonked
@@ -246,19 +292,9 @@ local function bonkPlayerOrNPC( attacker, victim, wep, force, wasBonked )
     end
 
     if not wep.Bonk.ImpactEnabled then return end
-    local wepClass = wep:GetClass()
 
     timer.Simple( IMPACT_START_DELAY, function()
-        if not IsValid( victim ) then return end
-
-        local bonkInfo = getBonkInfo( victim )
-        bonkInfo.Attacker = attacker
-        bonkInfo.PrevVel = victim:GetVelocity()
-        bonkInfo.IsBonked = true
-        bonkInfo.ExpireTime = RealTime() + IMPACT_LIFETIME
-        bonkInfo.Weapon = wep
-        bonkInfo.WeaponClass = wepClass
-        bonkedEnts[victim] = true
+        addBonkImpactSource( victim, attacker, wep )
     end )
 end
 
@@ -299,40 +335,35 @@ end
 
 local function handleImpact( ent, accel )
     local bonkInfo = getBonkInfo( ent )
-    local attacker = IsValid( bonkInfo.Attacker ) and bonkInfo.Attacker or game.GetWorld()
-    local wep = bonkInfo.Weapon
+    local impactSources = bonkInfo.impactSources
 
-    if not IsValid( wep ) then
-        wep = cfcEntityStubber.getWeapon( bonkInfo.WeaponClass )
+    playBonkImpactSound( ent )
+
+    for _, source in ipairs( impactSources ) do
+        local attacker = IsValid( source.Attacker ) and source.Attacker or game.GetWorld()
+        local wep = source.Weapon
+        local wepInfo = IsValid( wep ) and wep or cfcEntityStubber.getWeapon( source.WeaponClass )
+        wepInfo = wepInfo.Bonk or {}
+
+        local damageMult = wepInfo.ImpactDamageMult or 1
+        local damageMin = wepInfo.ImpactDamageMin or 1
+        local damageMax = wepInfo.ImpactDamageMax or math.huge
+        local damage = math.Clamp( accel * damageMult, damageMin, damageMax )
+
+        if not IsValid( wep ) then
+            wep = attacker
+        end
+
+        -- Setting the inflictor to wep ensures a proper killfeed icon, and prevents the bonk effect from re-applying since normal gunshots have inflictor == attacker
+        ent:TakeDamage( damage, attacker, wep )
     end
-
-    local damageMult = wep.Bonk.ImpactDamageMult
-    local damageMin = wep.Bonk.ImpactDamageMin
-    local damageMax = wep.Bonk.ImpactDamageMax
-    local damage = math.Clamp( accel * damageMult, damageMin, damageMax )
-
-    if not IsValid( wep ) then
-        wep = attacker
-    end
-
-    if not ent:IsOnGround() then
-        playBonkImpactSound( attacker, ent )
-    end
-
-    -- Setting the inflictor to wep ensures a proper killfeed icon, and prevents the bonk effect from re-applying since normal gunshots have inflictor == attacker
-    ent:TakeDamage( damage, attacker, wep )
 
     if ent:IsPlayer() then
         ent:SetLastHitGroup( HITGROUP_GENERIC )
         enableMovement( ent )
     end
 
-    bonkInfo.IsBonked = nil
-    bonkInfo.PrevVel = nil
-    bonkInfo.Attacker = nil
-    bonkInfo.Weapon = nil
-    bonkInfo.WeaponClass = nil
-    bonkedEnts[ent] = nil
+    clearBonkInfo( ent )
 end
 
 local function detectImpact( ent, dt )
@@ -348,12 +379,7 @@ local function detectImpact( ent, dt )
     end
 
     if RealTime() > bonkInfo.ExpireTime then
-        bonkInfo.IsBonked = nil
-        bonkInfo.PrevVel = nil
-        bonkInfo.Attacker = nil
-        bonkInfo.Weapon = nil
-        bonkInfo.WeaponClass = nil
-        bonkedEnts[ent] = nil
+        clearBonkInfo( ent )
 
         return
     end
@@ -366,12 +392,7 @@ local function detectImpact( ent, dt )
 
     if accel < IMPACT_ACCELERATION_THRESHOLD then -- Not enough acceleration to be an impact
         if ent:IsOnGround() then -- Clear bonk status if ent landed on the ground smoothly or never launched up
-            bonkInfo.IsBonked = nil
-            bonkInfo.PrevVel = nil
-            bonkInfo.Attacker = nil
-            bonkInfo.Weapon = nil
-            bonkInfo.WeaponClass = nil
-            bonkedEnts[ent] = nil
+            clearBonkInfo( ent )
 
             if ent:IsPlayer() then
                 enableMovement( ent )
@@ -475,6 +496,5 @@ hook.Add( "Think", "CFC_BonkGun_DetectImpact", function()
 end )
 
 hook.Add( "PlayerDeath", "CFC_BonkGun_ClearBonksOnDeath", function( ply )
-    bonkedEnts[ply] = nil
-    ply.cfc_bonkInfo = nil
+    clearBonkInfo( ply )
 end )
