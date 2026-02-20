@@ -105,7 +105,7 @@ end
 
 function SWEP:Initialize()
     BaseClass.Initialize( self )
-    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_discombob" )
+    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_bonk" )
 end
 
 function SWEP:CanThrow()
@@ -195,7 +195,7 @@ if SERVER then
 
 
     function SWEP:CreateEntity()
-        local ent = ents.Create( "cfc_simple_ent_discombob" )
+        local ent = ents.Create( "cfc_simple_ent_bonk_grenade" )
         local ply = self:GetOwner()
 
         ent:SetPos( ply:GetPos() )

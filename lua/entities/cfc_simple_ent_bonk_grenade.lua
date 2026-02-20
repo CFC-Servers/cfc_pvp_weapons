@@ -22,7 +22,7 @@ ENT.PlayerKnockbackVelAdd = Vector( 0, 0, 200 )
 function ENT:Initialize()
     BaseClass.Initialize( self )
 
-    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_discombob" )
+    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_bonk" )
 end
 
 function ENT:Explode()
