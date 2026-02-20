@@ -1,15 +1,15 @@
 AddCSLuaFile()
 
 if CLIENT then
-    language.Add( "cfc_discomob_ammo", "Discombobs" )
+    language.Add( "cfc_bonk_grenadenade_ammo", "Bonk Grenades" )
 end
 
-game.AddAmmoType( { name = "cfc_discomob", maxcarry = 5 } )
+game.AddAmmoType( { name = "cfc_bonk_grenade", maxcarry = 5 } )
 
 DEFINE_BASECLASS( "cfc_simple_base_throwing" )
 SWEP.Base = "cfc_simple_base_throwing"
 
-SWEP.PrintName = "'Nade (Discombob)"
+SWEP.PrintName = "'Nade (Bonk)"
 SWEP.Category = "CFC"
 
 SWEP.Slot = 4
@@ -24,7 +24,7 @@ SWEP.IdleHoldType = "slam"
 SWEP.ThrowingHoldType = "melee"
 
 SWEP.Primary = {
-    Ammo = "cfc_discomob",
+    Ammo = "cfc_bonk_grenade",
     DefaultClip = 50,
 
     ThrowAct = { ACT_VM_PULLBACK_HIGH, ACT_VM_THROW },
@@ -36,19 +36,25 @@ SWEP.Primary = {
     StrengthMultSelf = 1.25, -- Affects the knockback strength against the player who threw it
 }
 
-SWEP.ThrowCooldown = 0 -- Leave at 0. Cooldown will be handled after the discombob explodes.
-SWEP.PostDetCooldown = 1.5 -- Unique param for the discombob; applies after the previous nade explodes.
+SWEP.ThrowCooldown = 0 -- Leave at 0. Cooldown will be handled after the bonk nade explodes.
+SWEP.PostDetCooldown = 1.5 -- Unique param for the bonk nade; applies after the previous nade explodes.
 
 SWEP.CFC_FirstTimeHints = {
     {
-        Message = "The Discombob deals no damage, but pushes people around.",
+        Message = "The Bonk Grenade pushes foes away violently, though does little damage.",
         Sound = "ambient/water/drip1.wav",
         Duration = 10,
-        DelayNext = 6,
+        DelayNext = 5,
     },
     {
-        Message = "Attack again or reload after throwing the Discombob to detonate it early.",
+        Message = "Attack again or reload after throwing the Bonk Grenade to detonate it early.",
         Sound = "ambient/water/drip2.wav",
+        Duration = 8,
+        DelayNext = 5,
+    },
+    {
+        Message = "The Bonk Grenade combos well with the Bonk Shotgun!",
+        Sound = "ambient/water/drip1.wav",
         Duration = 7,
         DelayNext = 0,
     },
