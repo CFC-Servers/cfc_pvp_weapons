@@ -339,16 +339,25 @@ local function handleImpact( ent, accel )
 
     playBonkImpactSound( ent )
 
+    local countsPerClass = {}
+
+    for _, source in ipairs( impactSources ) do
+        local wepClass = source.WeaponClass
+        countsPerClass[wepClass] = ( countsPerClass[wepClass] or 0 ) + 1
+    end
+
     for _, source in ipairs( impactSources ) do
         local attacker = IsValid( source.Attacker ) and source.Attacker or game.GetWorld()
         local wep = source.Weapon
         local wepInfo = IsValid( wep ) and wep or weapons.GetStored( source.WeaponClass )
         wepInfo = wepInfo.Bonk or {}
 
+        -- Distribute evenly across weapon classes so having multiple attackers won't arbitrarily inflate the damage
+        local count = countsPerClass[source.WeaponClass]
         local damageMult = wepInfo.ImpactDamageMult or 1
         local damageMin = wepInfo.ImpactDamageMin or 1
         local damageMax = wepInfo.ImpactDamageMax or math.huge
-        local damage = math.Clamp( accel * damageMult, damageMin, damageMax )
+        local damage = math.Clamp( accel * damageMult, damageMin, damageMax ) / count
 
         if not IsValid( wep ) then
             wep = attacker
