@@ -54,6 +54,14 @@ SWEP.CFC_FirstTimeHints = {
     },
 }
 
+SWEP.Bonk = {
+    ImpactEnabled = true, -- If enabled, victims will take damage upon impacting a surface after getting bonked. This is also what enables tracking of the 'bonk status' of victims.
+        ImpactDamageMult = 10 / 20000,
+        ImpactDamageMin = 1,
+        ImpactDamageMax = 10,
+    DisableMovementDuration = 0.7, -- How long to disable movement for when bonked. Ends early on impact. 0 to disable.
+}
+
 
 function SWEP:SetupDataTables()
     BaseClass.SetupDataTables( self )
@@ -132,6 +140,7 @@ if SERVER then
         ent:SetOwner( ply )
         ent:Spawn()
         ent:Activate()
+        ent._discombobWep = self
 
         ent:SetTimer( 3 )
 

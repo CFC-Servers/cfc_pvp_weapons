@@ -39,6 +39,7 @@ function ENT:Explode()
     local playerKnockback = self.PlayerKnockback
     local playerSelfKnockback = self.PlayerSelfKnockback
     local playerKnockbackVelAdd = self.PlayerKnockbackVelAdd
+    local wep = self._discombobWep
 
     CFCPvPWeapons.BlastDamageInfo( dmgInfoInit, pos, self.Radius, function( victim, dmgInfo )
         if victim == self then return true end
@@ -70,6 +71,10 @@ function ENT:Explode()
 
             force = force * knockback
             physObj:ApplyForceCenter( force )
+        end
+
+        if wep and wep.Bonk and victim ~= attacker and victim.Alive and victim:Alive() then
+            CFCPvPWeapons.ArbitraryBonk( victim, attacker, wep )
         end
 
         return true

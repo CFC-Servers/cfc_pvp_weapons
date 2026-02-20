@@ -458,6 +458,11 @@ function CFCPvPWeapons.ApplyBonkHits( wep )
     wep._bonkHits = nil
 end
 
+function CFCPvPWeapons.ArbitraryBonk( victim, attacker, wep, force )
+    local wasBonked = victim.cfc_bonkInfo and victim.cfc_bonkInfo.IsBonked
+    bonkPlayerOrNPC( attacker, victim, wep, force or Vector(), wasBonked )
+end
+
 
 hook.Add( "Think", "CFC_BonkGun_DetectImpact", function()
     local dt = FrameTime()
