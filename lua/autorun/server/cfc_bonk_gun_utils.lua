@@ -342,7 +342,7 @@ local function handleImpact( ent, accel )
     for _, source in ipairs( impactSources ) do
         local attacker = IsValid( source.Attacker ) and source.Attacker or game.GetWorld()
         local wep = source.Weapon
-        local wepInfo = IsValid( wep ) and wep or cfcEntityStubber.getWeapon( source.WeaponClass )
+        local wepInfo = IsValid( wep ) and wep or weapons.GetStored( source.WeaponClass )
         wepInfo = wepInfo.Bonk or {}
 
         local damageMult = wepInfo.ImpactDamageMult or 1
