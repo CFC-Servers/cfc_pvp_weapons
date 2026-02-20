@@ -60,6 +60,16 @@ SWEP.CFC_FirstTimeHints = {
     },
 }
 
+local bonusHintCooldown = 8
+local bonusHints = {
+    {
+        Message = "The Bonk Grenade can be detonated early by attacking again after throwing.",
+        Sound = "ambient/water/drip1.wav",
+        Duration = 8,
+        DelayNext = 0,
+    },
+}
+
 SWEP.Bonk = {
     ImpactEnabled = true, -- If enabled, victims will take damage upon impacting a surface after getting bonked. This is also what enables tracking of the 'bonk status' of victims.
         ImpactDamageMult = 10 / 20000,
@@ -67,6 +77,17 @@ SWEP.Bonk = {
         ImpactDamageMax = 10,
     DisableMovementDuration = 0.7, -- How long to disable movement for when bonked. Ends early on impact. 0 to disable.
 }
+
+
+local BONUS_HINTS_UNDERSTOOD
+
+
+if SERVER then
+    util.AddNetworkString( "CFC_PvPWeapons_BonkGrenade_PlayBonusHints" )
+    util.AddNetworkString( "CFC_PvPWeapons_BonkGrenade_UnderstandBonusHints" )
+else
+    BONUS_HINTS_UNDERSTOOD = CreateClientConVar( "cfc_pvp_weapons_bonk_grenade_bonus_hints_understood", "0", true, true, "", 0, 1 )
+end
 
 
 function SWEP:SetupDataTables()
@@ -123,6 +144,7 @@ function SWEP:TryManualDetonation()
         if IsValid( nade ) then
             playDetSound = true
             self._discombobNadeEnt = nil
+            nade._discombobDetonatedManually = true
             nade:Explode()
         end
     elseif not self._discombobPlayedManualDetSound then
@@ -137,6 +159,30 @@ end
 
 
 if SERVER then
+    local function handleBonusHints( wep, nade )
+        local owner = wep:GetOwner()
+        if not IsValid( owner ) then return end
+        if not owner:IsPlayer() then return end
+        if owner:GetInfoNum( "cfc_pvp_weapons_bonk_grenade_bonus_hints_understood", 0 ) ~= 0 then return end
+
+        if nade._discombobDetonatedManually then
+            net.Start( "CFC_PvPWeapons_BonkGrenade_UnderstandBonusHints" )
+            net.Send( owner )
+
+            return
+        end
+
+        local nextBonusHintTime = owner._cfcPvPWeapons_BonkGrenade_NextBonusHintTime or 0
+
+        if CurTime() >= nextBonusHintTime then
+            owner._cfcPvPWeapons_BonkGrenade_NextBonusHintTime = CurTime() + bonusHintCooldown
+
+            net.Start( "CFC_PvPWeapons_BonkGrenade_PlayBonusHints" )
+            net.Send( owner )
+        end
+    end
+
+
     function SWEP:CreateEntity()
         local ent = ents.Create( "cfc_simple_ent_discombob" )
         local ply = self:GetOwner()
@@ -176,6 +222,22 @@ if SERVER then
             selfObj:SetWaitingForNadeDet( false )
         end )
 
+        local explode = ent.Explode
+        function ent:Explode()
+            handleBonusHints( selfObj, ent )
+            explode( ent )
+        end
+
         return ent
     end
+else
+    net.Receive( "CFC_PvPWeapons_BonkGrenade_PlayBonusHints", function()
+        if BONUS_HINTS_UNDERSTOOD:GetBool() then return end
+
+        CFCPvPWeapons.PlayHints( bonusHints )
+    end )
+
+    net.Receive( "CFC_PvPWeapons_BonkGrenade_UnderstandBonusHints", function()
+        BONUS_HINTS_UNDERSTOOD:SetBool( true )
+    end )
 end
