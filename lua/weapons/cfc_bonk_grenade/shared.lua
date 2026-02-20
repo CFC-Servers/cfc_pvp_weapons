@@ -11,6 +11,12 @@ SWEP.Base = "cfc_simple_base_throwing"
 
 SWEP.PrintName = "'Nade (Bonk)"
 SWEP.Category = "CFC"
+SWEP.Instructions = [[A low-damage explosive which sends things flying.
+Can be detonated early by attacking again.
+Manual detonation has a small delay.
+
+Applies a temporary Bonk status effect to players,
+  which makes other Bonk weapons stronger against them.]]
 
 SWEP.Slot = 4
 SWEP.Spawnable = true
