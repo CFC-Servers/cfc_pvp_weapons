@@ -38,6 +38,7 @@ SWEP.Primary = {
 
 SWEP.ThrowCooldown = 0 -- Leave at 0. Cooldown will be handled after the bonk nade explodes.
 SWEP.PostDetCooldown = 1.5 -- Unique param for the bonk nade; applies after the previous nade explodes.
+SWEP.DetDelay = 0.15 -- Delay between manual detonation and actual explosion.
 
 SWEP.CFC_FirstTimeHints = {
     {
@@ -47,9 +48,9 @@ SWEP.CFC_FirstTimeHints = {
         DelayNext = 5,
     },
     {
-        Message = "Attack again or reload after throwing the Bonk Grenade to detonate it early.",
+        Message = "Attack again throwing the Bonk Grenade to detonate it early with a short delay.",
         Sound = "ambient/water/drip2.wav",
-        Duration = 8,
+        Duration = 10,
         DelayNext = 5,
     },
     {
@@ -145,7 +146,11 @@ function SWEP:TryManualDetonation()
             playDetSound = true
             self._discombobNadeEnt = nil
             nade._discombobDetonatedManually = true
-            nade:Explode()
+
+            timer.Simple( self.DetDelay, function()
+                if not IsValid( nade ) then return end
+                nade:Explode()
+            end )
         end
     elseif not self._discombobPlayedManualDetSound then
         playDetSound = true
