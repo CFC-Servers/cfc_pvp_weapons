@@ -74,14 +74,23 @@ local function playBonkImpactSound( attacker, victim )
     end
 end
 
+local function getBonkInfo( victim )
+    local bonkInfo = victim.cfc_bonkInfo
+
+    if not bonkInfo then
+        bonkInfo = {}
+        victim.cfc_bonkInfo = bonkInfo
+    end
+
+    return bonkInfo
+end
+
 -- Refunds a single shot of ammo if the victim is in the air due to being bonked
 local function refundAirShot( attacker, victim, wep )
     if attacker.cfc_bonkCannotRefund then return end
     if not IsValid( wep ) then return end
     if victim:IsOnGround() then return end
-
-    local bonkInfo = victim.cfc_bonkInfo or {}
-    if not bonkInfo.IsBonked then return end
+    if not getBonkInfo( victim ).IsBonked then return end
 
     local amountToRefund = wep.Bonk.AirShotsRefundAmmo
     if not amountToRefund or amountToRefund <= 0 then return end
@@ -112,8 +121,7 @@ end
 local function getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGround )
     local maxDamage = wep.Primary.Damage * wep.Primary.Count
     local damageMult = math.min( dmgAmount / maxDamage, wep.Bonk.PlayerForceMultMax )
-    local bonkInfo = victim.cfc_bonkInfo or {}
-    local wasBonked = bonkInfo.IsBonked == true
+    local wasBonked = getBonkInfo( victim ).IsBonked == true
 
     if wasBonked then
         damageMult = damageMult * wep.Bonk.PlayerForceComboMult
@@ -243,13 +251,7 @@ local function bonkPlayerOrNPC( attacker, victim, wep, force, wasBonked )
     timer.Simple( IMPACT_START_DELAY, function()
         if not IsValid( victim ) then return end
 
-        local bonkInfo = victim.cfc_bonkInfo
-
-        if not bonkInfo then
-            bonkInfo = {}
-            victim.cfc_bonkInfo = bonkInfo
-        end
-
+        local bonkInfo = getBonkInfo( victim )
         bonkInfo.Attacker = attacker
         bonkInfo.PrevVel = victim:GetVelocity()
         bonkInfo.IsBonked = true
@@ -296,7 +298,7 @@ local function processDamage( attacker, victim, wep, dmg, fromGround )
 end
 
 local function handleImpact( ent, accel )
-    local bonkInfo = ent.cfc_bonkInfo
+    local bonkInfo = getBonkInfo( ent )
     local attacker = IsValid( bonkInfo.Attacker ) and bonkInfo.Attacker or game.GetWorld()
     local wep = bonkInfo.Weapon
 
@@ -334,8 +336,8 @@ local function handleImpact( ent, accel )
 end
 
 local function detectImpact( ent, dt )
-    local bonkInfo = ent.cfc_bonkInfo
-    if not bonkInfo or not bonkInfo.IsBonked then return end
+    local bonkInfo = getBonkInfo( ent )
+    if not bonkInfo.IsBonked then return end
 
     local prevVel = bonkInfo.PrevVel
 
@@ -459,7 +461,7 @@ function CFCPvPWeapons.ApplyBonkHits( wep )
 end
 
 function CFCPvPWeapons.ArbitraryBonk( victim, attacker, wep, force )
-    local wasBonked = victim.cfc_bonkInfo and victim.cfc_bonkInfo.IsBonked
+    local wasBonked = getBonkInfo( victim ).IsBonked
     bonkPlayerOrNPC( attacker, victim, wep, force or Vector(), wasBonked )
 end
 
