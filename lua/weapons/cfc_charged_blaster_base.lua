@@ -132,13 +132,17 @@ function SWEP:OnRemove()
     BaseClass.OnRemove( self )
 
     if CLIENT then return end
-    if not self.Primary.ProjectileCleanupOnRemove then return end
+
+    local shouldRemove = self.Primary.ProjectileCleanupOnRemove
 
     for _, proj in ipairs( self._projectiles ) do
         if proj:IsValid() then
             timer.Remove( "CFC_TrashBlaster_StartFadingProjectile_" .. proj:EntIndex() )
             timer.Remove( "CFC_TrashBlaster_FadeProjectile_" .. proj:EntIndex() )
-            proj:Remove()
+
+            if shouldRemove then
+                proj:Remove()
+            end
         end
     end
 end
