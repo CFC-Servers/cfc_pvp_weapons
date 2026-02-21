@@ -83,15 +83,20 @@ function ENT:Explode()
     local effect = EffectData()
     effect:SetStart( pos )
     effect:SetOrigin( pos )
+    effect:SetFlags( 0x4 )
 
     util.Effect( "Explosion", effect, true, true )
     util.Effect( "cball_explode", effect, true, true )
 
-    sound.Play( "npc/assassin/ball_zap1.wav", pos, 90, 100 )
+    sound.Play( "ambient/machines/steam_release_1.wav", pos, 90, 130 )
+    sound.Play( "ambient/energy/ion_cannon_shot2.wav", pos, 90, 110, 0.4 )
+    sound.Play( "physics/wood/wood_panel_break1.wav", pos, 90, 120 )
+    sound.Play( "physics/wood/wood_panel_break1.wav", pos, 90, 130 )
 
     self:Remove()
 end
 
 function ENT:PlayBeep()
-    self:EmitSound( "npc/roller/mine/combine_mine_deploy1.wav", 75, 120 )
+    self:EmitSound( "npc/roller/mine/rmine_taunt1.wav", 75, 120 )
+    self:EmitSound( "npc/roller/mine/rmine_taunt1.wav", 75, 123 )
 end
