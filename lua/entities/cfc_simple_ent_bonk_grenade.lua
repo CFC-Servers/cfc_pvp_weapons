@@ -90,7 +90,6 @@ function ENT:Explode()
 
     sound.Play( "ambient/machines/steam_release_1.wav", pos, 90, 130 )
     sound.Play( "ambient/energy/ion_cannon_shot2.wav", pos, 90, 110, 0.2 )
-    sound.Play( "physics/metal/metal_barrel_impact_hard6.wav", pos, 90, 120 )
     sound.Play( "physics/metal/metal_barrel_impact_hard6.wav", pos, 90, 130 )
     sound.Play( "physics/metal/metal_barrel_impact_hard2.wav", pos, 90, 120 )
 
