@@ -47,21 +47,27 @@ SWEP.DetDelay = 0.15 -- Delay between manual detonation and actual explosion.
 
 SWEP.CFC_FirstTimeHints = {
     {
-        Message = "The Bonk Grenade pushes foes away violently, though does little damage.",
+        Message = "The Bonk 'Nade is for launching foes. It does little damage on its own, but...",
         Sound = "ambient/water/drip1.wav",
         Duration = 10,
         DelayNext = 5,
     },
     {
-        Message = "Attack again throwing the Bonk Grenade to detonate it early with a short delay.",
+        Message = "The Bonk 'Nade can boost the strength of other Bonk weapons, if used properly.",
         Sound = "ambient/water/drip2.wav",
         Duration = 10,
-        DelayNext = 5,
+        DelayNext = 8,
     },
     {
-        Message = "The Bonk Grenade combos well with the Bonk Shotgun!",
+        Message = "Every Bonk 'Nade comes with a manual trigger!",
         Sound = "ambient/water/drip1.wav",
-        Duration = 7,
+        Duration = 10,
+        DelayNext = 3,
+    },
+    {
+        Message = "Attack again to detonate your active Bonk 'Nade.",
+        Sound = "ambient/water/drip2.wav",
+        Duration = 10,
         DelayNext = 0,
     },
 }
@@ -69,7 +75,7 @@ SWEP.CFC_FirstTimeHints = {
 local bonusHintCooldown = 8
 local bonusHints = {
     {
-        Message = "The Bonk Grenade can be detonated early by attacking again after throwing.",
+        Message = "The Bonk 'Nade can be detonated early, by attacking again after throwing.",
         Sound = "ambient/water/drip1.wav",
         Duration = 8,
         DelayNext = 0,
