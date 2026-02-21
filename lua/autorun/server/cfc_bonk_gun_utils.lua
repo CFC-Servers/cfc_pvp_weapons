@@ -480,12 +480,12 @@ function CFCPvPWeapons.ApplyBonkHits( wep )
     if not bonkHits then return end
 
     for victim, hit in pairs( bonkHits ) do
-        if not victim:Alive() then continue end
-
-        local force, wasBonked = getBonkForce( hit.attacker, victim, wep, hit.force, hit.strength, hit.fromGround )
-        bonkPlayerOrNPC( hit.attacker, victim, wep, force, wasBonked )
-
         bonkHits[victim] = nil
+
+        if victim:Alive() then
+            local force, wasBonked = getBonkForce( hit.attacker, victim, wep, hit.force, hit.strength, hit.fromGround )
+            bonkPlayerOrNPC( hit.attacker, victim, wep, force, wasBonked )
+        end
     end
 
     wep._bonkHits = nil
