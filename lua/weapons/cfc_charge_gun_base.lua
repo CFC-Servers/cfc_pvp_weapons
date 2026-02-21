@@ -158,7 +158,6 @@ end
 function SWEP:Initialize()
     BaseClass.Initialize( self )
 
-    self:SetCharge( 0 )
     self:SetNextFire( 0 )
 end
 
