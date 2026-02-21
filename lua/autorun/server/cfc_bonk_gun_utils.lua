@@ -107,6 +107,7 @@ end
 
 local function addBonkImpactSource( victim, attacker, wep )
     if not IsValid( victim ) then return end
+    if victim.Alive and not victim:Alive() then return end
     if not IsValid( wep ) then return end
 
     local bonkInfo = getBonkInfo( victim )
