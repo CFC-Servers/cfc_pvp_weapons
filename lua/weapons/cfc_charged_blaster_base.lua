@@ -137,8 +137,8 @@ function SWEP:OnRemove()
 
     for _, proj in ipairs( self._projectiles ) do
         if proj:IsValid() then
-            timer.Remove( "CFC_TrashBlaster_StartFadingProjectile_" .. proj:EntIndex() )
-            timer.Remove( "CFC_TrashBlaster_FadeProjectile_" .. proj:EntIndex() )
+            timer.Remove( "CFC_ChargedBlasterBase_StartFadingProjectile_" .. proj:EntIndex() )
+            timer.Remove( "CFC_ChargedBlasterBase_FadeProjectile_" .. proj:EntIndex() )
 
             if shouldRemove then
                 proj:Remove()
@@ -225,7 +225,7 @@ function SWEP:FireWeapon( chargeAmount, notFirstCall )
     if self.Primary.ProjectileStartFadeDelay <= 0 then return end
 
     -- Fade projectile later
-    timer.Create( "CFC_TrashBlaster_StartFadingProjectile_" .. proj:EntIndex(), self.Primary.ProjectileStartFadeDelay, 1, function()
+    timer.Create( "CFC_ChargedBlasterBase_StartFadingProjectile_" .. proj:EntIndex(), self.Primary.ProjectileStartFadeDelay, 1, function()
         if not proj:IsValid() then return end
 
         proj:SetCollisionGroup( COLLISION_GROUP_WORLD )
@@ -245,7 +245,7 @@ function SWEP:FireWeapon( chargeAmount, notFirstCall )
 
         proj:SetRenderMode( RENDERMODE_TRANSCOLOR )
 
-        timer.Create( "CFC_TrashBlaster_FadeProjectile_" .. proj:EntIndex(), fadeStep, numFadeSteps, function()
+        timer.Create( "CFC_ChargedBlasterBase_FadeProjectile_" .. proj:EntIndex(), fadeStep, numFadeSteps, function()
             if not proj:IsValid() then return end
 
             stepsLeft = stepsLeft - 1
