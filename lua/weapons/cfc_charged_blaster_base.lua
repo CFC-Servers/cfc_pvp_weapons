@@ -233,6 +233,7 @@ function SWEP:FireWeapon( chargeAmount, notFirstCall )
         local fadeStep = 0.1
         local numFadeSteps = math.ceil( fadeDuration / fadeStep )
         local stepsLeft = numFadeSteps
+        local startingAlpha = proj:GetColor().a
 
         proj:SetRenderMode( RENDERMODE_TRANSCOLOR )
 
@@ -245,7 +246,9 @@ function SWEP:FireWeapon( chargeAmount, notFirstCall )
                 table.RemoveByValue( self._projectiles, proj )
                 proj:Remove()
             else
-                proj:SetColor( Color( 255, 255, 255, 255 * stepsLeft / numFadeSteps ) )
+                local color = proj:GetColor()
+                color.a = startingAlpha * stepsLeft / numFadeSteps
+                proj:SetColor( color )
             end
         end )
     end )
