@@ -5,12 +5,12 @@ SWEP.Base = "cfc_charge_gun_base"
 
 -- UI stuff
 
-SWEP.PrintName = "Trash Blaster"
+SWEP.PrintName = "cfc_charged_blaster_base"
 SWEP.Category = "CFC"
 
-SWEP.Slot = 4
-SWEP.Spawnable = true
-SWEP.AdminOnly = false
+SWEP.Slot = 0
+SWEP.Spawnable = false
+SWEP.AdminOnly = true
 
 -- Appearance
 
@@ -42,20 +42,6 @@ SWEP.Primary = {
     ProjectileStartFadeDelay = 3, -- Delay before projectiles start fading. 0 to disable (you must have another way for the projectiles to auto-delete).
     ProjectileFadeDuration = 1, -- Duration of projectile fade. 0 to delete instantly.
     ProjectileCleanupOnRemove = true, -- Whether to instantly delete all projectiles when the weapon is removed.
-
-    ProjectileMass = 8, -- -1 will use the model's default mass.
-    ProjectileModels = {
-        "models/props_junk/garbage_bag001a.mdl",
-        "models/props_combine/breenglobe.mdl",
-        "models/props_interiors/pot01a.mdl",
-        "models/props_interiors/pot02a.mdl",
-        "models/props_junk/cinderblock01a.mdl",
-        "models/props_junk/plasticbucket001a.mdl",
-        "models/props_wasteland/prison_lamp001c.mdl",
-        "models/props_combine/breenclock.mdl",
-        "models/props_lab/cactus.mdl",
-        "models/props_c17/playgroundTick-tack-toe_block01a.mdl",
-    },
 
     PumpAction = false, -- Optional: Tries to pump the weapon between shots
     PumpSound = "Weapon_Shotgun.Special1", -- Optional: Sound to play when pumping
@@ -136,23 +122,165 @@ SWEP.CFC_FirstTimeHints = {
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
 
 
-function SWEP:CreateProjectile( pos, _dir )
-    local models = self.Primary.ProjectileModels
+function SWEP:Initialize()
+    BaseClass.Initialize( self )
+
+    self._projectiles = {}
+end
+
+function SWEP:OnRemove()
+    BaseClass.OnRemove( self )
+
+    if CLIENT then return end
+    if not self.Primary.ProjectileCleanupOnRemove then return end
+
+    for _, proj in ipairs( self._projectiles ) do
+        if proj:IsValid() then
+            timer.Remove( "CFC_TrashBlaster_StartFadingProjectile_" .. proj:EntIndex() )
+            timer.Remove( "CFC_TrashBlaster_FadeProjectile_" .. proj:EntIndex() )
+            proj:Remove()
+        end
+    end
+end
+
+function SWEP:CreateProjectile( pos, dir )
     local ent = ents.Create( "prop_physics" )
     ent:SetPos( pos )
-    ent:SetAngles( Angle( math.Rand( -180, 180 ), math.Rand( -180, 180 ), math.Rand( -180, 180 ) ) )
-    ent:SetModel( models[math.random( 1, #models )] )
+    ent:SetAngles( dir:Angle() )
+    ent:SetModel( "models/hunter/blocks/cube025x025x025.mdl" )
     ent:SetCollisionGroup( COLLISION_GROUP_INTERACTIVE_DEBRIS )
     ent:SetOwner( self:GetOwner() )
     ent:Spawn()
     ent:SetPhysicsAttacker( self:GetOwner(), 1000 )
 
-    local mass = self.Primary.ProjectileMass
-    local physObj = ent:GetPhysicsObject()
+    return ent
+end
 
-    if mass > 0 and IsValid( physObj ) then
-        physObj:SetMass( mass )
+function SWEP:FireWeapon( chargeAmount, notFirstCall )
+    if chargeAmount > 1 then
+        for _ = 1, chargeAmount do
+            self:FireWeapon( 1, true )
+        end
+
+        local recoil = self.Primary.Recoil
+
+        self:ApplyStaticRecoil( self.Primary.Recoil.Ang, recoil, chargeAmount, true )
+
+        return
     end
 
-    return ent
+    local owner = self:GetOwner()
+    if not IsValid( owner ) then return end
+
+    local aimDir = owner:GetAimVector()
+
+    if not notFirstCall then
+        local recoil = self.Primary.Recoil
+
+        self:ApplyStaticRecoil( recoil.Ang, recoil, chargeAmount, true )
+    end
+
+    if CLIENT then return end
+
+    local dir = self:SpreadDirection( aimDir )
+    local pos
+
+    if self:IsCloseToWall() then
+        pos = owner:GetShootPos()
+    else
+        pos = owner:GetShootPos()
+        local ownerVel = owner:GetVelocity()
+        local velAccount = ownerVel * FrameTime() * 7
+
+        velAccount = dir * math.Max( velAccount:Dot( dir ), 0 )
+        pos = pos + dir * 35 + velAccount
+    end
+
+    pos = pos + dir:Angle():Right() * 7
+
+    local proj = self:CreateProjectile( pos, dir )
+
+    if self.Primary.Sound ~= "" then
+        proj:EmitSound( self.Primary.Sound )
+    end
+
+    if self.Primary.Sound2 ~= "" then
+        proj:EmitSound( self.Primary.Sound2 )
+    end
+
+    local physObj = proj:GetPhysicsObject()
+
+    if IsValid( physObj ) then
+        local speed = math.Rand( self.Primary.ProjectileSpeedMin, self.Primary.ProjectileSpeedMax )
+
+        physObj:SetVelocity( dir * speed + owner:GetVelocity() )
+    end
+
+    table.insert( self._projectiles, proj )
+
+    if self.Primary.ProjectileStartFadeDelay <= 0 then return end
+
+    -- Fade projectile later
+    timer.Create( "CFC_TrashBlaster_StartFadingProjectile_" .. proj:EntIndex(), self.Primary.ProjectileStartFadeDelay, 1, function()
+        if not proj:IsValid() then return end
+
+        proj:SetCollisionGroup( COLLISION_GROUP_WORLD )
+
+        local fadeDuration = self.Primary.ProjectileFadeDuration
+
+        if fadeDuration <= 0 then
+            table.RemoveByValue( self._projectiles, proj )
+            proj:Remove()
+
+            return
+        end
+
+        local fadeStep = 0.1
+        local numFadeSteps = math.ceil( fadeDuration / fadeStep )
+        local stepsLeft = numFadeSteps
+
+        proj:SetRenderMode( RENDERMODE_TRANSCOLOR )
+
+        timer.Create( "CFC_TrashBlaster_FadeProjectile_" .. proj:EntIndex(), fadeStep, numFadeSteps, function()
+            if not proj:IsValid() then return end
+
+            stepsLeft = stepsLeft - 1
+
+            if stepsLeft <= 0 then
+                table.RemoveByValue( self._projectiles, proj )
+                proj:Remove()
+            else
+                proj:SetColor( Color( 255, 255, 255, 255 * stepsLeft / numFadeSteps ) )
+            end
+        end )
+    end )
+end
+
+function SWEP:IsCloseToWall()
+    local owner = self:GetOwner()
+    if not IsValid( owner ) then return false end
+
+    local tr = util.TraceLine( {
+        start = owner:GetShootPos(),
+        endpos = owner:GetShootPos() + owner:GetAimVector() * 40,
+        filter = owner,
+        mask = MASK_SHOT_HULL,
+    } )
+
+    return tr.Hit
+end
+
+function SWEP:SpreadDirection( dir )
+    local spread = self:GetSpread()[1] -- simple_base returns as a vector
+    if spread == 0 then return dir end
+
+    spread = math.deg( spread )
+
+    local ang = dir:Angle()
+    local dirAng = Angle( ang.p, ang.y, ang.r )
+
+    dirAng:RotateAroundAxis( ang:Right(), math.Rand( -spread, spread ) )
+    dirAng:RotateAroundAxis( ang:Up(), math.Rand( -spread, spread ) )
+
+    return dirAng:Forward()
 end
