@@ -1,7 +1,7 @@
 AddCSLuaFile()
 
-DEFINE_BASECLASS( "cfc_charge_gun_base" )
-SWEP.Base = "cfc_charge_gun_base"
+DEFINE_BASECLASS( "cfc_charged_blaster_base" )
+SWEP.Base = "cfc_charged_blaster_base"
 
 -- UI stuff
 
