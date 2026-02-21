@@ -151,6 +151,23 @@ function SWEP:CreateProjectile( pos, dir )
     return ent
 end
 
+-- Return velocity, angularVelocity
+function SWEP:DetermineProjectileVelocity( _ent, dir, speed, owner )
+    return dir * speed + owner:GetVelocity(), Vector()
+end
+
+function SWEP:ApplyProjectileVelocity( ent, vel, angVel )
+    local physObj = ent:GetPhysicsObject()
+
+    if IsValid( physObj ) and ent:GetMoveType() ~= MOVETYPE_FLYGRAVITY then
+        physObj:SetVelocity( vel )
+        physObj:AddAngleVelocity( angVel )
+    else
+        ent:SetVelocity( vel )
+        ent:SetLocalAngularVelocity( angVel:Angle() )
+    end
+end
+
 function SWEP:FireWeapon( chargeAmount, notFirstCall )
     if chargeAmount > 1 then
         for _ = 1, chargeAmount do
@@ -203,14 +220,8 @@ function SWEP:FireWeapon( chargeAmount, notFirstCall )
         proj:EmitSound( self.Primary.Sound2 )
     end
 
-    local physObj = proj:GetPhysicsObject()
-
-    if IsValid( physObj ) then
-        local speed = math.Rand( self.Primary.ProjectileSpeedMin, self.Primary.ProjectileSpeedMax )
-
-        physObj:SetVelocity( dir * speed + owner:GetVelocity() )
-    end
-
+    local vel, angVel = self:DetermineProjectileVelocity( proj, dir, math.Rand( self.Primary.ProjectileSpeedMin, self.Primary.ProjectileSpeedMax ), owner )
+    self:ApplyProjectileVelocity( proj, vel, angVel )
     table.insert( self._projectiles, proj )
 
     if self.Primary.ProjectileStartFadeDelay <= 0 then return end
