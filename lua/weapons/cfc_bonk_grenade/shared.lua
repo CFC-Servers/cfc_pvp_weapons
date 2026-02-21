@@ -1,7 +1,7 @@
 AddCSLuaFile()
 
 if CLIENT then
-    language.Add( "cfc_bonk_grenadenade_ammo", "Bonk Grenades" )
+    language.Add( "cfc_bonk_grenade_ammo", "Bonk Grenades" )
 end
 
 game.AddAmmoType( { name = "cfc_bonk_grenade", maxcarry = 5 } )
