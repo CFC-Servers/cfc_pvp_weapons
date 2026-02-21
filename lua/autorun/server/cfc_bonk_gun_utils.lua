@@ -262,6 +262,8 @@ local function enableMovement( victim )
 end
 
 local function bonkPlayerOrNPC( attacker, victim, wep, force, wasBonked )
+    if not victim:Alive() then return end
+    if not victim:IsPlayer() and not victim:IsNPC() then return end
     if not force then return end
 
     if victim:IsPlayer() then
@@ -482,10 +484,8 @@ function CFCPvPWeapons.ApplyBonkHits( wep )
     for victim, hit in pairs( bonkHits ) do
         bonkHits[victim] = nil
 
-        if victim:Alive() then
-            local force, wasBonked = getBonkForce( hit.attacker, victim, wep, hit.force, hit.strength, hit.fromGround )
-            bonkPlayerOrNPC( hit.attacker, victim, wep, force, wasBonked )
-        end
+        local force, wasBonked = getBonkForce( hit.attacker, victim, wep, hit.force, hit.strength, hit.fromGround )
+        bonkPlayerOrNPC( hit.attacker, victim, wep, force, wasBonked )
     end
 
     wep._bonkHits = nil
