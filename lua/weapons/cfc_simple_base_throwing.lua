@@ -44,7 +44,7 @@ SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = 0
 SWEP.Secondary.Automatic = false
 
-SWEP.ThrowCooldown = 0
+SWEP.ThrowCooldown = 0 -- Desired cooldown between throws. Final result can't go lower than the throw + reload anim durations.
 
 
 local cooldownEndTimesPerClass = {}
@@ -140,6 +140,7 @@ function SWEP:EmitThrowSound()
 end
 
 function SWEP:PrimaryAttack()
+    if self:GetNextPrimaryFire() > CurTime() then return end
     if not self:CanThrow() then return end
 
     self:SetHoldType( self.ThrowingHoldType )
@@ -163,6 +164,7 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
+    if self:GetNextSecondaryFire() > CurTime() then return end
     if not self:CanThrow() then return end
 
     local duration = 0
@@ -211,17 +213,22 @@ function SWEP:Throw()
         cooldownEndTimesPerClass[class] = cooldownEndTimes
     end
 
-    cooldownEndTimes[ply] = CurTime() + ( self.ThrowCooldown or 0 )
+    local cooldown = self.ThrowCooldown or 0 -- Desired cooldown (though final waiting time can't go lower than the combined anim durations)
+    local throwAnimDur = self:SendTranslatedWeaponAnim( act ) -- Note that this also starts the throw anim, instead of only getting the duration.
+    local reloadAnimDur = self:GetTranslatedWeaponAnimDuration( ACT_VM_DRAW )
+    local timeUntilReadyAgain = math.max( cooldown, throwAnimDur + reloadAnimDur )
+    local timeUntilReloadStart = timeUntilReadyAgain - reloadAnimDur
 
-    local reloadDur = self:SendTranslatedWeaponAnim( act )
-    self:SetFinishReload( CurTime() + reloadDur )
+    cooldownEndTimes[ply] = CurTime() + cooldown
+
+    self:SetFinishReload( CurTime() + timeUntilReloadStart )
     self:SetFinishThrow( 0 )
     self:TakePrimaryAmmo( 1 )
 
     if self:GetOwner():IsPlayer() then return end
 
     -- Barebones terminator support
-    timer.Simple( reloadDur + 0.1, function()
+    timer.Simple( timeUntilReloadStart + 0.1, function()
         if not IsValid( self ) then return end
 
         local owner = self:GetOwner()
@@ -337,6 +344,13 @@ function SWEP:SendTranslatedWeaponAnim( act )
     if not act then return end
 
     self:SendWeaponAnim( act )
+
+    return self:SequenceDuration( self:SelectWeightedSequence( act ) )
+end
+
+function SWEP:GetTranslatedWeaponAnimDuration( act )
+    act = self:TranslateWeaponAnim( act )
+    if not act then return 0 end
 
     return self:SequenceDuration( self:SelectWeightedSequence( act ) )
 end

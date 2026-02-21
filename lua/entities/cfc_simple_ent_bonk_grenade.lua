@@ -22,7 +22,7 @@ ENT.PlayerKnockbackVelAdd = Vector( 0, 0, 200 )
 function ENT:Initialize()
     BaseClass.Initialize( self )
 
-    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_discombob" )
+    self:SetMaterial( "models/weapons/w_models/cfc_frag_grenade/frag_grenade_bonk" )
 end
 
 function ENT:Explode()
@@ -39,6 +39,7 @@ function ENT:Explode()
     local playerKnockback = self.PlayerKnockback
     local playerSelfKnockback = self.PlayerSelfKnockback
     local playerKnockbackVelAdd = self.PlayerKnockbackVelAdd
+    local wep = self._discombobWep
 
     CFCPvPWeapons.BlastDamageInfo( dmgInfoInit, pos, self.Radius, function( victim, dmgInfo )
         if victim == self then return true end
@@ -72,21 +73,29 @@ function ENT:Explode()
             physObj:ApplyForceCenter( force )
         end
 
+        if wep and wep.Bonk and victim ~= attacker and victim.Alive and victim:Alive() then
+            CFCPvPWeapons.ArbitraryBonk( victim, attacker, wep )
+        end
+
         return true
     end )
 
     local effect = EffectData()
     effect:SetStart( pos )
     effect:SetOrigin( pos )
+    effect:SetFlags( 0x4 )
 
     util.Effect( "Explosion", effect, true, true )
     util.Effect( "cball_explode", effect, true, true )
 
-    sound.Play( "npc/assassin/ball_zap1.wav", pos, 90, 100 )
+    sound.Play( "hl1/ambience/steamburst1.wav", pos, 90, math.random( 150, 160 ) )
+    sound.Play( "weapons/physcannon/superphys_launch3.wav", pos, 83, math.random( 180, 200 ) )
+    sound.Play( "garrysmod/balloon_pop_cute.wav", pos, 90, math.random( 40, 50 ), 0.4 )
 
     self:Remove()
 end
 
 function ENT:PlayBeep()
-    self:EmitSound( "npc/roller/mine/combine_mine_deploy1.wav", 75, 120 )
+    self:EmitSound( "npc/roller/mine/rmine_taunt1.wav", 75, 120 )
+    self:EmitSound( "npc/roller/mine/rmine_taunt1.wav", 75, 123 )
 end
