@@ -94,7 +94,7 @@ SWEP.Primary = {
     },
 
     Sound = "physics/concrete/rock_impact_hard2.wav", -- Firing sound
-    Sound2 = "doors/door_metal_thin_close2.wav", -- Second firing sound, leave blank for none
+    Sound2 = "doors/door_metal_thin_close2.wav", -- Bonus firing sound
     TracerName = "", -- Tracer effect, leave blank for no tracer
 
     ChargeSound = "npc/combine_gunship/engine_rotor_loop1.wav",

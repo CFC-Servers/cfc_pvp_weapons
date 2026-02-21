@@ -79,8 +79,15 @@ SWEP.Primary = {
         Sound = ""
     },
 
-    Sound = "physics/concrete/rock_impact_hard2.wav", -- Firing sound
-    Sound2 = "doors/door_metal_thin_close2.wav", -- Second firing sound, leave blank for none
+    Sound = { -- Firing sound
+        Path = "physics/concrete/rock_impact_hard2.wav",
+        Level = nil,
+        PitchMin = nil,
+        PitchMax = nil,
+        Volume = nil,
+        Channel = nil,
+    },
+    Sound2 = nil, -- Bonus firing sound
     TracerName = "", -- Tracer effect, leave blank for no tracer
 
     ChargeSound = "npc/combine_gunship/engine_rotor_loop1.wav",
@@ -168,6 +175,20 @@ function SWEP:ApplyProjectileVelocity( ent, vel, angVel )
     end
 end
 
+function SWEP:PlaySound( ent, snd )
+    if not snd or snd == "" then return end
+
+    if type( snd ) == "string" then
+        ent:EmitSound( snd )
+        return
+    end
+
+    local pitchMin = snd.PitchMin or snd.Pitch or 100
+    local pitchMax = snd.PitchMax or snd.Pitch or 100
+
+    ent:EmitSound( snd.Path, snd.Level or 75, math.Rand( pitchMin, pitchMax ), snd.Volume or 1, snd.Channel )
+end
+
 function SWEP:FireWeapon( chargeAmount, notFirstCall )
     if chargeAmount > 1 then
         for _ = 1, chargeAmount do
@@ -211,14 +232,8 @@ function SWEP:FireWeapon( chargeAmount, notFirstCall )
     pos = pos + dir:Angle():Right() * 7
 
     local proj = self:CreateProjectile( pos, dir )
-
-    if self.Primary.Sound ~= "" then
-        proj:EmitSound( self.Primary.Sound )
-    end
-
-    if self.Primary.Sound2 ~= "" then
-        proj:EmitSound( self.Primary.Sound2 )
-    end
+    self:PlaySound( proj, self.Primary.Sound )
+    self:PlaySound( proj, self.Primary.Sound2 )
 
     local vel, angVel = self:DetermineProjectileVelocity( proj, dir, math.Rand( self.Primary.ProjectileSpeedMin, self.Primary.ProjectileSpeedMax ), owner )
     self:ApplyProjectileVelocity( proj, vel, angVel )
