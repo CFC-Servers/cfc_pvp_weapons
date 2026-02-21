@@ -88,9 +88,9 @@ function ENT:Explode()
     util.Effect( "Explosion", effect, true, true )
     util.Effect( "cball_explode", effect, true, true )
 
-    sound.Play( "ambient/machines/steam_release_1.wav", pos, 90, 130 )
-    sound.Play( "physics/metal/metal_barrel_impact_hard6.wav", pos, 90, 130 )
-    sound.Play( "physics/metal/metal_barrel_impact_hard2.wav", pos, 90, 120 )
+    sound.Play( "hl1/ambience/steamburst1.wav", pos, 90, math.random( 150, 160 ) )
+    sound.Play( "weapons/physcannon/superphys_launch3.wav", pos, 83, math.random( 180, 200 ) )
+    sound.Play( "garrysmod/balloon_pop_cute.wav", pos, 90, math.random( 40, 50 ), 0.4 )
 
     self:Remove()
 end
