@@ -176,6 +176,8 @@ end
 
 if SERVER then
     local function handleBonusHints( wep, nade )
+        if not IsValid( wep ) then return end
+
         local owner = wep:GetOwner()
         if not IsValid( owner ) then return end
         if not owner:IsPlayer() then return end
