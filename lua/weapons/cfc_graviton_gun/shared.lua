@@ -244,7 +244,7 @@ function SWEP:FireWeapon( charge )
             if not ply:Alive() then continue end
             if ply:InVehicle() then continue end
             if ply:WaterLevel() > 0 then continue end
-            if ply.cfcParachuteChute and ply.cfcParachuteChute._chuteIsOpen then continue end -- cant graviton chuted targets
+            if ply.cfcParachuteChute and ply.cfcParachuteChute:GetIsOpen() then continue end -- cant graviton chuted targets
 
             local groundEnt = ply:GetGroundEntity()
             if groundEnt == world then continue end
