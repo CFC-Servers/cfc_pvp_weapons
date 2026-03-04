@@ -49,15 +49,13 @@ function ENT:Explode()
         if victim == self then return true end
         if not IsValid( victim ) then return end
 
-        local forceDir = dmgInfo:GetDamageForce()
-        local forceLength = forceDir:Length()
+        local force = dmgInfo:GetDamageForce()
+        local forceLength = force:Length()
         if forceLength == 0 then return true end
-
-        forceDir = forceDir / forceLength
 
         local damageDealt = dmgInfo:GetDamage()
         local damageFrac = damageDealt / baseDamage
-        local force = forceDir * damageFrac
+        force:Mul( damageFrac / forceLength )
 
         if victim:IsPlayer() then
             if not victim:Alive() then return true end
