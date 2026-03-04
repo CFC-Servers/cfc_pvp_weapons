@@ -17,7 +17,8 @@ ENT.Radius = 300
 ENT.Knockback = 1000 * 40
 ENT.PlayerKnockback = 600
 ENT.PlayerSelfKnockback = 450
-ENT.PlayerKnockbackVelAdd = Vector( 0, 0, 200 )
+ENT.PlayerKnockbackVertConstant = 200 -- Vertical force added to players which goes up/down depending on the initial force. Does NOT scale with explosion falloff.
+ENT.PlayerKnockbackVertScaled = 300 -- Vertical force added to players which goes up/down depending on the initial force. Scales with explosion falloff.
 
 
 function ENT:Initialize()
@@ -30,16 +31,18 @@ function ENT:Explode()
     local pos = self:WorldSpaceCenter()
     local attacker = self:GetOwner()
 
+    local baseDamage = self.Damage
     local dmgInfoInit = DamageInfo()
     dmgInfoInit:SetAttacker( attacker )
     dmgInfoInit:SetInflictor( self )
-    dmgInfoInit:SetDamage( self.Damage )
+    dmgInfoInit:SetDamage( baseDamage )
     dmgInfoInit:SetDamageType( DMG_SONIC ) -- Don't use DMG_BLAST, otherwise rocket jump addons will also try to apply knockback (or even scale the damage)
 
     local knockback = self.Knockback
     local playerKnockback = self.PlayerKnockback
     local playerSelfKnockback = self.PlayerSelfKnockback
-    local playerKnockbackVelAdd = self.PlayerKnockbackVelAdd
+    local playerKnockbackVertConstant = self.PlayerKnockbackVertConstant
+    local playerKnockbackVertScaled = self.PlayerKnockbackVertScaled
     local wep = self._discombobWep
 
     CFCPvPWeapons.BlastDamageInfo( dmgInfoInit, pos, self.Radius, function( victim, dmgInfo )
@@ -53,7 +56,8 @@ function ENT:Explode()
         forceDir = forceDir / forceLength
 
         local damageDealt = dmgInfo:GetDamage()
-        local force = forceDir * damageDealt / self.Damage
+        local damageFrac = damageDealt / baseDamage
+        local force = forceDir * damageFrac
 
         if victim:IsPlayer() then
             if not victim:Alive() then return true end
@@ -65,7 +69,15 @@ function ENT:Explode()
             timer.Simple( engine.TickInterval(), function()
                 if not IsValid( victim ) then return end
 
-                victim:SetVelocity( force + playerKnockbackVelAdd )
+                local z = force[3]
+
+                if z >= 0 then
+                    force[3] = z + playerKnockbackVertConstant + playerKnockbackVertScaled * damageFrac
+                else
+                    force[3] = z - playerKnockbackVertConstant - playerKnockbackVertScaled * damageFrac
+                end
+
+                victim:SetVelocity( force )
             end )
         else
             local physObj = victim:GetPhysicsObject()
