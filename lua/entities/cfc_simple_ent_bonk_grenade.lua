@@ -17,8 +17,8 @@ ENT.Radius = 300
 ENT.Knockback = 1000 * 40
 ENT.PlayerKnockback = 600
 ENT.PlayerSelfKnockback = 450
-ENT.PlayerKnockbackVertConstant = 200 -- Vertical force added to players which goes up/down depending on the initial force. Does NOT scale with explosion falloff.
-ENT.PlayerKnockbackVertScaled = 300 -- Vertical force added to players which goes up/down depending on the initial force. Scales with explosion falloff.
+ENT.PlayerKnockbackVertConstant = 100 -- Vertical force added to players which goes up/down depending on the initial force. Does NOT scale with explosion falloff.
+ENT.PlayerKnockbackVertScaled = 150 -- Vertical force added to players which goes up/down depending on the initial force. Scales with explosion falloff.
 
 
 function ENT:Initialize()
