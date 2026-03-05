@@ -60,7 +60,7 @@ function ENT:Explode()
         if victim:IsPlayer() then
             if not victim:Alive() then return true end
 
-            force = force * ( victim == attacker and playerSelfKnockback or playerKnockback )
+            force:Mul( victim == attacker and playerSelfKnockback or playerKnockback )
 
             -- If the explosion was caused by an impact with the player, the movement caused by the collison overrides our :SetVelocity() call.
             -- It ignores it even with a delay of 0 (i.e. the next tick), but delaying by 1 tick interval (i.e. the next next tick) works.
