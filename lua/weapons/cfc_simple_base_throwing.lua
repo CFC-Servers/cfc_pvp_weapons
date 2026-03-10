@@ -262,7 +262,6 @@ if SERVER then
         local ply = self:GetOwner()
 
         ent:SetOwner( ply )
-        ent:SetCreator( ply )
 
         self:SetThrowableInHand( false )
 

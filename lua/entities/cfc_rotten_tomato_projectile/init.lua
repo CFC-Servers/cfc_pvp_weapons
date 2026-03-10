@@ -84,7 +84,7 @@ function ENT:Touch( ent )
 
     self.Projectile_Hit = true
 
-    local attacker = IsValid( self:GetThrower() ) and self:GetThrower() or self:GetCreator()
+    local attacker = IsValid( self:GetThrower() ) and self:GetThrower()
     if not IsValid( attacker ) then
         attacker = self
     end
