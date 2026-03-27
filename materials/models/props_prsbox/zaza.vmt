@@ -1,0 +1,8 @@
+"VertexLitGeneric"
+{
+	$basetexture "models\props_prsbox\zaza"
+	$surfaceprop Paper
+
+	$selfillum 1
+	$selfillummask "models\props_prsbox\zaza_e"
+}
