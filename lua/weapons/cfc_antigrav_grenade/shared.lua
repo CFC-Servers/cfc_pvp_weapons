@@ -11,6 +11,7 @@ SWEP.Base = "cfc_simple_base_throwing"
 
 SWEP.PrintName = "'Nade (Anti-Gravity)"
 SWEP.Category = "CFC"
+SWEP.SubCategory = "Nades"
 
 SWEP.Slot = 4
 SWEP.Spawnable = true

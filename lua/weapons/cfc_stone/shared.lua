@@ -7,6 +7,7 @@ SWEP.Base = "cfc_simple_base_throwing"
 
 SWEP.PrintName = "Stone"
 SWEP.Category = "CFC"
+SWEP.SubCategory = "Chuckables"
 SWEP.UseHands = true
 
 if CLIENT then -- killicon, HUD icon and language 'translation'

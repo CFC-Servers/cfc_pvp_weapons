@@ -7,6 +7,7 @@ SWEP.Base = "cfc_simple_base_throwing"
 
 SWEP.PrintName = "Super Cinder Block"
 SWEP.Category = "CFC"
+SWEP.SubCategory = "Restricted"
 SWEP.UseHands = true
 
 SWEP.AutoSwitchTo = true

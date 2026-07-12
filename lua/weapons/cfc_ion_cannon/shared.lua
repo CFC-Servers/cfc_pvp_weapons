@@ -7,6 +7,7 @@ SWEP.Base = "cfc_charge_gun_base"
 
 SWEP.PrintName = "Ion Cannon"
 SWEP.Category = "CFC"
+SWEP.SubCategory = "Anti-Material"
 
 SWEP.Slot = 4
 SWEP.Spawnable = true
