@@ -13,6 +13,7 @@ SWEP.Base = "cfc_gamblers_revolver"
 
 SWEP.PrintName = "Jackpot Revolver"
 SWEP.Category = "CFC"
+SWEP.SubCategory = "Restricted"
 
 SWEP.AutoSwitchTo = true
 SWEP.AutoSwitchFrom = false

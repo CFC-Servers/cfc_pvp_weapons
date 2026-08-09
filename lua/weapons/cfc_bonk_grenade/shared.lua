@@ -11,6 +11,7 @@ SWEP.Base = "cfc_simple_base_throwing"
 
 SWEP.PrintName = "'Nade (Bonk)"
 SWEP.Category = "CFC"
+SWEP.SubCategory = "Nades"
 
 SWEP.Instructions =
 [[A low-damage explosive which sends things flying.

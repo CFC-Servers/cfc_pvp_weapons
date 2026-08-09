@@ -5,6 +5,7 @@ SWEP.Base = "cfc_charged_throwable"
 
 SWEP.PrintName = "'Nade (Charged Cluster)"
 SWEP.Category = "CFC"
+SWEP.SubCategory = "Nades"
 
 SWEP.Slot = 4
 SWEP.Spawnable = true

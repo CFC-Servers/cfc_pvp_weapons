@@ -1,6 +1,7 @@
 AddCSLuaFile()
 
 SWEP.Category           = "CFC"
+SWEP.SubCategory        = "Anti-Material"
 SWEP.PrintName          = "Stinger Missile"
 SWEP.Author             = "CFC"
 SWEP.Instructions       = "Homing, anti-air RPG.\nFor best results, use on distant targets."

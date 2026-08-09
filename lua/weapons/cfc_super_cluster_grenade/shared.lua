@@ -11,6 +11,7 @@ SWEP.Base = "cfc_simple_base_throwing"
 
 SWEP.PrintName = "Super 'Nade (Cluster)"
 SWEP.Category = "CFC"
+SWEP.SubCategory = "Restricted"
 
 SWEP.Slot = 4
 SWEP.Spawnable = true

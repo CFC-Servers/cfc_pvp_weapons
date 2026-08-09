@@ -8,6 +8,9 @@ game.AddAmmoType( {
 } )
 
 SWEP.Spawnable              = true
+SWEP.PrintName              = "Shaped Charge"
+SWEP.Category               = "CFC"
+SWEP.SubCategory            = "Anti-Material"
 
 SWEP.ViewModel              = "models/weapons/cstrike/c_c4.mdl"
 SWEP.WorldModel             = "models/weapons/w_c4.mdl"

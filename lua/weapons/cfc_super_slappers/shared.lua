@@ -9,6 +9,7 @@ SWEP.AdminOnly = true
 SWEP.PrintName = "Super Slappers"
 SWEP.Purpose = "Super Slap"
 SWEP.Category = "CFC"
+SWEP.SubCategory = "Restricted"
 SWEP.Slot = 1
 SWEP.SlotPos = 0
 
