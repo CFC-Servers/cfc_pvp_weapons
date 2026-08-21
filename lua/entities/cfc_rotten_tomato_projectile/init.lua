@@ -77,7 +77,7 @@ function ENT:Touch( ent )
     local normal = self:GetVelocity():GetNormalized()
     local pos = self:WorldSpaceCenter()
 
-    local hitStaticTooEarly = self.NextHitTime > CurTime() and hitEnt:IsWorld() or ( IsValid( hitEnt:GetPhysicsObject() ) and not hitEnt:GetPhysicsObject():IsMotionEnabled() )
+    local hitStaticTooEarly = self.NextHitTime > CurTime() and ( hitEnt:IsWorld() or ( IsValid( hitEnt:GetPhysicsObject() ) and not hitEnt:GetPhysicsObject():IsMotionEnabled() ) )
 
     -- only hit static stuff early IF it's directly in our way
     if hitStaticTooEarly and not util.QuickTrace( pos, normal * 25, self ).Hit then return end

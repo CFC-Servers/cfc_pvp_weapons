@@ -73,11 +73,15 @@ local function stopAirSound( ent )
 
     if not snd or not snd:IsPlaying() then return end
     snd:Stop()
-    snd = nil
+    ent.airSound = nil
 end
 
 function ENT:Think()
     local airSound = self.airSound
+    if airSound and self:IsDormant() then
+        stopAirSound( self )
+        return
+    end
     local baseDamage = self.BaseDamage
     if not airSound then
         airSound = CreateSound( self, airSoundPath )
