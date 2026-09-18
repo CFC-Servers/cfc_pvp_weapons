@@ -101,6 +101,7 @@ local function clearBonkInfo( victim )
 
     bonkInfo.IsBonked = nil
     bonkInfo.PrevVel = nil
+    bonkInfo.ComboCount = nil
     victim.cfc_bonkInfo = nil
     bonkedEnts[victim] = nil
 end
@@ -113,6 +114,7 @@ local function addBonkImpactSource( victim, attacker, wep )
     local bonkInfo = getBonkInfo( victim )
     local wepClass = wep:GetClass()
     bonkInfo.IsBonked = true
+    bonkInfo.ComboCount = ( bonkInfo.ComboCount or 0 ) + 1
     bonkInfo.PrevVel = victim:GetVelocity()
     bonkInfo.ExpireTime = RealTime() + IMPACT_LIFETIME
     bonkedEnts[victim] = true
@@ -168,7 +170,8 @@ end
 local function getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGround )
     local maxDamage = wep.Primary.Damage * wep.Primary.Count
     local damageMult = math.min( dmgAmount / maxDamage, wep.Bonk.PlayerForceMultMax )
-    local wasBonked = getBonkInfo( victim ).IsBonked == true
+    local bonkInfo = getBonkInfo( victim )
+    local wasBonked = bonkInfo.IsBonked == true
 
     if wasBonked then
         damageMult = damageMult * wep.Bonk.PlayerForceComboMult
@@ -222,7 +225,7 @@ local function getBonkForce( attacker, victim, wep, dmgForce, dmgAmount, fromGro
         force.z = force.z + wep.Bonk.PlayerForceGroundZAdd
     end
 
-    return force, wasBonked
+    return force, bonkInfo.ComboCount or 0
 end
 
 -- Disable victim's movement temporarily so they can't immediately cancel out the bonk effect.
@@ -261,7 +264,7 @@ local function enableMovement( victim )
     net.Send( victim )
 end
 
-local function bonkPlayerOrNPC( attacker, victim, wep, force, wasBonked )
+local function bonkPlayerOrNPC( attacker, victim, wep, force, comboCount )
     if not victim:Alive() then return end
     if not victim:IsPlayer() and not victim:IsNPC() then return end
     if not force then return end
@@ -282,8 +285,11 @@ local function bonkPlayerOrNPC( attacker, victim, wep, force, wasBonked )
     end
 
     playBonkSound( victim )
+    comboCount = comboCount + 1 -- +1 since this bonk doesn't add to the counter until the next tick
 
-    if wasBonked then
+    if not wep.Bonk.ImpactEnabled then return end
+
+    if comboCount > 1 then
         playBonkComboSound( attacker )
 
         local radius = 32
@@ -291,10 +297,9 @@ local function bonkPlayerOrNPC( attacker, victim, wep, force, wasBonked )
         eff:SetOrigin( Vector( 0, 0, victim:OBBMaxs()[3] + radius + 10 ) )
         eff:SetEntity( victim )
         eff:SetRadius( radius )
-        util.Effect( "cfc_double_bonk", eff, true, true )
+        eff:SetScale( comboCount )
+        util.Effect( "cfc_multi_bonk", eff, true, true )
     end
-
-    if not wep.Bonk.ImpactEnabled then return end
 
     timer.Simple( IMPACT_START_DELAY, function()
         addBonkImpactSource( victim, attacker, wep )
@@ -484,16 +489,16 @@ function CFCPvPWeapons.ApplyBonkHits( wep )
     for victim, hit in pairs( bonkHits ) do
         bonkHits[victim] = nil
 
-        local force, wasBonked = getBonkForce( hit.attacker, victim, wep, hit.force, hit.strength, hit.fromGround )
-        bonkPlayerOrNPC( hit.attacker, victim, wep, force, wasBonked )
+        local force, comboCount = getBonkForce( hit.attacker, victim, wep, hit.force, hit.strength, hit.fromGround )
+        bonkPlayerOrNPC( hit.attacker, victim, wep, force, comboCount )
     end
 
     wep._bonkHits = nil
 end
 
 function CFCPvPWeapons.ArbitraryBonk( victim, attacker, wep, force )
-    local wasBonked = getBonkInfo( victim ).IsBonked
-    bonkPlayerOrNPC( attacker, victim, wep, force or Vector(), wasBonked )
+    local comboCount = getBonkInfo( victim ).ComboCount or 0
+    bonkPlayerOrNPC( attacker, victim, wep, force or Vector(), comboCount )
 end
 
 

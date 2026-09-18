@@ -4,20 +4,28 @@ function EFFECT:Init( data )
     local ent = data:GetEntity()
     ent = IsValid( ent ) and ent or nil
 
+    local comboCount = math.Clamp( math.Round( data:GetScale() ), 2, 5 )
     local pos = IsValid( ent ) and ent:LocalToWorld( localPos ) or localPos
     local emitter = ParticleEmitter( pos )
 
-    local particle = emitter:Add( "cfc_pvp_weapons/sprites/double_bonk", pos )
+    local particle = emitter:Add( "cfc_pvp_weapons/sprites/multi_bonk_" .. comboCount, pos )
     particle:SetDieTime( 2.5 )
     particle:SetStartAlpha( 255 )
     particle:SetEndAlpha( 0 )
     particle:SetStartSize( size )
     particle:SetEndSize( size )
 
+    local oldEffect = ent._cfcPvPWeapons_multiBonkEffect
+    if oldEffect and oldEffect.KillEarly then
+        oldEffect:KillEarly() -- Don't stack effects, they'll zfight
+    end
+
     self._ent = ent
     self._localPos = localPos
     self._emitter = emitter
     self._particle = particle
+
+    ent._cfcPvPWeapons_multiBonkEffect = self
 end
 
 function EFFECT:Think()
@@ -26,6 +34,11 @@ function EFFECT:Think()
 
     if not IsValid( ent ) or emitter:GetNumActiveParticles() == 0 or ( ent.Alive and not ent:Alive() ) then
         emitter:Finish()
+
+        if ent._cfcPvPWeapons_multiBonkEffect == self then
+            ent._cfcPvPWeapons_multiBonkEffect = nil -- Not needed, but reduces table clutter
+        end
+
         return false
     end
 
@@ -45,4 +58,11 @@ function EFFECT:Think()
 end
 
 function EFFECT:Render()
+end
+
+function EFFECT:KillEarly()
+    local particle = self._particle
+    if not particle then return end
+
+    particle:SetDieTime( 0.01 )
 end
