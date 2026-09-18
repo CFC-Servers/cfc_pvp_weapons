@@ -287,6 +287,8 @@ local function bonkPlayerOrNPC( attacker, victim, wep, force, comboCount )
     playBonkSound( victim )
     comboCount = comboCount + 1 -- +1 since this bonk doesn't add to the counter until the next tick
 
+    if not wep.Bonk.ImpactEnabled then return end
+
     if comboCount > 1 then
         playBonkComboSound( attacker )
 
@@ -298,8 +300,6 @@ local function bonkPlayerOrNPC( attacker, victim, wep, force, comboCount )
         eff:SetScale( comboCount )
         util.Effect( "cfc_multi_bonk", eff, true, true )
     end
-
-    if not wep.Bonk.ImpactEnabled then return end
 
     timer.Simple( IMPACT_START_DELAY, function()
         addBonkImpactSource( victim, attacker, wep )
