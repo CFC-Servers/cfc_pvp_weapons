@@ -1,0 +1,9 @@
+"UnlitGeneric"
+{
+    "$basetexture" "cfc_pvp_weapons/sprites/multi_bonk_2"
+    "$vertexcolor" "1"
+    "$vertexalpha" "1"
+    "$translucent" "1"
+    "$additive" "0"
+}
+
