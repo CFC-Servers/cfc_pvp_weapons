@@ -5,12 +5,12 @@ SWEP.Base = "cfc_charged_blaster_base"
 
 -- UI stuff
 
-SWEP.PrintName = "Trash Blaster"
+SWEP.PrintName = "Tomato Blaster"
 SWEP.Category = "CFC"
 
 SWEP.Slot = 4
 SWEP.Spawnable = true
-SWEP.AdminOnly = false
+SWEP.AdminOnly = true
 
 -- Appearance
 
@@ -31,7 +31,7 @@ SWEP.Primary = {
     Ammo = "Buckshot", -- The ammo type used when reloading
     Cost = 1, -- A remnant of cfc_simple_base. Leave as 1.
 
-    ClipSize = 25, -- The max ammount of ammo for a full charge
+    ClipSize = 15, -- The max ammount of ammo for a full charge
     DefaultClip = 1000, -- How many rounds the player gets when picking up the weapon for the first time, excess ammo will be added to the player's reserves
 
     Damage = 1, -- Damage per shot
@@ -39,31 +39,17 @@ SWEP.Primary = {
 
     ProjectileSpeedMin = 1100, -- Minimum projectile speed.
     ProjectileSpeedMax = 1300, -- Maximum projectile speed.
-    ProjectileStartFadeDelay = 3, -- Delay before projectiles start fading. 0 to disable (you must have another way for the projectiles to auto-delete).
-    ProjectileFadeDuration = 1, -- Duration of projectile fade. 0 to delete instantly.
+    ProjectileStartFadeDelay = 0, -- Delay before projectiles start fading. 0 to disable (you must have another way for the projectiles to auto-delete).
+    ProjectileFadeDuration = 0, -- Duration of projectile fade. 0 to delete instantly.
     ProjectileCleanupOnRemove = true, -- Whether to instantly delete all projectiles when the weapon is removed.
-
-    ProjectileMass = 8, -- -1 will use the model's default mass.
-    ProjectileModels = {
-        "models/props_junk/garbage_bag001a.mdl",
-        "models/props_combine/breenglobe.mdl",
-        "models/props_interiors/pot01a.mdl",
-        "models/props_interiors/pot02a.mdl",
-        "models/props_junk/cinderblock01a.mdl",
-        "models/props_junk/plasticbucket001a.mdl",
-        "models/props_wasteland/prison_lamp001c.mdl",
-        "models/props_combine/breenclock.mdl",
-        "models/props_lab/cactus.mdl",
-        "models/props_c17/playgroundTick-tack-toe_block01a.mdl",
-    },
 
     PumpAction = false, -- Optional: Tries to pump the weapon between shots
     PumpSound = "Weapon_Shotgun.Special1", -- Optional: Sound to play when pumping
 
-    Delay = 0.1, -- Delay between each buildup of charge, use 60 / x for RPM (Rounds per minute) values
+    Delay = 0.075, -- Delay between each buildup of charge, use 60 / x for RPM (Rounds per minute) values
     BurstEnabled = true, -- When releasing the charge, decides whether to burst-fire the weapon once per unit ammo, or to expend the full charge in one fire call
-    BurstDelay = 0.075, -- Burst only: the delay between shots during a burst
-    Cooldown = 2.5, -- Cooldown to apply once the charge is expended
+    BurstDelay = 0.1, -- Burst only: the delay between shots during a burst
+    Cooldown = 2, -- Cooldown to apply once the charge is expended
     MovementMultWhenCharging = 0.75, -- Multiplier against movement speed when charging
     OverchargeDelay = false, -- Once at full charge, it takes this long before overcharge occurs. False to disable.
 
@@ -93,18 +79,27 @@ SWEP.Primary = {
         Sound = ""
     },
 
-    Sound = "physics/concrete/rock_impact_hard2.wav", -- Firing sound
-    Sound2 = "doors/door_metal_thin_close2.wav", -- Bonus firing sound
+    Sound = { -- Firing sound
+        Path = "physics/metal/metal_barrel_impact_hard5.wav",
+        PitchMin = 150,
+        PitchMax = 160,
+    },
+    Sound2 = { -- Bonus Firing sound
+        Path = "physics/metal/metal_computer_impact_soft3.wav",
+        PitchMin = 100,
+        PitchMax = 110,
+        Volume = 0.5,
+    },
     TracerName = "", -- Tracer effect, leave blank for no tracer
 
-    ChargeSound = "npc/combine_gunship/engine_rotor_loop1.wav",
+    ChargeSound = "physics/plastic/plastic_barrel_roll_loop1.wav",
     ChargeVolume = 1,
-    ChargeStepSound = "physics/metal/metal_computer_impact_soft2.wav",
-    ChargeStepVolume = 0.15,
-    ChargeStepPitchMinStart = 60,
-    ChargeStepPitchMaxStart = 60,
-    ChargeStepPitchMinEnd = 120,
-    ChargeStepPitchMaxEnd = 120,
+    ChargeStepSound = "physics/plastic/plastic_box_impact_soft4.wav",
+    ChargeStepVolume = 0.3,
+    ChargeStepPitchMinStart = 80,
+    ChargeStepPitchMaxStart = 80,
+    ChargeStepPitchMinEnd = 140,
+    ChargeStepPitchMaxEnd = 140,
     ChargeStepPitchEase = function( x ) return x end, -- Use an easing function (e.g. math.ease.InCubic). Default is linear, which isn't in the ease library.
 
     ChargeSprite = {
@@ -126,8 +121,14 @@ SWEP.Primary = {
 
 SWEP.CFC_FirstTimeHints = {
     {
-        Message = "The Trash Blaster is a charged weapon. Hold left mouse before releasing to fire.",
+        Message = "The Tomato Blaster is a charged weapon. Hold left mouse before releasing to fire.",
         Sound = "ambient/water/drip1.wav",
+        Duration = 7,
+        DelayNext = 5,
+    },
+    {
+        Message = "Splatter someone with a tomato to briefly cover their screen!",
+        Sound = "ambient/water/drip2.wav",
         Duration = 7,
         DelayNext = 0,
     },
@@ -137,22 +138,44 @@ SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmo
 
 
 function SWEP:CreateProjectile( pos, _dir )
-    local models = self.Primary.ProjectileModels
-    local ent = ents.Create( "prop_physics" )
+    local ent = ents.Create( "cfc_rotten_tomato_projectile" )
     ent:SetPos( pos )
     ent:SetAngles( Angle( math.Rand( -180, 180 ), math.Rand( -180, 180 ), math.Rand( -180, 180 ) ) )
-    ent:SetModel( models[math.random( 1, #models )] )
-    ent:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
-    ent:SetOwner( self:GetOwner() )
     ent:Spawn()
-    ent:SetPhysicsAttacker( self:GetOwner(), 1000 )
-
-    local mass = self.Primary.ProjectileMass
-    local physObj = ent:GetPhysicsObject()
-
-    if mass > 0 and IsValid( physObj ) then
-        physObj:SetMass( mass )
-    end
+    ent:SetMaterial( "models/weapons/cfc/tomato" )
+    ent:SetOwner( self:GetOwner() )
+    ent:SetCreator( self:GetOwner() )
+    ent:SetThrower( self:GetOwner() )
 
     return ent
+end
+
+function SWEP:DetermineProjectileVelocity( _ent, dir, speed, owner )
+    local vel = dir * speed + owner:GetVelocity()
+    local angVel = Vector(
+        0,
+        ( math.random( 0, 1 ) == 1 and 1 or -1 ) * math.random( 600, 1200 ),
+        ( math.random( 0, 1 ) == 1 and 1 or -1 ) * math.random( 600, 1200 )
+    )
+
+    return vel, angVel
+end
+
+function SWEP:Initialize()
+    BaseClass.Initialize( self )
+
+    self:SetColor( Color( 255, 0, 0, 255 ) )
+end
+
+
+if CLIENT then
+    function SWEP:PreDrawViewModel( vm, ... )
+        BaseClass.PreDrawViewModel( self, vm, ... )
+
+        vm:SetMaterial( "models/weapons/v_models/cfc_tomato_blaster/rocket_launcher_sheet" )
+    end
+
+    function SWEP:PostDrawViewModel( vm )
+        vm:SetMaterial( "" )
+    end
 end
