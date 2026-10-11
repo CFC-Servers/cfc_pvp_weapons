@@ -74,6 +74,12 @@ SWEP.Primary = {
 
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
 
+    local gunMat = Material( "models/weapons/v_models/cfc_bonk_rifle/bonkriflerevised" )
+
+    function SWEP:PreDrawViewModel()
+        render.MaterialOverrideByIndex( 0, gunMat )
+
+    end
 
 -- Scope base exclusive variables
 SWEP.ScopeZoom = 10 -- A number (or table) containing the zoom levels the weapon can cycle through
