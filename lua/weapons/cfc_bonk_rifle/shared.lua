@@ -52,7 +52,7 @@ SWEP.Primary = {
     Range = 7000, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
     Accuracy = 3, -- The reference value to use for the previous option, 12 = headshots, 24 = bodyshots
     UnscopedAccuracy = 675, -- The accuracy of the weapon when not scoped
-    MinEffectiveRange = 1250, -- Damage ramps up from zero to full at this distance
+    MinEffectiveRange = 1750, -- Damage ramps up from zero to full at this distance
     RangeModifier = 1, -- The damage multiplier applied for every 1000 units a bullet travels, e.g. 0.85 for 2000 units = 0.85 * 0.85 = 72% of original damage
 
     Recoil = {
