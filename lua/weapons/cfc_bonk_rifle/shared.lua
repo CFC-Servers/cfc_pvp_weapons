@@ -77,8 +77,24 @@ SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmo
     local gunMat = Material( "models/weapons/v_models/cfc_bonk_rifle/bonkriflerevised" )
 
     function SWEP:PreDrawViewModel()
-        render.MaterialOverrideByIndex( 0, gunMat )
+        if self:GetScopeIndex() ~= 0 then
+            render.MaterialOverrideByIndex( 0, nil )
+            return true
+        end
 
+        render.MaterialOverrideByIndex( 0, gunMat )
+    end
+
+    function SWEP:PostDrawViewModel()
+        render.MaterialOverrideByIndex( 0, nil )
+    end
+
+    local worldMat = Material( "models/weapons/w_models/cfc_bonk_rifle/bonkriflerevised" )
+
+    function SWEP:DrawWorldModel()
+        render.MaterialOverrideByIndex( 0, worldMat )
+        self:DrawModel()
+        render.MaterialOverrideByIndex( 0, nil )
     end
 
 -- Scope base exclusive variables
