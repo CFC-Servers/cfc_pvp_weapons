@@ -7,7 +7,8 @@ SWEP.Base = "cfc_simple_base_scoped"
 
 SWEP.PrintName = "Bonk Rifle"
 SWEP.Category = "CFC"
-
+SWEP.Author = "Ze"
+SWEP.Instructions = "A scoped alternative to the Bonk Shotgun. Optimized for counter-sniping, anti-airborne personnel engagements, and combo attacks. Don't try this at close range."
 
 SWEP.Slot = 4
 SWEP.Spawnable = true
@@ -48,9 +49,10 @@ SWEP.Primary = {
     BurstDelay = 60 / 1200, -- Burst only: the delay between shots during a burst
     BurstEndDelay = 0.4, -- Burst only: the delay added after a burst
 
-    Range = 3750, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
+    Range = 7000, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
     Accuracy = 3, -- The reference value to use for the previous option, 12 = headshots, 24 = bodyshots
     UnscopedAccuracy = 675, -- The accuracy of the weapon when not scoped
+    MinEffectiveRange = 1250, -- Damage ramps up from zero to full at this distance
     RangeModifier = 1, -- The damage multiplier applied for every 1000 units a bullet travels, e.g. 0.85 for 2000 units = 0.85 * 0.85 = 72% of original damage
 
     Recoil = {
@@ -73,6 +75,33 @@ SWEP.Primary = {
 }
 
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
+SWEP.RunSightsPos = Vector( -2.3095, -3.0514, 2.3965 )
+SWEP.RunSightsAng = Angle( -19.8471, -33.9181, 10 )
+
+if CLIENT then
+    local ZERO_ANGLE = Angle( 0, 0, 0 )
+
+    function SWEP:GetViewModelPosition( pos, ang )
+        local owner = self:GetOwner()
+        local sprinting = IsValid( owner ) and owner:IsPlayer() and owner:KeyDown( IN_SPEED )
+        local target = sprinting and 1 or 0
+
+        self.SprintPoseBlend = math.Approach( self.SprintPoseBlend or 0, target, FrameTime() * 10 )
+        local blend = self.SprintPoseBlend
+
+        pos, ang = LocalToWorld( self.ViewOffset, ZERO_ANGLE, pos, ang )
+
+        ang:RotateAroundAxis( ang:Right(), self.RunSightsAng.p * blend )
+        ang:RotateAroundAxis( ang:Up(), self.RunSightsAng.y * blend )
+        ang:RotateAroundAxis( ang:Forward(), self.RunSightsAng.r * blend )
+
+        pos = pos + self.RunSightsPos.x * blend * ang:Right()
+        pos = pos + self.RunSightsPos.y * blend * ang:Forward()
+        pos = pos + self.RunSightsPos.z * blend * ang:Up()
+
+        return pos, ang
+    end
+end
 
     local gunMat = Material( "models/weapons/v_models/cfc_bonk_rifle/bonkriflerevised" )
 
@@ -146,6 +175,48 @@ SWEP.Bonk = {
 }
 
 
+function SWEP:GetDamageFalloff( distance )
+    local falloff = BaseClass.GetDamageFalloff( self, distance )
+    local minRange = self.Primary.MinEffectiveRange
+
+    if minRange > 0 and distance < minRange then
+        falloff = falloff * ( distance / minRange )
+    end
+
+    return falloff
+end
+
+function SWEP:CanPrimaryFire()
+    local owner = self:GetOwner()
+
+    if IsValid( owner ) and owner:IsPlayer() and owner:KeyDown( IN_SPEED ) then
+        return false
+    end
+
+    return BaseClass.CanPrimaryFire( self )
+end
+
+function SWEP:CanAltFire()
+    local owner = self:GetOwner()
+
+    if IsValid( owner ) and owner:IsPlayer() and owner:KeyDown( IN_SPEED ) then
+        return false
+    end
+
+    return BaseClass.CanAltFire( self )
+end
+
+function SWEP:Think()
+    BaseClass.Think( self )
+
+    local owner = self:GetOwner()
+    if not IsValid( owner ) or not owner:IsPlayer() then return end
+    if not owner:KeyDown( IN_SPEED ) or self:GetScopeIndex() == 0 then return end
+
+    self:SetScopeIndex( 0 )
+    self:UpdateFOV( 0.2 )
+end
+
 if CLIENT then
     function SWEP:FireWeapon()
         local ply = self:GetOwner()
@@ -164,7 +235,6 @@ if CLIENT then
 
     return
 end
-
 
 -- Call immediately before firing bullets.
 -- Collects separate damage events together.
