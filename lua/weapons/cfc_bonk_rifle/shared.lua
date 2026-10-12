@@ -44,20 +44,20 @@ SWEP.Primary = {
     PumpAction = true, -- Optional: Tries to pump the weapon between shots
     PumpSound = "Weapon_Shotgun.Special1", -- Optional: Sound to play when pumping
 
-    Delay = 60 / 450, -- Delay between shots, use 60 / x for RPM (Rounds per minute) values
+    Delay = 60 / 390, -- Delay between shots, use 60 / x for RPM (Rounds per minute) values
     BurstDelay = 60 / 1200, -- Burst only: the delay between shots during a burst
     BurstEndDelay = 0.4, -- Burst only: the delay added after a burst
 
     Range = 3750, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
     Accuracy = 3, -- The reference value to use for the previous option, 12 = headshots, 24 = bodyshots
-
+    UnscopedAccuracy = 675, -- The accuracy of the weapon when not scoped
     RangeModifier = 1, -- The damage multiplier applied for every 1000 units a bullet travels, e.g. 0.85 for 2000 units = 0.85 * 0.85 = 72% of original damage
 
     Recoil = {
         MinAng = Angle( 1, -0.3, 0 ), -- The minimum amount of recoil punch per shot
-        MaxAng = Angle( 1.2, 0.3, 0 ), -- The maximum amount of recoil punch per shot
-        Punch = 0.2, -- The percentage of recoil added to the player's view angles, if set to 0 a player's view will always reset to the exact point they were aiming at
-        Ratio = 0.4 -- The percentage of recoil that's translated into the viewmodel, higher values cause bullets to end up above the crosshair
+        MaxAng = Angle( 2.3, 0.6, 0 ), -- The maximum amount of recoil punch per shot
+        Punch = 0.7, -- The percentage of recoil added to the player's view angles, if set to 0 a player's view will always reset to the exact point they were aiming at
+        Ratio = 0.5 -- The percentage of recoil that's translated into the viewmodel, higher values cause bullets to end up above the crosshair
     },
 
     Reload = {
@@ -136,9 +136,9 @@ SWEP.Bonk = {
     PropForceMult = 30, -- Multiplier against dmgForce when shooting props.
     AirShotsRefundAmmo = 0, -- Ammo refunded when shooting a midair, currently bonked target. Requires ImpactEnabled to be true.
     ImpactEnabled = true, -- If enabled, victims will take damage upon impacting a surface after getting bonked. This is also what enables tracking of the 'bonk status' of victims.
-        ImpactDamageMult = 12 / 20000,
+        ImpactDamageMult = 25 / 20000,
         ImpactDamageMin = 5,
-        ImpactDamageMax = 60,
+        ImpactDamageMax = 175,
     SelfForce = Vector( 400, 250, 600 ), -- Self-knockback when shooting while in the air. False to disable this and SelfDamage.
         SelfDamage = 13, -- Damage dealt to self when shooting while in the air. 0 to not deal any damage.
         SelfForceOnGround = false, -- If true, will apply self force even while on the ground.
