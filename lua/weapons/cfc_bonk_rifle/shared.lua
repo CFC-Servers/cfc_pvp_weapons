@@ -12,7 +12,7 @@ SWEP.Instructions = "A scoped alternative to the Bonk Shotgun. Optimized for cou
 
 SWEP.CFC_FirstTimeHints = {
     {
-        Message = "This weapon grows more powerful the further you are from the target. Keep your distance and use the scope.",
+        Message = "The Bonk Rifle grows more powerful the further you are from the target. Keep your distance and use the scope.",
         Sound = "ambient/water/drip1.wav",
         Duration = 8,
         DelayNext = 5,
@@ -83,7 +83,7 @@ SWEP.Primary = {
     Count = 1, -- Optional: Shots fired per shot
 
     PumpAction = true, -- Optional: Tries to pump the weapon between shots
-    PumpSound = "Weapon_Shotgun.Special1", -- Optional: Sound to play when pumping
+    PumpSound = "", -- Optional: Sound to play when pumping
 
     Delay = 60 / 390, -- Delay between shots, use 60 / x for RPM (Rounds per minute) values
     BurstDelay = 60 / 1200, -- Burst only: the delay between shots during a burst
@@ -106,86 +106,13 @@ SWEP.Primary = {
         Time = 3.15, -- Optional: The time it takes for the weapon to reload (only supports non-shotgun reloads, defaults to animation duration)
         Amount = 2, -- Optional: Amount of ammo to reload per reload
         Shotgun = false, -- Optional: Interruptable shotgun reloads
-        Sound = "Weapon_Shotgun.Reload" -- Optional: Sound to play when starting a reload
+        Sound = "weapons/7615p/sg550_clipin.ogg" -- Optional: Sound to play when starting a reload
     },
 
     Sound = "Airboat.FireGunHeavy", -- Firing sound
     TracerName = "AirboatGunHeavyTracer", -- Tracer effect, leave blank for no tracer
     TracerFrequency = 1,
 }
-
-SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
-SWEP.RunSightsPos = Vector( -2.3095, -3.0514, 2.3965 )
-SWEP.RunSightsAng = Angle( -19.8471, -33.9181, 10 )
-
-if CLIENT then
-    local ZERO_ANGLE = Angle( 0, 0, 0 )
-
-    function SWEP:GetViewModelPosition( pos, ang )
-        local owner = self:GetOwner()
-        local sprinting = IsValid( owner ) and owner:IsPlayer() and owner:KeyDown( IN_SPEED )
-        local target = sprinting and 1 or 0
-
-        self.SprintPoseBlend = math.Approach( self.SprintPoseBlend or 0, target, FrameTime() * 10 )
-        local blend = self.SprintPoseBlend
-
-        pos, ang = LocalToWorld( self.ViewOffset, ZERO_ANGLE, pos, ang )
-
-        ang:RotateAroundAxis( ang:Right(), self.RunSightsAng.p * blend )
-        ang:RotateAroundAxis( ang:Up(), self.RunSightsAng.y * blend )
-        ang:RotateAroundAxis( ang:Forward(), self.RunSightsAng.r * blend )
-
-        pos = pos + self.RunSightsPos.x * blend * ang:Right()
-        pos = pos + self.RunSightsPos.y * blend * ang:Forward()
-        pos = pos + self.RunSightsPos.z * blend * ang:Up()
-
-        return pos, ang
-    end
-end
-
-    local gunMat = Material( "models/weapons/v_models/cfc_bonk_rifle/bonkriflerevised" )
-
-    function SWEP:PreDrawViewModel()
-        if self:GetScopeIndex() ~= 0 then
-            render.MaterialOverrideByIndex( 0, nil )
-            return true
-        end
-
-        render.MaterialOverrideByIndex( 0, gunMat )
-    end
-
-    function SWEP:PostDrawViewModel()
-        render.MaterialOverrideByIndex( 0, nil )
-    end
-
-    local worldMat = Material( "models/weapons/w_models/cfc_bonk_rifle/bonkriflerevised" )
-
-    function SWEP:DrawWorldModel()
-        render.MaterialOverrideByIndex( 0, worldMat )
-        self:DrawModel()
-        render.MaterialOverrideByIndex( 0, nil )
-    end
-
--- Scope base exclusive variables
-SWEP.ScopeZoom = 10 -- A number (or table) containing the zoom levels the weapon can cycle through
-SWEP.ScopeSound = "Default.Zoom" -- optional: Sound to play when cycling through zoom levels
-
-SWEP.UseScope = true -- Whether this weapon obeys the draw scopes option
-SWEP.HideInScope = true -- Whether the viewmodel should be hidden when a scope is being drawn
-
-
-function SWEP:EmitFireSound()
-    self:EmitSound( "weapons/shotgun/shotgun_fire6.wav", 80, 105, 0.6, CHAN_WEAPON )
-    self:EmitSound( "weapons/shotgun/shotgun_fire6.wav", 80, 110, 0.6, CHAN_AUTO )
-    self:EmitSound( "npc/scanner/scanner_nearmiss1.wav", 80, 110, 1, CHAN_AUTO )
-
-    timer.Create( "CFCBonkShotgun_CockSound_" .. self:EntIndex(), 0.3, 1, function()
-        if not IsValid( self ) then return end
-
-        self:EmitSound( "weapons/shotgun/shotgun_cock.wav", 70, 110, 0.4, CHAN_WEAPON )
-    end )
-end
-
 -- Bonk
 
 SWEP.Bonk = {
@@ -214,17 +141,89 @@ SWEP.Bonk = {
     DisableMovementDuration = 0.9, -- How long to disable movement for when bonked. Ends early on impact. 0 to disable.
 }
 
+SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
+SWEP.RunSightsPos = Vector( -2.3095, -3.0514, 2.3965 )
+SWEP.RunSightsAng = Angle( -19.8471, -33.9181, 10 )
+
+-- Scope base exclusive variables
+SWEP.ScopeZoom = 10 -- A number (or table) containing the scope levels the weapon uses.
+SWEP.ScopeSound = "Default.Zoom" -- optional: Sound to play when cycling through the scope
+
+SWEP.UseScope = true -- Whether this weapon obeys the draw scopes option
+SWEP.HideInScope = true -- Whether the viewmodel should be hidden when a scope is being drawn
+
+if CLIENT then
+    local ZERO_ANGLE = Angle( 0, 0, 0 )
+
+    function SWEP:GetViewModelPosition( pos, ang )
+        local owner = self:GetOwner()
+        local sprinting = IsValid( owner ) and owner:IsPlayer() and owner:KeyDown( IN_SPEED )
+        local target = sprinting and 1 or 0
+
+        self.SprintPoseBlend = math.Approach( self.SprintPoseBlend or 0, target, FrameTime() * 10 )
+        local blend = self.SprintPoseBlend
+
+        pos, ang = LocalToWorld( self.ViewOffset, ZERO_ANGLE, pos, ang )
+
+        ang:RotateAroundAxis( ang:Right(), self.RunSightsAng.p * blend )
+        ang:RotateAroundAxis( ang:Up(), self.RunSightsAng.y * blend )
+        ang:RotateAroundAxis( ang:Forward(), self.RunSightsAng.r * blend )
+
+        pos = pos + self.RunSightsPos.x * blend * ang:Right()
+        pos = pos + self.RunSightsPos.y * blend * ang:Forward()
+        pos = pos + self.RunSightsPos.z * blend * ang:Up()
+
+        return pos, ang
+    end
+
+    local gunMat = Material( "models/weapons/v_models/cfc_bonk_rifle/bonkriflerevised" )
+
+    function SWEP:PreDrawViewModel()
+        if self:GetScopeIndex() ~= 0 then
+            render.MaterialOverrideByIndex( 0, nil )
+            return true
+        end
+
+        render.MaterialOverrideByIndex( 0, gunMat )
+    end
+
+    function SWEP:PostDrawViewModel()
+        render.MaterialOverrideByIndex( 0, nil )
+    end
+
+    local worldMat = Material( "models/weapons/w_models/cfc_bonk_rifle/bonkriflerevised" )
+
+    function SWEP:DrawWorldModel()
+        render.MaterialOverrideByIndex( 0, worldMat )
+        self:DrawModel()
+        render.MaterialOverrideByIndex( 0, nil )
+    end
+end
+
+function SWEP:EmitFireSound()
+    self:EmitSound( "weapons/g2contender/scout-2.ogg", 100, 110, 0.6, CHAN_WEAPON )
+    self:EmitSound( "weapons/g2contender/scout-3.ogg", 120, 115, 0.6, CHAN_AUTO )
+    self:EmitSound( "npc/scanner/scanner_nearmiss1.wav", 85, 110, 1, CHAN_AUTO )
+    self:EmitSound( "npc/scanner/scanner_nearmiss1.wav", 85, 115, 1, CHAN_AUTO )
+end
+
+
 
 
 function SWEP:GetDamageFalloff( distance )
     local falloff = BaseClass.GetDamageFalloff( self, distance )
+
+    return falloff * self:GetEffectiveRangeFalloff( distance )
+end
+
+function SWEP:GetEffectiveRangeFalloff( distance )
     local minRange = self.Primary.MinEffectiveRange
 
-    if minRange > 0 and distance < minRange then
-        falloff = falloff * ( distance / minRange )
+    if minRange <= 0 or distance >= minRange then
+        return 1
     end
 
-    return falloff
+    return distance / minRange
 end
 
 function SWEP:CanPrimaryFire()
@@ -300,24 +299,6 @@ end
 
 function SWEP:FireWeapon()
     local owner = self:GetOwner()
-    if IsValid( owner ) and owner:IsPlayer()
-        and not owner._cfcPvPWeapons_BonkRifle_BonusHintsUnderstood
-        and owner:GetInfoNum( "cfc_pvp_weapons_bonk_rifle_bonus_hints_understood", 0 ) == 0 then
-        local nextBonusHintTime = owner._cfcPvPWeapons_BonkRifle_NextBonusHintTime or 0
-
-        if CurTime() >= nextBonusHintTime then
-            owner._cfcPvPWeapons_BonkRifle_NextBonusHintTime = CurTime() + bonusHintCooldown
-
-            timer.Simple( 0, function()
-                if not IsValid( owner ) then return end
-                if owner._cfcPvPWeapons_BonkRifle_BonusHintsUnderstood then return end
-                if owner:GetInfoNum( "cfc_pvp_weapons_bonk_rifle_bonus_hints_understood", 0 ) == 1 then return end
-
-                net.Start( "CFC_PvPWeapons_BonkRifle_PlayBonusHints" )
-                net.Send( owner )
-            end )
-        end
-    end
 
     local selfForce = self.Bonk.SelfForce
     if not selfForce then return BaseClass.FireWeapon( self ) end
@@ -356,6 +337,39 @@ function SWEP:FireWeapon()
     self:CollectBonkHits()
     BaseClass.FireWeapon( self )
     self:ApplyBonkHits()
+end
+
+function SWEP:BulletCallback( attacker, tr, _dmgInfo )
+    if not IsValid( attacker ) or not attacker:IsPlayer() or not attacker:Alive() then return end
+
+    local target = tr.Entity
+    if not IsValid( target ) or ( not target:IsPlayer() and not target:IsNPC() ) or target == attacker then return end
+
+    local distance = tr.StartPos:Distance( tr.HitPos )
+    self:TryBonusHint( distance )
+end
+
+function SWEP:TryBonusHint( distance )
+    if self:GetEffectiveRangeFalloff( distance ) >= 0.5 then return end
+
+    local owner = self:GetOwner()
+    if not IsValid( owner ) or not owner:IsPlayer() then return end
+    if owner._cfcPvPWeapons_BonkRifle_BonusHintsUnderstood
+        or owner:GetInfoNum( "cfc_pvp_weapons_bonk_rifle_bonus_hints_understood", 0 ) ~= 0 then return end
+
+    local nextBonusHintTime = owner._cfcPvPWeapons_BonkRifle_NextBonusHintTime or 0
+    if CurTime() < nextBonusHintTime then return end
+
+    owner._cfcPvPWeapons_BonkRifle_NextBonusHintTime = CurTime() + bonusHintCooldown
+
+    timer.Simple( 0, function()
+        if not IsValid( owner ) then return end
+        if owner._cfcPvPWeapons_BonkRifle_BonusHintsUnderstood then return end
+        if owner:GetInfoNum( "cfc_pvp_weapons_bonk_rifle_bonus_hints_understood", 0 ) ~= 0 then return end
+
+        net.Start( "CFC_PvPWeapons_BonkRifle_PlayBonusHints" )
+        net.Send( owner )
+    end )
 end
 
 hook.Add( "DoPlayerDeath", "CFC_PvPWeapons_BonkRifle_UnderstandBonusHints", function( victim, attacker, dmgInfo )

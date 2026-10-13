@@ -132,8 +132,9 @@ function SWEP:HandleBullets()
         Tracer = primary.TracerName == "" and 0 or primary.TracerFrequency,
         Force = damage * 0.25,
         Damage = damage,
-        Callback = function( _attacker, tr, dmg )
+        Callback = function( attacker, tr, dmg )
             dmg:ScaleDamage( self:GetDamageFalloff( tr.StartPos:Distance( tr.HitPos ) ) )
+            self:BulletCallback( attacker, tr, dmg )
         end,
     }
 
@@ -184,6 +185,9 @@ end
 -- Allows the bullet table to be modified.
 -- If you add `DontShoot = true` to the table, the bullet will not be fired.
 function SWEP:ModifyBulletTable( _bullet )
+end
+
+function SWEP:BulletCallback( _attacker, _tr, _dmgInfo )
 end
 
 function SWEP:ShouldPump()
