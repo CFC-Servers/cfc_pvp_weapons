@@ -171,6 +171,7 @@ if CLIENT then
         self:DrawModel()
         render.MaterialOverrideByIndex( 0, nil )
     end
+end
 
 
 function SWEP:EmitFireSound()
