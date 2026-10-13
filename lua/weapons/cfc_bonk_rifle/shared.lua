@@ -13,6 +13,7 @@ SWEP.Instructions = "A scoped alternative to the Bonk Shotgun. Optimized for cou
 SWEP.CFC_FirstTimeHints = {
     {
         Message = "The Bonk Rifle grows more powerful the further you are from the target. Keep your distance and use the scope.",
+        Message = "The Bonk Rifle grows more powerful the further you are from the target. Keep your distance and use the scope.",
         Sound = "ambient/water/drip1.wav",
         Duration = 8,
         DelayNext = 5,
@@ -174,6 +175,7 @@ if CLIENT then
         pos = pos + self.RunSightsPos.z * blend * ang:Up()
 
         return pos, ang
+    end
     end
 
     local gunMat = Material( "models/weapons/v_models/cfc_bonk_rifle/bonkriflerevised" )
