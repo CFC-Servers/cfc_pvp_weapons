@@ -118,6 +118,13 @@ SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmo
 SWEP.RunSightsPos = Vector( -2.3095, -3.0514, 2.3965 )
 SWEP.RunSightsAng = Angle( -19.8471, -33.9181, 10 )
 
+-- Scope base exclusive variables
+SWEP.ScopeZoom = 10 -- A number (or table) containing the zoom levels the weapon can cycle through
+SWEP.ScopeSound = "Default.Zoom" -- optional: Sound to play when cycling through zoom levels
+
+SWEP.UseScope = true -- Whether this weapon obeys the draw scopes option
+SWEP.HideInScope = true -- Whether the viewmodel should be hidden when a scope is being drawn
+
 if CLIENT then
     local ZERO_ANGLE = Angle( 0, 0, 0 )
 
