@@ -148,7 +148,6 @@ if CLIENT then
 
         return pos, ang
     end
-end
 
     local gunMat = Material( "models/weapons/v_models/cfc_bonk_rifle/bonkriflerevised" )
 
