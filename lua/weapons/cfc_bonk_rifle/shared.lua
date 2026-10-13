@@ -10,6 +10,46 @@ SWEP.Category = "CFC"
 SWEP.Author = "Ze"
 SWEP.Instructions = "A scoped alternative to the Bonk Shotgun. Optimized for counter-sniping, anti-airborne personnel engagements, and combo attacks. Don't try this at close range."
 
+SWEP.CFC_FirstTimeHints = {
+    {
+        Message = "This weapon grows more powerful the further you are from the target. Keep your distance and use the scope.",
+        Sound = "ambient/water/drip1.wav",
+        Duration = 8,
+        DelayNext = 5,
+    },
+    {
+        Message = "Firing while airborne launches you backward. Aim down to boost yourself upward, but beware of the self-damage.",
+        Sound = "ambient/water/drip2.wav",
+        Duration = 10,
+        DelayNext = 6,
+    },
+    {
+        Message = "Sucessful hits deal immense knockback to your target, try to hit them into walls or off ledges for extra damage.",
+        Sound = "ambient/water/drip1.wav",
+        Duration = 10,
+        DelayNext = 0,
+    },
+}
+
+local bonusHintCooldown = 20
+local bonusHints = {
+    {
+        Message = "Make sure to keep your distance from your target. The Bonk Rifle is a long-range weapon, and will deal less damage the closer you are.",
+        Sound = "ambient/water/drip1.wav",
+        Duration = 8,
+        DelayNext = 0,
+    },
+}
+
+local BONUS_HINTS_UNDERSTOOD
+
+if SERVER then
+    util.AddNetworkString( "CFC_PvPWeapons_BonkRifle_PlayBonusHints" )
+    util.AddNetworkString( "CFC_PvPWeapons_BonkRifle_UnderstandBonusHints" )
+else
+    BONUS_HINTS_UNDERSTOOD = CreateClientConVar( "cfc_pvp_weapons_bonk_rifle_bonus_hints_understood", "0", true, true, "", 0, 1 )
+end
+
 SWEP.Slot = 4
 SWEP.Spawnable = true
 
@@ -52,7 +92,7 @@ SWEP.Primary = {
     Range = 7000, -- The range at which the weapon can hit a plate with a diameter of <Accuracy> units
     Accuracy = 3, -- The reference value to use for the previous option, 12 = headshots, 24 = bodyshots
     UnscopedAccuracy = 675, -- The accuracy of the weapon when not scoped
-    MinEffectiveRange = 1750, -- Damage ramps up from zero to full at this distance
+    MinEffectiveRange = 3000, -- Damage ramps up from zero to full at this distance
     RangeModifier = 1, -- The damage multiplier applied for every 1000 units a bullet travels, e.g. 0.85 for 2000 units = 0.85 * 0.85 = 72% of original damage
 
     Recoil = {
@@ -151,7 +191,7 @@ end
 SWEP.Bonk = {
     Enabled = true, -- Enables bonking.
     PlayerForce = 900, -- Soft-maximum launch strength for when all bullets hit, assuming no special hitgroups (e.g. only hit the chest).
-        PlayerForceAdd = 100, -- Flat addition to the launch strength, after the multiplier is applied.
+        PlayerForceAdd = 150, -- Flat addition to the launch strength, after the multiplier is applied.
         PlayerForceMultMax = 1, -- Damage mult (normal is 1) cannot exceed this value (otherwise could have massive launches from headshots, etc.).
         PlayerForceComboMult = 3, -- Multiplies against force strength if the victim is currently in a bonk state. Requires ImpactEnabled to be true.
         PlayerForceGroundPitchMin = 25, -- The minimum launch pitch when on the ground.
@@ -165,14 +205,15 @@ SWEP.Bonk = {
     PropForceMult = 30, -- Multiplier against dmgForce when shooting props.
     AirShotsRefundAmmo = 0, -- Ammo refunded when shooting a midair, currently bonked target. Requires ImpactEnabled to be true.
     ImpactEnabled = true, -- If enabled, victims will take damage upon impacting a surface after getting bonked. This is also what enables tracking of the 'bonk status' of victims.
-        ImpactDamageMult = 25 / 20000,
+        ImpactDamageMult = 20 / 20000,
         ImpactDamageMin = 5,
-        ImpactDamageMax = 175,
+        ImpactDamageMax = 150,
     SelfForce = Vector( 400, 250, 600 ), -- Self-knockback when shooting while in the air. False to disable this and SelfDamage.
         SelfDamage = 13, -- Damage dealt to self when shooting while in the air. 0 to not deal any damage.
         SelfForceOnGround = false, -- If true, will apply self force even while on the ground.
     DisableMovementDuration = 0.9, -- How long to disable movement for when bonked. Ends early on impact. 0 to disable.
 }
+
 
 
 function SWEP:GetDamageFalloff( distance )
@@ -233,6 +274,16 @@ if CLIENT then
         BaseClass.FireWeapon( self )
     end
 
+    net.Receive( "CFC_PvPWeapons_BonkRifle_PlayBonusHints", function()
+        if BONUS_HINTS_UNDERSTOOD:GetBool() then return end
+
+        CFCPvPWeapons.PlayHints( bonusHints )
+    end )
+
+    net.Receive( "CFC_PvPWeapons_BonkRifle_UnderstandBonusHints", function()
+        BONUS_HINTS_UNDERSTOOD:SetBool( true )
+    end )
+
     return
 end
 
@@ -248,10 +299,30 @@ function SWEP:ApplyBonkHits()
 end
 
 function SWEP:FireWeapon()
+    local owner = self:GetOwner()
+    if IsValid( owner ) and owner:IsPlayer()
+        and not owner._cfcPvPWeapons_BonkRifle_BonusHintsUnderstood
+        and owner:GetInfoNum( "cfc_pvp_weapons_bonk_rifle_bonus_hints_understood", 0 ) == 0 then
+        local nextBonusHintTime = owner._cfcPvPWeapons_BonkRifle_NextBonusHintTime or 0
+
+        if CurTime() >= nextBonusHintTime then
+            owner._cfcPvPWeapons_BonkRifle_NextBonusHintTime = CurTime() + bonusHintCooldown
+
+            timer.Simple( 0, function()
+                if not IsValid( owner ) then return end
+                if owner._cfcPvPWeapons_BonkRifle_BonusHintsUnderstood then return end
+                if owner:GetInfoNum( "cfc_pvp_weapons_bonk_rifle_bonus_hints_understood", 0 ) == 1 then return end
+
+                net.Start( "CFC_PvPWeapons_BonkRifle_PlayBonusHints" )
+                net.Send( owner )
+            end )
+        end
+    end
+
     local selfForce = self.Bonk.SelfForce
     if not selfForce then return BaseClass.FireWeapon( self ) end
 
-    local ply = self:GetOwner()
+    local ply = owner
     if not IsValid( ply ) or not ply:IsPlayer() then return BaseClass.FireWeapon( self ) end
 
     local onGround = ply:IsOnGround()
@@ -286,3 +357,17 @@ function SWEP:FireWeapon()
     BaseClass.FireWeapon( self )
     self:ApplyBonkHits()
 end
+
+hook.Add( "DoPlayerDeath", "CFC_PvPWeapons_BonkRifle_UnderstandBonusHints", function( victim, attacker, dmgInfo )
+    if victim == attacker then return end
+    if not IsValid( attacker ) or not attacker:IsPlayer() then return end
+    if attacker:GetInfoNum( "cfc_pvp_weapons_bonk_rifle_bonus_hints_understood", 0 ) == 1 then return end
+
+    local inflictor = dmgInfo:GetInflictor()
+    if not IsValid( inflictor ) or inflictor:GetClass() ~= "cfc_bonk_rifle" then return end
+
+    attacker._cfcPvPWeapons_BonkRifle_BonusHintsUnderstood = true
+
+    net.Start( "CFC_PvPWeapons_BonkRifle_UnderstandBonusHints" )
+    net.Send( attacker )
+end )
