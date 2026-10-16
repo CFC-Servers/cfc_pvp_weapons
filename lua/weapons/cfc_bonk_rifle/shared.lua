@@ -59,10 +59,8 @@ SWEP.UseHands = true -- If your viewmodel includes it's own hands (v_ model inst
 
 SWEP.ViewModelTargetFOV = 65
 SWEP.ViewModel = Model( "models/weapons/cfc_bonk_rifle/v_cfc_bonk_rifle.mdl" ) -- Weapon viewmodel, usually a c_ or v_ model
-
 SWEP.WorldModel = Model( "models/weapons/cfc_bonk_rifle/cfc_bonk_rifle.mdl" ) -- Weapon worldmodel, almost always a w_ model
 SWEP.ViewModelFlip = true
-
 SWEP.HoldType = "shotgun" -- https://wiki.facepunch.com/gmod/Hold_Types
 SWEP.CustomHoldType = {} -- Allows you to override any hold type animations with your own, uses [ACT_MP_STAND_IDLE] = ACT_HL2MP_IDLE_SHOTGUN formatting
 
