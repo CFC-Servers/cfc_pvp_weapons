@@ -58,9 +58,9 @@ SWEP.Spawnable = true
 SWEP.UseHands = true -- If your viewmodel includes it's own hands (v_ model instead of a c_ model), set this to false
 
 SWEP.ViewModelTargetFOV = 65
-SWEP.ViewModel = Model( "models/weapons/v_remington_7615p.mdl" ) -- Weapon viewmodel, usually a c_ or v_ model
+SWEP.ViewModel = Model( "models/weapons/cfc_bonk_rifle/v_cfc_bonk_rifle.mdl" ) -- Weapon viewmodel, usually a c_ or v_ model
 
-SWEP.WorldModel = Model( "models/weapons/w_remington_7615p.mdl" ) -- Weapon worldmodel, almost always a w_ model
+SWEP.WorldModel = Model( "models/weapons/cfc_bonk_rifle/cfc_bonk_rifle.mdl" ) -- Weapon worldmodel, almost always a w_ model
 SWEP.ViewModelFlip = true
 
 SWEP.HoldType = "shotgun" -- https://wiki.facepunch.com/gmod/Hold_Types
@@ -176,7 +176,7 @@ if CLIENT then
         return pos, ang
     end
 
-    local gunMat = Material( "models/weapons/v_models/cfc_bonk_rifle/bonkriflerevised" )
+    local gunMat = Material( "models/weapons/w_models/cfc_bonk_rifle/bonkriflerevised" )
 
     function SWEP:PreDrawViewModel()
         if self:GetScopeIndex() ~= 0 then

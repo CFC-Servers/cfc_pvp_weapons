@@ -1,6 +1,6 @@
 VertexLitGeneric
 {
-	"$baseTexture" "models/weapons/v_models/cfc_bonk_rifle/bonkriflerevised"
+	"$baseTexture" "models/weapons/w_models/cfc_bonk_rifle/bonkriflerevised"
 		"$envmap" "env_cubemap"
-	"$envmapmask" "models/weapons/v_models/remington_patrol_rifle\uv1_ref"
+	"$envmapmask" "models/weapons/w_models/cfc_bonk_rifle/bonkrifle_ref"
 }
