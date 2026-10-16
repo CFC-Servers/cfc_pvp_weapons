@@ -207,9 +207,6 @@ function SWEP:EmitFireSound()
     self:EmitSound( "npc/scanner/scanner_nearmiss1.wav", 85, 115, 1, CHAN_AUTO )
 end
 
-
-
-
 function SWEP:GetDamageFalloff( distance )
     local falloff = BaseClass.GetDamageFalloff( self, distance )
 
