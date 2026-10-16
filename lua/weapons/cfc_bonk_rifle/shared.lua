@@ -13,7 +13,6 @@ SWEP.Instructions = "A scoped alternative to the Bonk Shotgun. Optimized for cou
 SWEP.CFC_FirstTimeHints = {
     {
         Message = "The Bonk Rifle grows more powerful the further you are from the target. Keep your distance and use the scope.",
-        Message = "The Bonk Rifle grows more powerful the further you are from the target. Keep your distance and use the scope.",
         Sound = "ambient/water/drip1.wav",
         Duration = 8,
         DelayNext = 5,
