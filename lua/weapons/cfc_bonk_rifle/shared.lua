@@ -175,36 +175,13 @@ if CLIENT then
 
         return pos, ang
     end
-
-    local gunMat = Material( "models/weapons/w_models/cfc_bonk_rifle/bonkriflerevised" )
-
-    function SWEP:PreDrawViewModel()
-        if self:GetScopeIndex() ~= 0 then
-            render.MaterialOverrideByIndex( 0, nil )
-            return true
-        end
-
-        render.MaterialOverrideByIndex( 0, gunMat )
-    end
-
-    function SWEP:PostDrawViewModel()
-        render.MaterialOverrideByIndex( 0, nil )
-    end
-
-    local worldMat = Material( "models/weapons/w_models/cfc_bonk_rifle/bonkriflerevised" )
-
-    function SWEP:DrawWorldModel()
-        render.MaterialOverrideByIndex( 0, worldMat )
-        self:DrawModel()
-        render.MaterialOverrideByIndex( 0, nil )
-    end
 end
 
 function SWEP:EmitFireSound()
-    self:EmitSound( "weapons/g2contender/scout-2.ogg", 100, 110, 0.6, CHAN_WEAPON )
-    self:EmitSound( "weapons/g2contender/scout-3.ogg", 120, 115, 0.6, CHAN_AUTO )
+    self:EmitSound( "weapons/shotgun/shotgun_fire6.wav", 85, 110, 0.35, CHAN_WEAPON )
+    self:EmitSound( "weapons/ar2/ar2_altfire.wav", 85, 90, 1, CHAN_AUTO )
+    self:EmitSound( "weapons/ar2/ar2_altfire.wav", 85, 120, 1, CHAN_AUTO )
     self:EmitSound( "npc/scanner/scanner_nearmiss1.wav", 85, 110, 1, CHAN_AUTO )
-    self:EmitSound( "npc/scanner/scanner_nearmiss1.wav", 85, 115, 1, CHAN_AUTO )
 end
 
 function SWEP:GetDamageFalloff( distance )
