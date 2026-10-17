@@ -9,3 +9,7 @@ sound.Add( { name = "Weapon_cfc_gamblers_revolver.bulletsin", channel = CHAN_ITE
 sound.Add( { name = "Weapon_cfc_gamblers_revolver.bulletsout", channel = CHAN_ITEM, volume = 1, sound = "weapons/cfc_gamblers_revolver/bulletsout.ogg" } )
 sound.Add( { name = "Weapon_cfc_gamblers_revolver.point_at_self", channel = CHAN_ITEM, volume = 1, pitch = 120, sound = "ambient/materials/cartrap_rope2.wav" } )
 sound.Add( { name = "Weapon_cfc_gamblers_revolver.point_away", channel = CHAN_ITEM, volume = 1, sound = "ambient/materials/metal_stress3.wav" } )
+
+sound.Add( { name = "CFCBonkRifle.ClipIn", channel = CHAN_ITEM + 1, volume = 1, sound = "weapons/cfc_bonk_rifle/bonk_rifle_clipin.ogg" } )
+sound.Add( { name = "CFCBonkRifle.ClipOut", channel = CHAN_ITEM, volume = 1, sound = "weapons/cfc_bonk_rifle/bonk_rifle_clipout.ogg" } )
+sound.Add( { name = "CFCBonkRifle.Pump", channel = CHAN_ITEM, volume = 1, sound = "weapons/cfc_bonk_rifle/bonk_rifle_pump.ogg" } )

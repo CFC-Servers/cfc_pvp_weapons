@@ -104,7 +104,7 @@ SWEP.Primary = {
         Time = 3.15, -- Optional: The time it takes for the weapon to reload (only supports non-shotgun reloads, defaults to animation duration)
         Amount = 2, -- Optional: Amount of ammo to reload per reload
         Shotgun = false, -- Optional: Interruptable shotgun reloads
-        Sound = "weapons/7615p/sg550_clipin.ogg" -- Optional: Sound to play when starting a reload
+        Sound = "weapons/cfc_bonk_rifle/bonk_rifle_clipin.ogg" -- Optional: Sound to play when starting a reload
     },
 
     Sound = "Airboat.FireGunHeavy", -- Firing sound
