@@ -138,6 +138,18 @@ function SWEP:FireWeapon()
 
     local onGround = ply:IsOnGround()
 
+    -- If in buildmode, do self-knockback and sounds, but no bullets
+    if ply.IsInBuild and ply:IsInBuild() then
+        self:EmitFireSound()
+        self:SendTranslatedWeaponAnim( ACT_VM_PRIMARYATTACK )
+        ply:SetAnimation( PLAYER_ATTACK1 )
+    else
+        -- Fire bullets before doing self-knockback so we don't break prediction
+        self:CollectBonkHits()
+        BaseClass.FireWeapon( self )
+        self:ApplyBonkHits()
+    end
+
     -- Self-knockback and self-damage when shooting while in the air
     if self.Bonk.SelfForceOnGround or not onGround then
         local dir = -ply:GetAimVector()
@@ -154,17 +166,4 @@ function SWEP:FireWeapon()
             ply:EmitSound( "physics/body/body_medium_impact_soft" .. math.random( 1, 7 ) .. ".wav", 85 )
         end
     end
-
-    -- If in buildmode, do self-knockback and sounds, but no bullets
-    if ply.IsInBuild and ply:IsInBuild() then
-        self:EmitFireSound()
-        self:SendTranslatedWeaponAnim( ACT_VM_PRIMARYATTACK )
-        ply:SetAnimation( PLAYER_ATTACK1 )
-
-        return
-    end
-
-    self:CollectBonkHits()
-    BaseClass.FireWeapon( self )
-    self:ApplyBonkHits()
 end
