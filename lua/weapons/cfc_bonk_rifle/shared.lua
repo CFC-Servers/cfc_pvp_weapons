@@ -232,7 +232,7 @@ function SWEP:Think()
 end
 
 function SWEP:FireWeapon()
-    return bonkBase.FireWeapon( self )
+    return bonkBase.FireWeapon( self ) -- NOTE: When testing, won't work with autorefresh if the base FireWeapon is changed
 end
 
 if CLIENT then
