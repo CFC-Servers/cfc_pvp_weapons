@@ -12,7 +12,6 @@ ENT.BeepDelayFast = 0.3
 ENT.BeepFastThreshold = 1.5
 
 ENT.Damage = 100 -- Doesn't actually deal damage, just used to compare against damage falloff for scaling the knockback.
-ENT.ParachuteDamageScale = 0.75 -- For every fake "Damage" dealt, deal this much damage to target's parachute ( if it's deployed )
 ENT.Radius = 300
 ENT.Knockback = 1000 * 40
 ENT.PlayerKnockback = 600
@@ -89,10 +88,6 @@ function ENT:Explode()
             CFCPvPWeapons.ArbitraryBonk( victim, attacker, wep )
         end
 
-        if victim.cfcParachuteChute and victim.cfcParachuteChute:GetIsOpen() then
-            local chuteDmg = damageDealt * self.ParachuteDamageScale
-            victim.cfcParachuteChute:ChuteTakeDamage( chuteDmg )
-        end
 
         return true
     end )

@@ -92,6 +92,7 @@ SWEP.Bonk = {
         ImpactDamageMin = 1,
         ImpactDamageMax = 10,
     DisableMovementDuration = 0.7, -- How long to disable movement for when bonked. Ends early on impact. 0 to disable.
+    ChuteDamage = 100, -- How much damage to deal to a parachute when bonked. 0 to disable.
 }
 
 

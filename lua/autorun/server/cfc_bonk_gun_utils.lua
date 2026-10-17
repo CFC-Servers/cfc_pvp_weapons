@@ -287,6 +287,13 @@ local function bonkPlayerOrNPC( attacker, victim, wep, force, comboCount )
     playBonkSound( victim )
     comboCount = comboCount + 1 -- +1 since this bonk doesn't add to the counter until the next tick
 
+    if wep.Bonk.ChuteDamage and victim.cfcParachuteChute then
+        local chute = victim.cfcParachuteChute
+        if chute:GetIsOpen() then
+            chute:ChuteTakeDamage( wep.Bonk.ChuteDamage )
+        end
+    end
+
     if not wep.Bonk.ImpactEnabled then return end
 
     if comboCount > 1 then
