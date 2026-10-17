@@ -84,7 +84,7 @@ SWEP.Primary = {
     PumpAction = true, -- Optional: Tries to pump the weapon between shots
     PumpSound = "", -- Optional: Sound to play when pumping
 
-    Delay = 60 / 390, -- Delay between shots, use 60 / x for RPM (Rounds per minute) values
+    Delay = 60 / 500, -- Delay between shots, use 60 / x for RPM (Rounds per minute) values (PumpAction still limits by sequence duration)
     BurstDelay = 60 / 1200, -- Burst only: the delay between shots during a burst
     BurstEndDelay = 0.4, -- Burst only: the delay added after a burst
 
