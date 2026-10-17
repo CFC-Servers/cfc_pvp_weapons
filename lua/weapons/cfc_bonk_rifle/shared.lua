@@ -137,6 +137,7 @@ SWEP.Bonk = {
         SelfDamage = 13, -- Damage dealt to self when shooting while in the air. 0 to not deal any damage.
         SelfForceOnGround = false, -- If true, will apply self force even while on the ground.
     DisableMovementDuration = 0.9, -- How long to disable movement for when bonked. Ends early on impact. 0 to disable.
+    ChuteDamage = 100, -- How much damage to deal to a parachute when bonked. 0 to disable.
 }
 
 SWEP.ViewOffset = Vector( 0, 0, 0 ) -- Optional: Applies an offset to the viewmodel's position
