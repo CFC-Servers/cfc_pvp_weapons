@@ -1,5 +1,6 @@
 AddCSLuaFile()
 
+local bonkBase = baseclass.Get( "cfc_bonk_gun_base" )
 DEFINE_BASECLASS( "cfc_simple_base_scoped" )
 SWEP.Base = "cfc_simple_base_scoped"
 
@@ -230,22 +231,11 @@ function SWEP:Think()
     self:UpdateFOV( 0.2 )
 end
 
+function SWEP:FireWeapon()
+    return bonkBase.FireWeapon( self )
+end
+
 if CLIENT then
-    function SWEP:FireWeapon()
-        local ply = self:GetOwner()
-
-        -- If in buildmode, do self-knockback and sounds, but no bullets
-        if ply.IsInBuild and ply:IsInBuild() then
-            self:EmitFireSound()
-            self:SendTranslatedWeaponAnim( ACT_VM_PRIMARYATTACK )
-            ply:SetAnimation( PLAYER_ATTACK1 )
-
-            return
-        end
-
-        BaseClass.FireWeapon( self )
-    end
-
     net.Receive( "CFC_PvPWeapons_BonkRifle_PlayBonusHints", function()
         if BONUS_HINTS_UNDERSTOOD:GetBool() then return end
 
@@ -268,47 +258,6 @@ end
 -- Call immediately after firing bullets, dealing damage, etc. If you delay by even one tick, it'll break things!
 function SWEP:ApplyBonkHits()
     CFCPvPWeapons.ApplyBonkHits( self )
-end
-
-function SWEP:FireWeapon()
-    local owner = self:GetOwner()
-
-    local selfForce = self.Bonk.SelfForce
-    if not selfForce then return BaseClass.FireWeapon( self ) end
-
-    local ply = owner
-    if not IsValid( ply ) or not ply:IsPlayer() then return BaseClass.FireWeapon( self ) end
-
-    local onGround = ply:IsOnGround()
-
-    -- If in buildmode, do self-knockback and sounds, but no bullets
-    if ply.IsInBuild and ply:IsInBuild() then
-        self:EmitFireSound()
-        self:SendTranslatedWeaponAnim( ACT_VM_PRIMARYATTACK )
-        ply:SetAnimation( PLAYER_ATTACK1 )
-    else
-        -- Fire bullets before doing self-knockback so we don't break prediction
-        self:CollectBonkHits()
-        BaseClass.FireWeapon( self )
-        self:ApplyBonkHits()
-    end
-
-    -- Self-knockback and self-damage when shooting while in the air
-    if self.Bonk.SelfForceOnGround or not onGround then
-        local dir = -ply:GetAimVector()
-
-        if onGround then
-            dir.z = math.max( dir.z, 0.5 )
-        end
-
-        ply:SetVelocity( dir * selfForce ) -- SetVelocity() when used on a player is additive
-
-        local selfDamage = self.Bonk.SelfDamage
-        if selfDamage > 0 then
-            ply:TakeDamage( selfDamage, ply, self )
-            ply:EmitSound( "physics/body/body_medium_impact_soft" .. math.random( 1, 7 ) .. ".wav", 85 )
-        end
-    end
 end
 
 function SWEP:BulletCallback( attacker, tr, _dmgInfo )
