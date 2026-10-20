@@ -21,7 +21,8 @@ function ENT:Initialize()
         self:SetOwner()
     end )
 
-    self:SetModelScale( self.ModelScale )
+    local scale = self.ModelScale
+    self:ManipulateBoneScale( 0, Vector( scale, scale, scale ) )
 end
 
 function ENT:PostHit( _hitEnt, pos, normal, _speed, _damageDealt, _actuallyDidDamage ) -- always runs when it hits something
